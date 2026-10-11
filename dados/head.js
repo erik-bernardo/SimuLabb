@@ -78,7 +78,7 @@ const headerHTML = `
 
         <nav class="nav-links">
             <a href="https://erik-bernardo.github.io/SimuLabb/sobre.html" class="nav-link">Sobre o Projeto</a>
-            <a href="https://erik-bernardo.github.io/SimuLabb/recursos.html" class="nav-link">Recursos</a>
+            <a href="https://erik-bernardo.github.io/SimuLabb/games.html" class="nav-link">Games</a>
             <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="nav-link main-action">ACESSAR CONTEÚDO</a>
         </nav>
     </header>
