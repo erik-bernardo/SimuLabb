@@ -1,1001 +1,1076 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação de Dilatacao Termica</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimuLab — Laboratório 3D de Dilatação Térmica</title>
 
-    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <style>
-        /* --- Variáveis de Estilo --- */
-        :root {
-            --sidebar-width: 380px; 
-            --header-height: 55px; 
-            --cor-primaria: #1a237e; 
-            --cor-secundaria: #3f51b5; 
-            --cor-fundo-pagina: #f4f7f6;
-            --cor-destaque-quente: #e74c3c; 
-            --cor-destaque-frio: #3399ff; 
-            --cor-grid: rgba(0, 0, 0, 0.1);
-            --cor-sombra-3d: rgba(0, 0, 0, 0.4);
-        }
+<!-- Coloque este bloco ANTES do <script type="module"> -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 
-        /* --- Estrutura Geral --- */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--cor-fundo-pagina);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            padding-top: var(--header-height); 
-        }
+<!-- Substitua os imports do módulo por estes -->
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-        /* --- HEADER (Top Bar) --- */
-        .top-bar {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 0;
-            height: var(--header-height); 
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 200; 
-            display: flex;
-            align-items: stretch; 
-            border-bottom: 1px solid #ddd; 
-            box-sizing: border-box; 
-        }
-        .logo-link {
-            text-decoration: none;
-            color: #D2691E; 
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 25px; 
-            display: flex;
-            align-items: center; 
-            border-right: 1px solid #ddd; 
-            transition: background-color 0.3s;
-        }
-        .logo-link:hover { background-color: #f5f5f5; }
-        .logo-link .fas { margin-right: 10px; }
-        .nav-buttons { display: flex; align-items: center; }
-        .nav-button {
-            height: 100%; 
-            padding: 0 20px;
-            border: none;
-            background-color: transparent;
-            color: #555;
-            font-size: 0.9em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.2s, background-color 0.2s, border-bottom 0.2s;
-            display: flex;
-            align-items: center;
-        }
-        .nav-button:hover { color: var(--cor-primaria); background-color: #f5f5f5; }
-        .nav-button.active {
-            color: var(--cor-primaria);
-            border-bottom: 3px solid var(--cor-primaria);
-            background-color: #f9f9f9;
-        }
-        .nav-button .fas { margin-right: 8px; }
+// Mantenha aqui o restante do JavaScript do simulador.
+</script>
 
-        /* --- Sidebar (Lado Esquerdo - Cálculo) --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            min-height: calc(100vh - var(--header-height)); 
-            background-color: #ffffff;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            box-sizing: border-box;
-            overflow-y: auto; 
-            position: relative; 
-            z-index: 10;
-        }
-
-        h1 {
-            color: var(--cor-primaria);
-            font-size: 1.5em;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #455a64;
-            font-size: 0.9em;
-        }
-
-        .input-group input, 
-        .input-group select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 0.9em;
-        }
-        
-        /* Layout para inputs de dimensão (3 colunas) */
-        .dimension-inputs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .dimension-inputs .input-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        .dimension-inputs .input-group input {
-            margin-bottom: 0; 
-        }
-        
-        .mode-selector {
-            display: flex;
-            justify-content: space-between;
-            gap: 5px;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #e8eaf6;
-            border-radius: 8px;
-        }
-        .mode-button {
-            flex-grow: 1;
-            padding: 10px 5px;
-            border: none;
-            border-radius: 6px;
-            background-color: #c5cae9;
-            color: var(--cor-primaria);
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-            font-size: 0.85em;
-        }
-        .mode-button.selected {
-            background-color: var(--cor-primaria);
-            color: white;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-        }
-        .mode-button:not(.selected):hover {
-            background-color: #b3baff;
-        }
-
-        /* --- Área de Simulação (Lado Direito - FIXA com Grid) --- */
-        .simulation-area-container {
-            position: fixed;
-            top: var(--header-height); 
-            left: var(--sidebar-width); 
-            width: calc(100% - var(--sidebar-width));
-            height: calc(100vh - var(--header-height));
-            background-color: var(--cor-fundo-pagina);
-            background-image: 
-                linear-gradient(to right, var(--cor-grid) 1px, transparent 1px),
-                linear-gradient(to bottom, var(--cor-grid) 1px, transparent 1px);
-            background-size: 20px 20px; 
-            padding: 30px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* --- Objeto de Simulação (O CUBO/PLANO/BARRA) --- */
-        .simulacao-conteudo {
-            max-width: 500px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .bar-container {
-            width: 80%;
-            height: 400px; /* AUMENTADO para melhor visualização 3D do Three.js */
-            background-color: rgba(255, 255, 255, 0.7); 
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start; 
-            margin-bottom: 40px;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 5; 
-            overflow: hidden; 
-        }
-
-        /* NOVO: Container do Canvas Three.js */
-        #threejs-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none; /* Inicialmente escondido */
-        }
-
-        .dilatable-bar {
-            height: 50px;
-            border-radius: 4px;
-            transition: all 0.3s ease-out; 
-            position: relative;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-            transform-origin: left; 
-            border: 1px solid transparent; 
-        }
-
-        /* ESTILOS ESPECÍFICOS DE MODO */
-        
-        /* Esconde a barra 2D quando está em modo volumétrico (que usa o canvas Three.js) */
-        .bar-container[data-mode="volumetrica"] .dilatable-bar {
-            display: none; 
-        }
-        
-        /* Modo Linear */
-        .dilatable-bar[data-mode="linear"] {
-            height: 50px; 
-            margin-left: 20px; 
-        }
-
-        /* Modo Superficial */
-        .bar-container[data-mode="superficial"] {
-            align-items: flex-start;
-            justify-content: flex-start; 
-            padding-left: 20px;
-            padding-top: 20px;
-        }
-        .dilatable-bar[data-mode="superficial"] {
-            height: 120px; 
-            width: 50%; 
-            border-radius: 4px;
-            transform-origin: top left; 
-        }
-        
-        /* REMOVEMOS os estilos .cube, .face e os estilos 3D CSS obsoletos */
-        
-        /* --- RÓTULOS (Dilatação) --- */
-        .dilatacao-label {
-            position: absolute;
-            top: -30px;
-            right: 0;
-            transform: translateX(50%); 
-            font-size: 0.9em;
-            font-weight: bold;
-            color: var(--cor-destaque-quente);
-            white-space: nowrap;
-            opacity: 0; 
-            transition: opacity 0.5s, transform 0.3s; 
-            z-index: 10;
-        }
-        .dilatacao-label.visible { opacity: 1; }
-        .dilatacao-label[data-mode="superficial"] {
-            top: 50%; right: -10px;
-            transform: translateY(-50%) translateX(100%);
-            width: 150px; text-align: left;
-            padding: 5px; background: rgba(255, 255, 255, 0.9);
-            border-radius: 4px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-        /* Esconde o label de dilatação genérico no modo 3D (não é necessário no Three.js) */
-        .dilatacao-label[data-mode="volumetrica"] { display: none; }
-        
-        /* Marcador de Ponto Fixo */
-        .l0-marker {
-            position: absolute;
-            left: 5px;
-            font-size: 0.7em;
-            color: #555;
-            top: 50%;
-            transform: translateY(-50%);
-            white-space: nowrap;
-        }
-        .l0-reference-line {
-            position: absolute;
-            left: 20px;
-            height: 100%;
-            width: 1px;
-            background-color: #555;
-            z-index: 5;
-        }
-        /* Esconde os marcadores 2D quando não estão em modo linear */
-        .bar-container[data-mode="superficial"] .l0-marker, .bar-container[data-mode="volumetrica"] .l0-marker,
-        .bar-container[data-mode="superficial"] .l0-reference-line, .bar-container[data-mode="volumetrica"] .l0-reference-line {
-             display: none; 
-        }
-
-        /* --- Processo de Cálculo Detalhado e Resultados --- */
-        .process-details {
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .process-details h2 {
-            color: var(--cor-secundaria);
-            font-size: 1.2em;
-            margin-top: 0;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .step {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-left: 4px solid var(--cor-destaque-quente);
-            background-color: #fff3f3;
-        }
-        .step:last-child {
-             border-left-color: #2e7d32; 
-             background-color: #e8f5e9;
-        }
-        .step strong {
-            display: block;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .formula-line {
-            font-family: monospace;
-            white-space: pre-wrap;
-            font-size: 1em;
-            color: #00796b;
-        }
-
-        /* --- Resultados Detalhados de Dimensão (x, y, z) --- */
-        .dimension-results {
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-            margin-top: 15px;
-        }
-        .dimension-results div {
-            flex: 1;
-            padding: 5px;
-            border-right: 1px solid #eee;
-        }
-        .dimension-results div:last-child {
-            border-right: none;
-        }
-        .dimension-results span {
-            display: block;
-            font-weight: bold;
-            color: var(--cor-destaque-quente);
-            font-size: 1.1em;
-            margin-top: 5px;
-        }
-
-    </style>
+<style>
+:root {
+  --bg:#f3f6fb; --panel:#fff; --border:#dce5ef;
+  --text:#24364b; --muted:#728197; --blue:#2878d0;
+  --orange:#ed8b26; --green:#15966b; --red:#d94747;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;
+}
+button,input,select { font:inherit; }
+.panel {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:15px; box-shadow:0 4px 18px #24364b0a;
+}
+.section-title { font-size:14px; font-weight:800; }
+.muted { color:var(--muted); }
+.field-label {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:8px; font-size:12px; font-weight:750; margin-bottom:9px;
+}
+.value { color:var(--blue); font-weight:800; font-variant-numeric:tabular-nums; }
+input[type=range] { width:100%; accent-color:var(--blue); cursor:pointer; }
+select {
+  width:100%; padding:10px 11px; border:1px solid var(--border);
+  border-radius:9px; background:#fff; color:var(--text); font-size:13px;
+}
+.btn {
+  border-radius:9px; padding:10px 13px; font-size:12px;
+  font-weight:800; cursor:pointer; transition:.15s;
+}
+.btn:active { transform:scale(.98); }
+.btn-blue { background:var(--blue); color:white; }
+.btn-blue:hover { background:#1764b4; }
+.btn-light { background:#edf4fc; color:#315e91; }
+.btn-light:hover { background:#dfebfa; }
+.mode-btn {
+  border:1px solid var(--border); background:#fff; color:#64748b;
+  border-radius:8px; padding:9px 5px; font-size:11px; font-weight:800;
+}
+.mode-btn.active {
+  border-color:#6aa8ed; color:#1768ba; background:#eaf4ff;
+}
+.metric {
+  border:1px solid var(--border); background:white; border-radius:12px;
+  padding:14px; min-width:0;
+}
+.metric-label { color:var(--muted); font-size:11px; font-weight:750; }
+.metric-value { font-size:clamp(19px,2.1vw,27px); font-weight:850; letter-spacing:-.7px; overflow-wrap:anywhere; }
+.metric-unit { font-size:12px; color:var(--muted); font-weight:650; }
+.formula {
+  background:#f5f9ff; border:1px solid #e1ebf8; border-radius:10px;
+  padding:13px; font-family:Georgia,serif; color:#245d99;
+}
+#scene {
+  width:100%; height:100%; min-height:350px; display:block;
+  outline:none; touch-action:pan-y;
+}
+#atomScene { width:100%; height:185px; display:block; }
+.scene-wrap {
+  position:relative; overflow:hidden; border-radius:13px;
+  background:radial-gradient(ellipse at 50% 42%,#fff 0%,#edf4fc 100%);
+}
+.scene-badge {
+  position:absolute; z-index:2; top:12px; left:12px;
+  background:#ffffffdf; border:1px solid #dce5ef; border-radius:9px;
+  padding:8px 10px; font-size:11px; font-weight:800; backdrop-filter:blur(6px);
+}
+.scene-help {
+  position:absolute; z-index:2; bottom:10px; right:10px;
+  padding:6px 9px; border-radius:8px; background:#ffffffd9;
+  color:#718096; font-size:10px; pointer-events:none;
+}
+.status-dot {
+  display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:#17a673; margin-right:6px;
+}
+.note {
+  border-left:3px solid #4d92db; background:#eff6ff;
+  border-radius:0 9px 9px 0; padding:12px; font-size:12px;
+  line-height:1.6; color:#425e7e;
+}
+@media(max-width:1023px) {
+  #scene { min-height:330px; }
+}
+@media(max-width:640px) {
+  #scene { min-height:290px; }
+  #atomScene { height:165px; }
+}
+</style>
 </head>
+
 <body>
 
 
-          <script src="https://erik-bernardo.github.io/SimuLab/dados/head.js"></script>
-
-<div class="sidebar">
-    <h1>Calculadora de Dilatacao Termica</h1>
-
-    <div class="mode-selector">
-        <button class="mode-button selected" data-mode="linear" onclick="setMode('linear')">Linear ($\Delta L$)</button>
-        <button class="mode-button" data-mode="superficial" onclick="setMode('superficial')">Superficial ($\Delta A$)</button>
-        <button class="mode-button" data-mode="volumetrica" onclick="setMode('volumetrica')">Volumétrica ($\Delta V$)</button>
+<main class="max-w-[1600px] mx-auto p-3 md:p-6">
+  <div class="mb-5 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+    <div>
+      <div class="text-[10px] font-extrabold tracking-[.18em] uppercase text-blue-600 mb-2">Termologia · Física</div>
+      <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Dilatação Térmica</h1>
+      <p class="text-sm text-slate-500 mt-2 max-w-2xl">
+        Aqueça ou resfrie um material e investigue como suas dimensões mudam com a temperatura.
+      </p>
     </div>
-
-    <div class="input-group">
-        <label for="material">Material:</label>
-        <select id="material" onchange="calcularDilatacao()">
-            </select>
-        <p style="font-size: 0.8em; margin-top: -10px; margin-bottom: 15px;">
-            Coeficiente Linear ($\alpha$): <span id="alpha-display">0</span> x $10^{-6}$ °C⁻¹
-        </p>
+    <div class="flex items-center gap-2 flex-wrap">
+      <span id="runStatus" class="rounded-full bg-emerald-50 text-emerald-700 px-3 py-2 text-xs font-bold">
+        <span class="status-dot"></span>Simulação pronta
+      </span>
+      <button id="resetBtn" class="btn btn-light">↺ Resetar</button>
     </div>
+  </div>
 
-    <div class="dimension-inputs" id="dimension-inputs-container">
-        <div class="input-group" id="input-L0">
-            <label for="L0" id="label-L0">Comprimento Inicial ($L_0$ - m):</label>
-            <input type="number" id="L0" value="1.0" min="0.1" step="0.1" oninput="calcularDilatacao()">
-        </div>
-        
-        <div class="input-group hidden-dim" id="input-Lx">
-            <label for="Lx">Largura ($L_x$ - m):</label>
-            <input type="number" id="Lx" value="0.5" min="0.1" step="0.1" oninput="calcularDilatacao()">
-        </div>
-        <div class="input-group hidden-dim" id="input-Ly">
-            <label for="Ly">Altura ($L_y$ - m):</label>
-            <input type="number" id="Ly" value="0.5" min="0.1" step="0.1" oninput="calcularDilatacao()">
-        </div>
-        <div class="input-group hidden-dim" id="input-Lz">
-            <label for="Lz">Profundidade ($L_z$ - m):</label>
-            <input type="number" id="Lz" value="0.5" min="0.1" step="0.1" oninput="calcularDilatacao()">
-        </div>
-    </div>
-    
-    <div class="input-group">
-        <label id="label-L0-A0-V0-calc" style="font-weight: normal;">Comprimento Inicial ($L_0$): <span id="valor-L0-A0-V0">1.0 m</span></label>
-    </div>
+  <div class="grid grid-cols-1 lg:grid-cols-[285px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)] gap-4 items-start">
 
+    <!-- PAINEL DE CONTROLE -->
+    <aside class="panel overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <div class="section-title">Controles do experimento</div>
+        <p class="text-xs muted mt-1">Configure o material e as condições iniciais.</p>
+      </div>
 
-    <div class="input-group">
-        <label for="Ti">Temperatura Inicial ($T_i$ - em °C):</label>
-        <input type="number" id="Ti" value="20" oninput="calcularDilatacao()">
-    </div>
+      <div class="p-4 space-y-5">
+        <section>
+          <div class="field-label"><span>Modo de dilatação</span></div>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="mode-btn active" data-mode="linear">↔ Linear</button>
+            <button class="mode-btn" data-mode="surface">▱ Superficial</button>
+            <button class="mode-btn" data-mode="volume">⬡ Volumétrica</button>
+          </div>
+        </section>
 
-    <div class="input-group">
-        <label for="Tf">Temperatura Final ($T_f$ - em °C):</label>
-        <input type="number" id="Tf" value="120" oninput="calcularDilatacao()">
-    </div>
+        <section>
+          <div class="field-label"><label for="material">Material</label></div>
+          <select id="material">
+            <option value="aluminum">Alumínio</option>
+            <option value="copper">Cobre</option>
+            <option value="iron">Ferro</option>
+            <option value="glass">Vidro comum</option>
+            <option value="lead">Chumbo</option>
+          </select>
+          <div class="mt-3 rounded-lg bg-slate-50 border border-slate-100 p-3">
+            <div class="text-[11px] text-slate-500">Coeficiente linear α</div>
+            <div class="font-extrabold text-blue-700 text-lg mt-1" id="alphaValue">23 × 10⁻⁶ °C⁻¹</div>
+            <div class="text-[11px] text-slate-500 mt-1" id="materialDescription">Metal leve, bom condutor térmico.</div>
+          </div>
+        </section>
 
-    <div class="process-details">
-        <h2>Processo do Cálculo (<span id="formula-header">Fórmula: $\Delta L = L_0 \cdot \alpha \cdot \Delta T$</span>)</h2>
-        
-        <div class="step">
-            <strong>1. Variação de Temperatura ($\Delta T$):</strong>
-            <p>Calcula-se a diferença entre as temperaturas.</p>
-            <div class="formula-line" id="calc-deltaT"></div>
-        </div>
-        
-        <div class="step">
-            <strong id="step-alpha-title">2. Coeficiente Linear ($\alpha$):</strong>
-            <p id="step-alpha-desc">O coeficiente base ($\alpha$) é usado diretamente.</p>
-            <div class="formula-line" id="calc-alpha"></div>
-        </div>
-        
-        <div class="step">
-            <strong id="step-delta-title">3. Cálculo da Dilatação ($\Delta L$):</strong>
-            <p>Multiplica-se os 3 fatores.</p>
-            <div class="formula-line" id="calc-deltaL"></div>
-        </div>
-        
-        <div class="step">
-            <strong id="step-final-title">4. Comprimento Final ($L$):</strong>
-            <p>Soma-se a dilatação ao comprimento inicial.</p>
-            <div class="formula-line" id="calc-Lfinal"></div>
-        </div>
-    </div>
-</div>
+        <section>
+          <div class="field-label">
+            <label for="temperature">Temperatura atual (T)</label>
+            <span class="value" id="tempValue">20 °C</span>
+          </div>
+          <input id="temperature" type="range" min="-100" max="1000" step="1" value="20">
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>−100 °C</span><span>1000 °C</span></div>
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button id="coolBtn" class="btn btn-light">❄ Resfriar −50°</button>
+            <button id="heatBtn" class="btn btn-light">🔥 Aquecer +50°</button>
+          </div>
+          <div class="flex gap-2 mt-2">
+            <button id="autoBtn" class="btn btn-blue flex-1">▶ Aquecer automaticamente</button>
+            <button id="pauseBtn" class="btn btn-light" disabled>Ⅱ</button>
+          </div>
+          <p class="text-[10px] muted mt-2 leading-relaxed">A temperatura inicial de referência permanece em 20 °C, mesmo quando você resfria o objeto abaixo desse valor.</p>
+        </section>
 
-<div class="simulation-area-container">
-    <div class="simulacao-conteudo">
-        <h2>Simulação Visual da Dilatação</h2>
-        
-        <div class="bar-container" data-mode="linear">
-            
-            <div id="threejs-container"></div> 
+        <section>
+          <div class="field-label">
+            <label for="dimension">Dimensão inicial</label>
+            <span class="value" id="dimensionValue">2,00 m</span>
+          </div>
+          <input id="dimension" type="range" min="0.5" max="4" step="0.1" value="2">
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>0,5 m</span><span>4,0 m</span></div>
+          <p class="text-[10px] muted mt-2" id="dimensionHint">Comprimento inicial L₀ da barra.</p>
+        </section>
 
-            <div class="l0-reference-line"></div>
-            
-            <div class="dilatable-bar" id="dilatable-bar-element" data-mode="linear" style="width: 50%;">
-                <span class="dilatacao-label" id="dilatacao-label-element" data-mode="linear"></span>
+        <section class="pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <div class="font-bold text-xs">Retículo cristalino</div>
+              <div class="text-[10px] muted mt-1">Visualização microscópica</div>
             </div>
-            
-            <span class="l0-marker">Ponto Fixo ($L_0$)</span>
-            
+            <button id="atomsToggle" class="btn btn-light">Ocultar</button>
+          </div>
+          <label class="flex items-center gap-2 mt-3 text-xs text-slate-600">
+            <input type="checkbox" id="showHole" checked class="accent-blue-600">
+            Mostrar furo na placa
+          </label>
+        </section>
+      </div>
+    </aside>
+
+    <!-- VISUALIZAÇÃO E RESULTADOS -->
+    <div class="min-w-0 space-y-4">
+      <section class="panel p-3 md:p-4">
+        <div class="flex items-center justify-between gap-3 mb-3 px-1">
+          <div>
+            <h2 class="section-title">Bancada experimental 3D</h2>
+            <p class="text-xs muted mt-1" id="objectSubtitle">Barra cilíndrica · Dilatação linear</p>
+          </div>
+          <span class="text-[10px] text-slate-400 hidden sm:block">MODELO 3D INTERATIVO</span>
         </div>
-        
-        <div class="process-details" style="max-width: 450px; text-align: center;">
-            <h2>Resultados Finais</h2>
-            
-            <p>
-                Variação de Temperatura ($\Delta T$): <span id="resultado-deltaT" style="font-weight: bold; color: var(--cor-secundaria);">0</span> °C
-            </p>
-            
-            <div class="dimension-results" id="dimension-results-container" style="display: none;">
-                <div>Dilatação $L_x$: <span id="resultado-deltaLx">0 m</span></div>
-                <div>Dilatação $L_y$: <span id="resultado-deltaLy">0 m</span></div>
-                <div id="div-deltaLz">Dilatação $L_z$: <span id="resultado-deltaLz">0 m</span></div>
+        <div class="scene-wrap">
+          <div class="scene-badge" id="sceneBadge">Alumínio · 20 °C</div>
+          <canvas id="scene" aria-label="Modelo tridimensional interativo do objeto"></canvas>
+          <div class="scene-help">Arraste para girar · Scroll para zoom</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 px-1 pt-3 text-[10px] text-slate-500">
+          <span><span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>Frio</span>
+          <span><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5"></span>Temperatura ambiente</span>
+          <span><span class="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>Quente</span>
+          <span class="ml-auto">Dimensão inicial tracejada</span>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <article class="metric">
+          <div class="metric-label">Variação de temperatura</div>
+          <div class="metric-value mt-2" id="deltaT">0,0 <span class="metric-unit">°C</span></div>
+          <div class="text-[10px] muted mt-2">ΔT = T − T₀</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label" id="deltaLabel">Variação de comprimento</div>
+          <div class="metric-value mt-2 text-blue-700" id="deltaValue">0,0000 <span class="metric-unit">m</span></div>
+          <div class="text-[10px] muted mt-2">Variação calculada</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label" id="finalLabel">Comprimento final</div>
+          <div class="metric-value mt-2" id="finalValue">2,0000 <span class="metric-unit">m</span></div>
+          <div class="text-[10px] muted mt-2">Dimensão após a mudança térmica</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Coeficiente utilizado</div>
+          <div class="metric-value mt-2 text-orange-600" id="coefficientValue">23 × 10⁻⁶</div>
+          <div class="text-[10px] muted mt-2" id="coefficientType">α · °C⁻¹</div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,.9fr)] gap-4">
+        <div class="panel p-4">
+          <h2 class="section-title mb-3">Cálculo físico em tempo real</h2>
+          <div class="formula mb-3">
+            <div class="text-xs font-sans text-slate-500 mb-2">Equação da dilatação</div>
+            <div class="text-xl md:text-2xl font-bold" id="formulaMain">ΔL = L₀ · α · ΔT</div>
+            <div class="text-xs font-sans text-slate-500 mt-2" id="formulaSub">L = L₀ + ΔL</div>
+          </div>
+          <div class="space-y-2 text-xs leading-relaxed">
+            <div class="flex justify-between gap-3"><span class="muted">Dimensão inicial</span><strong id="initialCalculation">L₀ = 2,00 m</strong></div>
+            <div class="flex justify-between gap-3"><span class="muted">Coeficiente</span><strong id="coefficientCalculation">α = 23 × 10⁻⁶ °C⁻¹</strong></div>
+            <div class="flex justify-between gap-3"><span class="muted">Variação térmica</span><strong id="temperatureCalculation">ΔT = 0 °C</strong></div>
+            <div class="border-t border-slate-100 pt-2 flex justify-between gap-3"><span class="muted">Resultado final</span><strong class="text-blue-700" id="resultCalculation">L = 2,0000 m</strong></div>
+          </div>
+          <div class="note mt-4" id="physicsNote">
+            Ao aquecer o material, a dimensão aumenta; ao resfriá-lo, a dimensão diminui. Para pequenas variações, o modelo usa os coeficientes de dilatação constantes.
+          </div>
+        </div>
+
+        <div class="panel p-4" id="atomsPanel">
+          <div class="flex justify-between items-start gap-3">
+            <div>
+              <h2 class="section-title">O que acontece com os átomos?</h2>
+              <p class="text-xs muted mt-1">Modelo microscópico simplificado</p>
             </div>
-            
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
-            
-            <p>
-                Dilatação Total (<span id="resultado-delta-rotulo">$\Delta L$</span>): <span id="resultado-deltaL" style="font-weight: bold; color: var(--cor-destaque-quente); font-size: 1.3em;">0</span> <span id="resultado-unidade">m</span>
-            </p>
-            <p>
-                Valor Final (<span id="resultado-final-rotulo">$L$</span>): <span id="resultado-Lfinal" style="font-weight: bold; color: #2e7d32; font-size: 1.1em;">0</span> <span id="resultado-final-unidade">m</span>
-            </p>
+            <span class="text-[10px] font-bold bg-violet-50 text-violet-700 rounded-full px-2 py-1">MICRO</span>
+          </div>
+          <div class="rounded-xl overflow-hidden mt-3 bg-slate-50 border border-slate-100">
+            <canvas id="atomScene" aria-label="Visualização microscópica do retículo cristalino"></canvas>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div class="bg-slate-50 rounded-lg p-3">
+              <div class="text-[10px] muted">Agitação térmica</div>
+              <div class="font-extrabold text-sm mt-1" id="vibrationValue">Baixa</div>
+            </div>
+            <div class="bg-slate-50 rounded-lg p-3">
+              <div class="text-[10px] muted">Separação média</div>
+              <div class="font-extrabold text-sm mt-1" id="spacingValue">Referência</div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed mt-3">
+            Ao receber energia, os átomos vibram com maior amplitude; devido à assimetria das interações entre eles, a distância média pode aumentar. As esferas e ligações são esquemáticas, não uma representação em escala.
+          </p>
         </div>
+      </section>
+
+      <section class="panel p-4">
+        <h2 class="section-title">Entenda os três tipos de dilatação</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+          <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
+            <div class="font-extrabold text-sm text-blue-800">↔ Linear</div>
+            <div class="font-serif text-lg text-blue-700 mt-2">ΔL = L₀αΔT</div>
+            <p class="text-xs text-slate-600 leading-relaxed mt-2">Considera a mudança no comprimento de uma barra. É apropriada quando a variação longitudinal é o foco.</p>
+          </div>
+          <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
+            <div class="font-extrabold text-sm text-emerald-800">▱ Superficial</div>
+            <div class="font-serif text-lg text-emerald-700 mt-2">ΔA = A₀βΔT</div>
+            <p class="text-xs text-slate-600 leading-relaxed mt-2">Considera a mudança de área de uma chapa. Para um sólido isotrópico, β ≈ 2α; o furo também se dilata.</p>
+          </div>
+          <div class="rounded-xl border border-orange-100 bg-orange-50/60 p-3">
+            <div class="font-extrabold text-sm text-orange-800">⬡ Volumétrica</div>
+            <div class="font-serif text-lg text-orange-700 mt-2">ΔV = V₀γΔT</div>
+            <p class="text-xs text-slate-600 leading-relaxed mt-2">Considera a mudança de volume de um corpo. Para um sólido isotrópico, γ ≈ 3α.</p>
+          </div>
+        </div>
+        <div class="mt-4 text-[11px] text-slate-400 leading-relaxed">
+          Modelo didático: os coeficientes são aproximações representativas e variam com a composição e a temperatura. A expansão visual é amplificada para facilitar a observação; os valores numéricos usam as fórmulas aproximadas de dilatação linear, superficial e volumétrica.
+        </div>
+      </section>
     </div>
-</div>
+  </div>
+</main>
 
-<script>
-    // Tabela de Coeficientes de Dilatação Linear (α) em (10^-6 °C^-1) e CORES
-    const COEFICIENTES_DILATACAO = {
-        "Aco-Ferro": { nome: "Aço / Ferro", alphaBase: 12, cor: "#7f8c8d", isClara: false },
-        "Aluminio": { nome: "Alumínio", alphaBase: 22, cor: "#bdc3c7", isClara: true },
-        "Cobre": { nome: "Cobre", alphaBase: 17, cor: "#b87333", isClara: false },
-        "Chumbo": { nome: "Chumbo", alphaBase: 27, cor: "#535c68", isClara: false },
-        "Zinco": { nome: "Zinco", alphaBase: 26, cor: "#95a5a6", isClara: true },
-        "Prata": { nome: "Prata", alphaBase: 19, cor: "#e7e7e7", isClara: true },
-        "Ouro": { nome: "Ouro", alphaBase: 15, cor: "#ffc800", isClara: false },
-        "Concreto-Cimento": { nome: "Concreto / Cimento", alphaBase: 12, cor: "#95a5a6", isClara: true },
-        "Platina": { nome: "Platina", alphaBase: 9, cor: "#d2dae2", isClara: true },
-        "Vidro-Comum": { nome: "Vidro Comum", alphaBase: 8, cor: "rgba(255, 255, 255, 0.7)", isClara: true },
-        "Vidro-Borossilicato": { nome: "Vidro Borossilicato", alphaBase: 3.2, cor: "rgba(255, 255, 255, 0.8)", isClara: true }, 
-        "Porcelana": { nome: "Porcelana", alphaBase: 3, cor: "#f9f9f9", isClara: true },
-        "Quartzo-Fundido": { nome: "Quartzo Fundido", alphaBase: 0.5, cor: "#dcdde1", isClara: true }
-    };
-    
-    let currentMode = 'linear'; 
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-    // Referências dos Elementos DOM
-    const $materialSelect = document.getElementById('material');
-    const $alphaDisplay = document.getElementById('alpha-display');
-    const $TiInput = document.getElementById('Ti');
-    const $TfInput = document.getElementById('Tf');
-    const $barContainer = document.querySelector('.bar-container');
-    const $barElement = document.getElementById('dilatable-bar-element');
-    const $dilatacaoLabel = document.getElementById('dilatacao-label-element');
-    // const $cubeElement = document.getElementById('cube-element'); // REMOVIDO (obsoleto)
-    const $L0_A0_V0_value = document.getElementById('valor-L0-A0-V0');
-    
-    // Inputs de Dimensão
-    const $inputL0 = document.getElementById('input-L0');
-    const $inputLx = document.getElementById('input-Lx');
-    const $inputLy = document.getElementById('input-Ly');
-    const $inputLz = document.getElementById('input-Lz');
-    const $inputL0val = document.getElementById('L0');
-    const $inputLxval = document.getElementById('Lx');
-    const $inputLyval = document.getElementById('Ly');
-    const $inputLzval = document.getElementById('Lz');
+const $ = id => document.getElementById(id);
 
-    // Rótulos Dinâmicos
-    const $labelL0A0V0Calc = document.getElementById('label-L0-A0-V0-calc');
-    const $formulaHeader = document.getElementById('formula-header');
-    const $stepAlphaTitle = document.getElementById('step-alpha-title');
-    const $stepAlphaDesc = document.getElementById('step-alpha-desc');
-    const $stepDeltaTitle = document.getElementById('step-delta-title');
-    const $stepFinalTitle = document.getElementById('step-final-title');
-    const $resultadoDeltaRotulo = document.getElementById('resultado-delta-rotulo');
-    const $resultadoFinalRotulo = document.getElementById('resultado-final-rotulo');
-    const $resultadoUnidade = document.getElementById('resultado-unidade');
-    const $resultadoFinalUnidade = document.getElementById('resultado-final-unidade');
-    const $dimensionResultsContainer = document.getElementById('dimension-results-container');
-    const $divDeltaLz = document.getElementById('div-deltaLz');
+const materials = {
+  aluminum: {
+    name:"Alumínio", alpha:23e-6, color:0xb8c4d0,
+    description:"Metal leve, bom condutor térmico."
+  },
+  copper: {
+    name:"Cobre", alpha:17e-6, color:0xb86d45,
+    description:"Metal avermelhado, usado em fios e condutores."
+  },
+  iron: {
+    name:"Ferro", alpha:12e-6, color:0x858f9b,
+    description:"Metal estrutural com dilatação moderada."
+  },
+  glass: {
+    name:"Vidro comum", alpha:9e-6, color:0x93c5d8,
+    description:"Material frágil; o coeficiente depende do tipo de vidro."
+  },
+  lead: {
+    name:"Chumbo", alpha:29e-6, color:0x7e8295,
+    description:"Metal denso com coeficiente relativamente elevado."
+  }
+};
 
-    // Referências dos Resultados Finais e Detalhes do Processo
-    const $calcDeltaT = document.getElementById('calc-deltaT');
-    const $calcAlpha = document.getElementById('calc-alpha');
-    const $calcDeltaL = document.getElementById('calc-deltaL');
-    const $calcLfinal = document.getElementById('calc-Lfinal');
+const state = {
+  mode:"linear",
+  material:"aluminum",
+  temperature:20,
+  initialTemperature:20,
+  dimension:2,
+  auto:false,
+  showAtoms:true,
+  showHole:true,
+  time:0
+};
 
-    const L_VISUAL_SIZE_PX = 150; 
-    const L_VISUAL_SIZE_BASE = 1.0; // Tamanho base (em metros) para normalização do cubo 3D
-    const L_VISUAL_SIZE_FACTOR = 1.0; // Fator de escala visual para o cubo THREE.JS 
-    
-    // --- VARIÁVEIS THREE.JS (GLOBALS) ---
-    let scene, camera, renderer, cube, controls;
-    const $threeJsContainer = document.getElementById('threejs-container');
+let scene, camera, renderer, controls, objectGroup;
+let referenceGroup, heatLight, flameGroup;
+let atomScene, atomCamera, atomRenderer, atomControls, atomGroup;
+let objectMaterial, animationId;
+let lastTime = 0;
+let disposedObjects = [];
 
+function makeRenderer(canvas, antialias=true) {
+  const r = new THREE.WebGLRenderer({
+    canvas,
+    antialias,
+    alpha:true
+  });
+  r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  r.outputColorSpace = THREE.SRGBColorSpace;
+  r.toneMapping = THREE.ACESFilmicToneMapping;
+  r.toneMappingExposure = 1.2;
+  return r;
+}
 
-    // --- FUNÇÃO DE INICIALIZAÇÃO THREE.JS (MELHORADA) ---
-    function initThreeJS() {
-        if (!THREE) return; 
+function initMainScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf1f6fc);
 
-        const containerRect = $barContainer.getBoundingClientRect();
-        const width = containerRect.width;
-        const height = containerRect.height;
-        
-        // 1. Scene
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f5); 
+  camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.set(5.8, 4.4, 7.5);
 
-        // 2. Camera
-        camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100); 
-        camera.position.set(1.5, 1.5, 1.5); 
-        camera.lookAt(0, 0, 0);
+  renderer = makeRenderer($("scene"));
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.target.set(0, 0.35, 0);
+  controls.minDistance = 3;
+  controls.maxDistance = 15;
 
-        // 3. Renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true; 
-        $threeJsContainer.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xeaf4ff, 0x7c8ba0, 2.0));
 
-        // 4. Lights
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.7));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 3.0);
+  keyLight.position.set(4, 7, 5);
+  scene.add(keyLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        directionalLight.position.set(2, 5, 3);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 50;
-        directionalLight.shadow.camera.left = -5;
-        directionalLight.shadow.camera.right = 5;
-        directionalLight.shadow.camera.top = 5;
-        directionalLight.shadow.camera.bottom = -5;
-        scene.add(directionalLight);
+  const fillLight = new THREE.DirectionalLight(0x90c7ff, 1.1);
+  fillLight.position.set(-5, 2, -4);
+  scene.add(fillLight);
 
-        // 5. Ground Plane
-        const gridHelper = new THREE.GridHelper(5, 10, 0x555555, 0xaaaaaa);
-        gridHelper.position.y = -L_VISUAL_SIZE_FACTOR / 2; 
-        scene.add(gridHelper);
+  heatLight = new THREE.PointLight(0xff5a12, 0, 8);
+  heatLight.position.set(0, -0.3, 0);
+  scene.add(heatLight);
 
-        // 6. Cubo Inicial (com MeshStandardMaterial para PBR)
-        const geometry = new THREE.BoxGeometry(L_VISUAL_SIZE_FACTOR, L_VISUAL_SIZE_FACTOR, L_VISUAL_SIZE_FACTOR);
-        const material = new THREE.MeshStandardMaterial({ 
-            color: 0xcccccc, 
-            metalness: 0.5, 
-            roughness: 0.5  
-        });
-        cube = new THREE.Mesh(geometry, material);
-        cube.castShadow = true;
-        cube.receiveShadow = true;
-        cube.position.y = L_VISUAL_SIZE_FACTOR / 2; 
-        scene.add(cube);
-        
-        // 7. OrbitControls (Interatividade)
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; 
-        controls.dampingFactor = 0.05;
-        controls.screenSpacePanning = false;
-        controls.minDistance = 1;
-        controls.maxDistance = 10;
-        
-        // 8. Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update(); 
-            renderer.render(scene, camera);
-        }
-        animate();
-    }
-    
-    // Função para redimensionar o canvas
-    window.addEventListener('resize', () => {
-        if (renderer && camera && controls) {
-            const containerRect = $barContainer.getBoundingClientRect();
-            camera.aspect = containerRect.width / containerRect.height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(containerRect.width, containerRect.height);
-            controls.update();
-        }
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(200, 200),
+    new THREE.MeshStandardMaterial({color:0xeaf0f7, roughness:1})
+  );
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = -1.15;
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(16, 32, 0xb8c8dc, 0xd5e0ed);
+  grid.position.y = -1.13;
+  scene.add(grid);
+
+  objectGroup = new THREE.Group();
+  scene.add(objectGroup);
+
+  referenceGroup = new THREE.Group();
+  scene.add(referenceGroup);
+
+  flameGroup = new THREE.Group();
+  scene.add(flameGroup);
+  buildFlame();
+}
+
+function buildFlame() {
+  const outer = new THREE.Mesh(
+    new THREE.ConeGeometry(0.19, 0.65, 24),
+    new THREE.MeshBasicMaterial({
+      color:0xff7a18, transparent:true, opacity:0.78
+    })
+  );
+  outer.position.y = -0.68;
+  flameGroup.add(outer);
+
+  const inner = new THREE.Mesh(
+    new THREE.ConeGeometry(0.10, 0.40, 24),
+    new THREE.MeshBasicMaterial({
+      color:0xffe08a, transparent:true, opacity:0.92
+    })
+  );
+  inner.position.y = -0.64;
+  flameGroup.add(inner);
+
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.30, 0.34, 0.10, 32),
+    new THREE.MeshStandardMaterial({
+      color:0x475569, metalness:0.65, roughness:0.35
+    })
+  );
+  base.position.y = -1.02;
+  flameGroup.add(base);
+}
+
+function clearGroup(group) {
+  while (group.children.length) {
+    const child = group.children.pop();
+    child.traverse?.(node => {
+      if (node.geometry) node.geometry.dispose();
+      if (node.material) {
+        if (Array.isArray(node.material)) node.material.forEach(m=>m.dispose());
+        else node.material.dispose();
+      }
     });
+  }
+}
 
+function makeMaterial(color) {
+  return new THREE.MeshStandardMaterial({
+    color,
+    metalness:state.material === "glass" ? 0.22 : 0.78,
+    roughness:state.material === "glass" ? 0.23 : 0.28,
+    emissive:0x000000,
+    emissiveIntensity:0
+  });
+}
 
-    // --- FUNÇÕES DE CONTROLE DE MODO ---
-    function setMode(mode) {
-        currentMode = mode;
-        
-        // 1. Atualiza a seleção visual dos botões
-        document.querySelectorAll('.mode-button').forEach(btn => {
-            if (btn.dataset.mode === mode) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-        });
-        
-        // 2. Gerencia a visibilidade dos elementos 2D/3D
-        const isVolumetrica = mode === 'volumetrica';
-        
-        $barElement.style.display = isVolumetrica ? 'none' : 'block'; // Mostra/Esconde a barra 2D
-        $threeJsContainer.style.display = isVolumetrica ? 'block' : 'none'; // Mostra/Esconde o container 3D
-        
-        // 3. Atualiza os atributos de simulação (para 2D)
-        $barContainer.setAttribute('data-mode', mode);
-        $barElement.setAttribute('data-mode', mode);
-        $dilatacaoLabel.setAttribute('data-mode', mode);
+function addMeasurementLine(group, start, end, color=0x64748b) {
+  const geometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(...start), new THREE.Vector3(...end)
+  ]);
+  const line = new THREE.Line(
+    geometry,
+    new THREE.LineDashedMaterial({
+      color, dashSize:0.09, gapSize:0.055
+    })
+  );
+  line.computeLineDistances();
+  group.add(line);
 
-        // 4. Gerencia Inputs de Dimensão (L0, Lx, Ly, Lz)
-        $inputL0.style.display = 'none';
-        $inputLx.style.display = 'none';
-        $inputLy.style.display = 'none';
-        $inputLz.style.display = 'none';
-        $dimensionResultsContainer.style.display = 'none';
+  for (const point of [start,end]) {
+    const tick = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 10, 8),
+      new THREE.MeshBasicMaterial({color})
+    );
+    tick.position.set(...point);
+    group.add(tick);
+  }
+}
 
-        if (mode === 'linear') {
-            $inputL0.style.display = 'block';
-            $inputL0.style.flex = '1';
+function makeBar(group, scale, color) {
+  const radius = 0.19 * scale;
+  const length = state.dimension * 1.1 * scale;
 
-        } else if (mode === 'superficial') {
-            $inputLx.style.display = 'block';
-            $inputLy.style.display = 'block';
-            $dimensionResultsContainer.style.display = 'flex';
-            $divDeltaLz.style.display = 'none';
+  const material = makeMaterial(color);
+  objectMaterial = material;
 
-        } else if (mode === 'volumetrica') {
-            $inputLx.style.display = 'block';
-            $inputLy.style.display = 'block';
-            $inputLz.style.display = 'block';
-            $dimensionResultsContainer.style.display = 'flex';
-            $divDeltaLz.style.display = 'block';
-        }
+  const bar = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, length, 48, 1, false),
+    material
+  );
+  bar.rotation.z = Math.PI/2;
+  bar.position.y = 0.18;
+  group.add(bar);
 
+  const endMaterial = new THREE.MeshStandardMaterial({
+    color:0xd9e1e9, metalness:0.75, roughness:0.25
+  });
 
-        // 5. Atualiza rótulos e unidades
-        let initialLabel, deltaLabel, finalLabel, unit, finalUnit;
-        let formulaText;
-        
-        if (mode === 'linear') {
-            initialLabel = "Comprimento Inicial ($L_0$):";
-            deltaLabel = "$\Delta L$";
-            finalLabel = "$L$";
-            unit = "m";
-            finalUnit = "m";
-            formulaText = "Fórmula: $\\Delta L = L_0 \\cdot \\alpha \\cdot \\Delta T$";
-        } else if (mode === 'superficial') {
-            initialLabel = "Área Inicial ($A_0 = L_x \\cdot L_y$):";
-            deltaLabel = "$\Delta A$";
-            finalLabel = "$A$";
-            unit = "m²";
-            finalUnit = "m²";
-            formulaText = "Fórmula: $\\Delta A = A_0 \\cdot \\beta \\cdot \\Delta T$ (onde $\\beta \\approx 2\\alpha$)";
-        } else if (mode === 'volumetrica') {
-            initialLabel = "Volume Inicial ($V_0 = L_x \\cdot L_y \\cdot L_z$):";
-            deltaLabel = "$\Delta V$";
-            finalLabel = "$V$";
-            unit = "m³";
-            finalUnit = "m³";
-            formulaText = "Fórmula: $\\Delta V = V_0 \\cdot \\gamma \\cdot \\Delta T$ (onde $\\gamma \\approx 3\\alpha$)";
-        }
-        
-        $labelL0A0V0Calc.innerHTML = initialLabel + ` <span id="valor-L0-A0-V0">0.0 ${unit}</span>`;
-        $formulaHeader.innerHTML = formulaText;
-        $stepDeltaTitle.innerHTML = `3. Cálculo da Dilatação (${deltaLabel}):`;
-        $stepFinalTitle.innerHTML = `4. Valor Final (${finalLabel}):`;
-        
-        $resultadoDeltaRotulo.innerHTML = deltaLabel;
-        $resultadoFinalRotulo.innerHTML = finalLabel;
-        $resultadoUnidade.textContent = unit;
-        $resultadoFinalUnidade.textContent = finalUnit;
-        
-        // Recalcula para atualizar tudo
-        calcularDilatacao();
-    }
+  for (const x of [-length/2, length/2]) {
+    const cap = new THREE.Mesh(
+      new THREE.CircleGeometry(radius, 40), endMaterial
+    );
+    cap.rotation.y = x < 0 ? -Math.PI/2 : Math.PI/2;
+    cap.position.set(x, 0.18, 0);
+    group.add(cap);
+  }
 
+  addMeasurementLine(
+    referenceGroup,
+    [-state.dimension*0.55, -0.20, 0.36],
+    [state.dimension*0.55, -0.20, 0.36],
+    0x718096
+  );
+}
 
-    // 1. Preenche o seletor de materiais
-    function preencherMateriais() {
-        for (const key in COEFICIENTES_DILATACAO) {
-            const data = COEFICIENTES_DILATACAO[key];
-            const option = document.createElement('option');
-            option.value = key; 
-            option.textContent = data.nome; 
-            $materialSelect.appendChild(option);
-        }
-        atualizarAlphaECor(); 
-    }
+function makePlate(group, scale, color) {
+  const side = state.dimension * 0.95 * scale;
+  const thickness = 0.18 * scale;
+  const material = makeMaterial(color);
+  objectMaterial = material;
 
-    // 2. Atualiza a exibição do coeficiente (α) e a COR do material/barra
-    function atualizarAlphaECor() {
-        const materialKey = $materialSelect.value;
-        const materialData = COEFICIENTES_DILATACAO[materialKey];
-        
-        const alphaBase = materialData ? materialData.alphaBase : 0;
-        const corBase = materialData ? materialData.cor : 'gray';
-        const isClara = materialData ? materialData.isClara : false;
+  let geometry;
 
-        $alphaDisplay.textContent = alphaBase;
+  if (state.showHole) {
+    const shape = new THREE.Shape();
+    shape.moveTo(-side/2, -side/2);
+    shape.lineTo(side/2, -side/2);
+    shape.lineTo(side/2, side/2);
+    shape.lineTo(-side/2, side/2);
+    shape.lineTo(-side/2, -side/2);
 
-        // Aplica a cor de fundo (para Linear e Superficial)
-        if (currentMode !== 'volumetrica') {
-            $barElement.style.backgroundColor = corBase;
-            if (isClara) {
-                $barElement.setAttribute('data-clara', 'true');
-            } else {
-                $barElement.removeAttribute('data-clara');
-            }
-        } else if (cube) {
-            // Aplica a cor e as propriedades do material no cubo THREE.JS
-            const corHex = new THREE.Color(corBase).getHex();
-            
-            // Define propriedades padrão
-            let newMaterial = new THREE.MeshStandardMaterial({
-                color: corHex,
-                metalness: 0.1,
-                roughness: 0.6
-            });
+    const hole = new THREE.Path();
+    hole.absellipse(0, 0, side*0.13, side*0.13, 0, Math.PI*2, true, 0);
+    shape.holes.push(hole);
 
-            // Ajusta o material para simular Vidro (transparência e transmissão)
-            if (materialKey.startsWith('Vidro')) {
-                newMaterial = new THREE.MeshPhysicalMaterial({
-                    color: corHex,
-                    opacity: 0.5,
-                    transparent: true,
-                    metalness: 0,
-                    roughness: 0.1,
-                    transmission: 0.9,
-                    side: THREE.DoubleSide
-                });
-            } else if (materialKey === 'Ouro' || materialKey === 'Prata') {
-                 // Ajusta o material para simular Metais (mais lustroso)
-                newMaterial.metalness = 0.9;
-                newMaterial.roughness = 0.2;
-            }
-
-            cube.material = newMaterial;
-            cube.material.needsUpdate = true;
-        }
-    }
-
-    // 3. Função principal de cálculo e atualização da simulação
-    function calcularDilatacao() {
-        atualizarAlphaECor();
-        
-        // Leitura dos dados
-        const materialKey = $materialSelect.value;
-        const alphaBase = COEFICIENTES_DILATACAO[materialKey] ? COEFICIENTES_DILATACAO[materialKey].alphaBase : 0;
-        const Ti = parseFloat($TiInput.value) || 0;
-        const Tf = parseFloat($TfInput.value) || 0;
-        const deltaT = Tf - Ti; 
-
-        let L0_A0_V0_calc = 0;
-        let L0_A0_V0_unit = '';
-        let L_x_initial, L_y_initial, L_z_initial;
-        let delta_Lx, delta_Ly, delta_Lz;
-        
-        const alpha_Dilatacao = alphaBase * 1e-6; 
-
-        // --- CÁLCULO DAS DIMENSÕES INICIAIS ---
-        if (currentMode === 'linear') {
-            L_x_initial = parseFloat($inputL0val.value) || 0;
-            L_y_initial = 0; L_z_initial = 0;
-            L0_A0_V0_calc = L_x_initial;
-            L0_A0_V0_unit = 'm';
-        } else if (currentMode === 'superficial') {
-            L_x_initial = parseFloat($inputLxval.value) || 0;
-            L_y_initial = parseFloat($inputLyval.value) || 0;
-            L_z_initial = 0;
-            L0_A0_V0_calc = L_x_initial * L_y_initial;
-            L0_A0_V0_unit = 'm²';
-        } else if (currentMode === 'volumetrica') {
-            L_x_initial = parseFloat($inputLxval.value) || 0;
-            L_y_initial = parseFloat($inputLyval.value) || 0;
-            L_z_initial = parseFloat($inputLzval.value) || 0;
-            L0_A0_V0_calc = L_x_initial * L_y_initial * L_z_initial;
-            L0_A0_V0_unit = 'm³';
-        }
-        
-        $L0_A0_V0_value.textContent = `${L0_A0_V0_calc.toFixed(4)} ${L0_A0_V0_unit}`;
-
-
-        // --- DEFINIÇÃO DO COEFICIENTE DE ACORDO COM O MODO ---
-        let gamma_beta_alpha_base = alphaBase;
-        let coefLabel = '\\alpha';
-        let descText = `O coeficiente base (\\alpha) é usado diretamente.`;
-        
-        if (currentMode === 'superficial') {
-            gamma_beta_alpha_base = alphaBase * 2; 
-            coefLabel = '\\beta';
-            descText = `O coeficiente superficial (\\beta) é obtido multiplicando o \\alpha base por 2 ($\\beta \\approx 2\\alpha$).`;
-        } else if (currentMode === 'volumetrica') {
-            gamma_beta_alpha_base = alphaBase * 3; 
-            coefLabel = '\\gamma';
-            descText = `O coeficiente volumétrico (\\gamma) é obtido multiplicando o \\alpha base por 3 ($\\gamma \\approx 3\\alpha$).`;
-        }
-
-        const CoefDilatacao = gamma_beta_alpha_base * 1e-6; 
-        
-        // --- CÁLCULO FÍSICO ---
-        const delta_Final = L0_A0_V0_calc * CoefDilatacao * deltaT; 
-        const Valor_Final = L0_A0_V0_calc + delta_Final;
-
-        // Cálculo da Dilatação Específica por Eixo (mesmo α)
-        delta_Lx = L_x_initial * alpha_Dilatacao * deltaT;
-        delta_Ly = L_y_initial * alpha_Dilatacao * deltaT;
-        delta_Lz = L_z_initial * alpha_Dilatacao * deltaT;
-
-        // --- PREPARAÇÃO DAS SAÍDAS FORMATADAS ---
-        const Inicial_Format = L0_A0_V0_calc.toFixed(4);
-        const deltaT_Format = deltaT.toFixed(2);
-        
-        const coefDilatacao_Format = CoefDilatacao.toExponential(2);
-        let delta_Final_Format = (Math.abs(delta_Final) < 0.0001 && delta_Final !== 0) ? delta_Final.toExponential(4) : delta_Final.toFixed(6);
-        const Valor_Final_Format = Valor_Final.toFixed(6);
-        
-        const L_x_Final = L_x_initial + delta_Lx;
-        const L_y_Final = L_y_initial + delta_Ly;
-        const L_z_Final = L_z_initial + delta_Lz;
-
-        // --- ATUALIZAÇÃO DO PROCESSO DE CÁLCULO EM ETAPAS ---
-        $calcDeltaT.textContent = `ΔT = T final - T inicial\nΔT = ${Tf.toFixed(2)} - ${Ti.toFixed(2)}\nΔT = ${deltaT_Format} °C`;
-        
-        $stepAlphaTitle.innerHTML = `2. Coeficiente (${coefLabel}):`;
-        $stepAlphaDesc.innerHTML = descText;
-        $calcAlpha.textContent = `${coefLabel} = ${gamma_beta_alpha_base.toFixed(2)} x 10⁻⁶ °C⁻¹\n${coefLabel} = ${coefDilatacao_Format} °C⁻¹`;
-        
-        $calcDeltaL.textContent = `ΔL/A/V = Inicial * ${coefLabel} * ΔT\nΔL/A/V = ${Inicial_Format} * ${coefDilatacao_Format} * ${deltaT_Format}\nΔL/A/V = ${delta_Final_Format} ${$resultadoUnidade.textContent}`;
-        
-        $calcLfinal.textContent = `Final = Inicial + ΔL/A/V\nFinal = ${Inicial_Format} + ${delta_Final_Format}\nFinal = ${Valor_Final_Format} ${$resultadoUnidade.textContent}`;
-
-        // --- ATUALIZAÇÃO DA SIMULAÇÃO VISUAL ---
-
-        const corDestaque = deltaT >= 0 ? 'var(--cor-destaque-quente)' : 'var(--cor-destaque-frio)';
-        document.getElementById('resultado-deltaL').style.color = corDestaque;
-        
-        
-        if (currentMode === 'volumetrica') {
-            // --- ATUALIZAÇÃO THREE.JS ---
-            if (cube) {
-                // Normalização das dimensões com base no valor de referência (L_VISUAL_SIZE_BASE=1.0)
-                const scaleX = L_x_Final / L_VISUAL_SIZE_BASE;
-                const scaleY = L_y_Final / L_VISUAL_SIZE_BASE;
-                const scaleZ = L_z_Final / L_VISUAL_SIZE_BASE;
-                
-                // Redimensiona o cubo 3D (a geometria base é 1x1x1)
-                cube.scale.set(scaleX * L_VISUAL_SIZE_FACTOR, scaleY * L_VISUAL_SIZE_FACTOR, scaleZ * L_VISUAL_SIZE_FACTOR);
-                
-                // Posição ajustada para manter o fundo (Y=0) fixo
-                cube.position.y = (scaleY * L_VISUAL_SIZE_FACTOR) / 2;
-                
-                // Garante que a cor esteja correta no cubo
-                atualizarAlphaECor(); 
-            }
-        } else {
-            // --- ATUALIZAÇÃO 2D (LINEAR/SUPERFICIAL) ---
-            
-            // Fator de Escala Visual 2D: Amplificamos a dilatação para que seja visível
-            const AMP_FACTOR = 10000; 
-            const delta_Px = L_x_initial > 0 ? delta_Lx / L_x_initial * AMP_FACTOR : 0;
-            const delta_Py = L_y_initial > 0 ? delta_Ly / L_y_initial * AMP_FACTOR : 0;
-
-            // Tamanhos Visuais Finais em Pixels (2D)
-            const L_x_final_px = (L_x_initial * L_VISUAL_SIZE_PX) + delta_Px; 
-            const L_y_final_px = (L_y_initial * L_VISUAL_SIZE_PX) + delta_Py;
-
-            const MAX_PX = 250;
-            const MIN_PX = 10;
-            const Final_visual_L_x = Math.max(MIN_PX, Math.min(MAX_PX, L_x_final_px));
-            const Final_visual_L_y = Math.max(MIN_PX, Math.min(MAX_PX, L_y_final_px));
-
-            if (currentMode === 'linear') {
-                $barElement.style.width = `${Final_visual_L_x}px`;
-                $barElement.style.height = `50px`; 
-            } else if (currentMode === 'superficial') {
-                $barElement.style.width = `${Final_visual_L_x}px`;
-                $barElement.style.height = `${Final_visual_L_y}px`;
-            }
-            
-            // Rótulo de dilatação 2D
-            if (delta_Final !== 0) {
-                $dilatacaoLabel.textContent = (delta_Final > 0 ? `+${delta_Final_Format}` : `${delta_Final_Format}`) + L0_A0_V0_unit;
-                $dilatacaoLabel.classList.add('visible');
-                $dilatacaoLabel.style.color = corDestaque;
-            } else {
-                $dilatacaoLabel.classList.remove('visible');
-            }
-        }
-
-        // --- ATUALIZAÇÃO DOS RESULTADOS FINAIS ---
-        document.getElementById('resultado-deltaT').textContent = deltaT_Format;
-        document.getElementById('resultado-deltaL').textContent = delta_Final_Format;
-        document.getElementById('resultado-Lfinal').textContent = Valor_Final_Format;
-
-        // Resultados detalhados por eixo
-        if (currentMode === 'superficial' || currentMode === 'volumetrica') {
-            document.getElementById('resultado-deltaLx').textContent = `${(delta_Lx > 0 ? '+' : '')}${delta_Lx.toExponential(2)} m`;
-            document.getElementById('resultado-deltaLy').textContent = `${(delta_Ly > 0 ? '+' : '')}${delta_Ly.toExponential(2)} m`;
-            if (currentMode === 'volumetrica') {
-                document.getElementById('resultado-deltaLz').textContent = `${(delta_Lz > 0 ? '+' : '')}${delta_Lz.toExponential(2)} m`;
-            }
-        }
-        
-        // Força a re-renderização do MathJax
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
-    }
-
-    // Inicializa a aplicação ao carregar a página
-    document.addEventListener('DOMContentLoaded', () => {
-        preencherMateriais();
-        // Inicializa o ambiente 3D
-        initThreeJS(); 
-        // Inicializa o modo linear (que já chama calcularDilatacao)
-        setMode('linear'); 
+    geometry = new THREE.ExtrudeGeometry(shape, {
+      depth:thickness, bevelEnabled:true,
+      bevelSegments:2, steps:1, bevelSize:0.025, bevelThickness:0.025
     });
+    geometry.center();
+  } else {
+    geometry = new THREE.BoxGeometry(side, thickness, side);
+  }
+
+  const plate = new THREE.Mesh(geometry, material);
+  plate.position.y = 0.12;
+  group.add(plate);
+
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(
+      state.dimension*0.95,
+      0.18,
+      state.dimension*0.95
+    )),
+    new THREE.LineBasicMaterial({color:0x718096, transparent:true, opacity:0.5})
+  );
+  referenceGroup.add(outline);
+  outline.position.y = 0.12;
+}
+
+function makeBlock(group, scale, color) {
+  const side = state.dimension * 0.72 * scale;
+  const material = makeMaterial(color);
+  objectMaterial = material;
+
+  const block = new THREE.Mesh(
+    new THREE.BoxGeometry(side, side, side),
+    material
+  );
+  block.position.y = 0.18;
+  group.add(block);
+
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(
+      state.dimension*0.72,
+      state.dimension*0.72,
+      state.dimension*0.72
+    )),
+    new THREE.LineBasicMaterial({
+      color:0x718096, transparent:true, opacity:0.7
+    })
+  );
+  edges.position.y = 0.18;
+  referenceGroup.add(edges);
+}
+
+function calculate() {
+  const mat = materials[state.material];
+  const alpha = mat.alpha;
+  const beta = 2*alpha;
+  const gamma = 3*alpha;
+  const deltaT = state.temperature - state.initialTemperature;
+  const initial = state.dimension;
+
+  let coefficient, delta, final, unit, label, formula, sub, coeffName;
+
+  if (state.mode === "linear") {
+    coefficient = alpha;
+    delta = initial * alpha * deltaT;
+    final = initial + delta;
+    unit = "m";
+    label = "Variação de comprimento";
+    formula = "ΔL = L₀ · α · ΔT";
+    sub = "L = L₀ + ΔL";
+    coeffName = "α";
+  } else if (state.mode === "surface") {
+    const A0 = initial*initial;
+    coefficient = beta;
+    delta = A0 * beta * deltaT;
+    final = A0 + delta;
+    unit = "m²";
+    label = "Variação de área";
+    formula = "ΔA = A₀ · β · ΔT";
+    sub = "A = A₀ + ΔA";
+    coeffName = "β";
+  } else {
+    const V0 = initial*initial*initial;
+    coefficient = gamma;
+    delta = V0 * gamma * deltaT;
+    final = V0 + delta;
+    unit = "m³";
+    label = "Variação de volume";
+    formula = "ΔV = V₀ · γ · ΔT";
+    sub = "V = V₀ + ΔV";
+    coeffName = "γ";
+  }
+
+  return {
+    mat, alpha, beta, gamma, coefficient, deltaT, initial,
+    delta, final, unit, label, formula, sub, coeffName
+  };
+}
+
+function fmt(n, digits=4) {
+  return n.toLocaleString("pt-BR", {
+    minimumFractionDigits:digits,
+    maximumFractionDigits:digits
+  });
+}
+
+function sci(n) {
+  return `${fmt(n/1e-6,0)} × 10⁻⁶`;
+}
+
+function updateUI() {
+  const c = calculate();
+  const {mat, deltaT, initial, delta, final, unit, label,
+    formula, sub, coefficient, coeffName} = c;
+
+  $("tempValue").textContent = `${state.temperature} °C`;
+  $("dimensionValue").textContent = `${fmt(initial,2)} m`;
+  $("alphaValue").textContent = `${sci(c.alpha)} °C⁻¹`;
+  $("materialDescription").textContent = mat.description;
+  $("deltaT").innerHTML = `${fmt(deltaT,1)} <span class="metric-unit">°C</span>`;
+  $("deltaLabel").textContent = label;
+  $("deltaValue").innerHTML = `${fmt(delta,6)} <span class="metric-unit">${unit}</span>`;
+  $("finalLabel").textContent = state.mode === "linear" ? "Comprimento final" :
+    state.mode === "surface" ? "Área final" : "Volume final";
+  $("finalValue").innerHTML = `${fmt(final,6)} <span class="metric-unit">${unit}</span>`;
+  $("coefficientValue").textContent = sci(coefficient);
+  $("coefficientType").textContent = `${coeffName} · °C⁻¹`;
+  $("formulaMain").textContent = formula;
+  $("formulaSub").textContent = sub;
+
+  const initialDim = state.mode === "linear" ? initial :
+    state.mode === "surface" ? initial*initial : initial*initial*initial;
+
+  const initialUnit = unit;
+  $("initialCalculation").textContent =
+    `${state.mode==="linear"?"L₀":state.mode==="surface"?"A₀":"V₀"} = ${fmt(initialDim,4)} ${initialUnit}`;
+  $("coefficientCalculation").textContent =
+    `${coeffName} = ${sci(coefficient)} °C⁻¹`;
+  $("temperatureCalculation").textContent = `ΔT = ${fmt(state.temperature,1)} − 20 = ${fmt(deltaT,1)} °C`;
+  $("resultCalculation").textContent =
+    `${state.mode==="linear"?"L":state.mode==="surface"?"A":"V"} = ${fmt(final,6)} ${unit}`;
+
+  const dimName = state.mode === "linear" ? "Comprimento inicial L₀" :
+    state.mode === "surface" ? "Lado inicial da chapa (A₀ = lado²)" :
+    "Aresta inicial do bloco (V₀ = aresta³)";
+  $("dimensionHint").textContent = dimName;
+
+  const modeName = state.mode === "linear" ? "Barra cilíndrica · Dilatação linear" :
+    state.mode === "surface" ? "Chapa metálica · Dilatação superficial" :
+    "Bloco cúbico · Dilatação volumétrica";
+  $("objectSubtitle").textContent = modeName;
+  $("sceneBadge").textContent = `${mat.name} · ${state.temperature} °C`;
+
+  if (Math.abs(deltaT) < 0.01) {
+    $("physicsNote").textContent =
+      "A 20 °C, a variação em relação à referência é zero. Mude a temperatura para observar a contração ou a expansão.";
+  } else if (deltaT > 0) {
+    $("physicsNote").textContent =
+      `O material foi aquecido em ${fmt(deltaT,1)} °C. No modelo, a dimensão calculada aumentou ${fmt(delta,6)} ${unit}. A expansão visual é amplificada para facilitar a observação.`;
+  } else {
+    $("physicsNote").textContent =
+      `O material foi resfriado em ${fmt(Math.abs(deltaT),1)} °C. No modelo, a dimensão calculada mudou ${fmt(delta,6)} ${unit}. Para este intervalo, usamos coeficiente aproximadamente constante.`;
+  }
+
+  const severity = Math.min(1, Math.max(0, (state.temperature-20)/700));
+  $("vibrationValue").textContent = severity < 0.15 ? "Baixa" :
+    severity < 0.5 ? "Moderada" : "Alta";
+  $("spacingValue").textContent = deltaT < -1 ? "Menor que a referência" :
+    deltaT > 1 ? "Maior que a referência" : "Referência";
+
+  document.querySelectorAll("[data-mode]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.mode === state.mode);
+  });
+
+  $("runStatus").innerHTML = state.auto
+    ? '<span class="status-dot"></span>Aquecimento automático'
+    : '<span class="status-dot"></span>Simulação pronta';
+
+  updateMainObject();
+  updateAtoms();
+}
+
+function updateMainObject() {
+  clearGroup(objectGroup);
+  clearGroup(referenceGroup);
+
+  const c = calculate();
+  const deltaT = c.deltaT;
+  const mat = c.mat;
+
+  // O fator visual é intencionalmente amplificado; os resultados numéricos não são.
+  const visualAlpha = mat.alpha * 800;
+  const visualFactor = Math.max(0.72, 1 + visualAlpha*deltaT);
+  const color = temperatureColor(state.temperature, mat.color);
+
+  if (state.mode === "linear") makeBar(objectGroup, visualFactor, color);
+  if (state.mode === "surface") makePlate(objectGroup, visualFactor, color);
+  if (state.mode === "volume") makeBlock(objectGroup, visualFactor, color);
+
+  // A régua tracejada representa a dimensão de referência a 20 °C.
+  flameGroup.visible = state.temperature > 20;
+  heatLight.intensity = state.temperature > 20
+    ? Math.min(4, (state.temperature-20)/180)
+    : 0;
+
+  if (state.temperature < 5) {
+    flameGroup.visible = false;
+  }
+
+  flameGroup.scale.setScalar(0.7 + 0.25*Math.sin(state.time*4));
+  flameGroup.position.y = 0;
+}
+
+function temperatureColor(temp, baseHex) {
+  const base = new THREE.Color(baseHex);
+  const cold = new THREE.Color(0x174b91);
+  const red = new THREE.Color(0xff3b12);
+  const orange = new THREE.Color(0xffa52e);
+  const out = base.clone();
+
+  if (temp < 20) {
+    const amount = Math.min(0.85, (20-temp)/180);
+    out.lerp(cold, amount);
+  } else if (temp < 250) {
+    out.lerp(orange, Math.min(0.55, (temp-20)/500));
+  } else {
+    out.lerp(orange, 0.45);
+    out.lerp(red, Math.min(0.9, (temp-250)/550));
+  }
+  return out;
+}
+
+function initAtoms() {
+  atomScene = new THREE.Scene();
+  atomScene.background = new THREE.Color(0xf7f9fd);
+
+  atomCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  atomCamera.position.set(4, 3, 5);
+
+  atomRenderer = makeRenderer($("atomScene"));
+  atomControls = new OrbitControls(atomCamera, atomRenderer.domElement);
+  atomControls.enableDamping = true;
+  atomControls.enablePan = false;
+  atomControls.minDistance = 3;
+  atomControls.maxDistance = 10;
+  atomControls.target.set(0,0,0);
+
+  atomScene.add(new THREE.HemisphereLight(0xffffff, 0x8795ac, 2.1));
+  const light = new THREE.DirectionalLight(0xffffff, 2.2);
+  light.position.set(4,5,4);
+  atomScene.add(light);
+
+  atomGroup = new THREE.Group();
+  atomScene.add(atomGroup);
+  buildAtoms();
+}
+
+const atoms = [];
+const springs = [];
+
+function buildAtoms() {
+  clearGroup(atomGroup);
+  atoms.length = 0;
+  springs.length = 0;
+
+  const spacing = 0.85;
+  const count = 3;
+  const atomMaterial = new THREE.MeshStandardMaterial({
+    color:0x3b82c4, metalness:0.3, roughness:0.28
+  });
+
+  for (let x=0; x<count; x++) {
+    for (let y=0; y<count; y++) {
+      for (let z=0; z<count; z++) {
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(0.12, 18, 14),
+          atomMaterial.clone()
+        );
+        const position = new THREE.Vector3(
+          (x-1)*spacing, (y-1)*spacing, (z-1)*spacing
+        );
+        mesh.position.copy(position);
+        atomGroup.add(mesh);
+        atoms.push({mesh, base:position.clone(), phase:Math.random()*Math.PI*2});
+
+        if (x < count-1) addSpring(position, new THREE.Vector3(position.x+spacing,position.y,position.z));
+        if (y < count-1) addSpring(position, new THREE.Vector3(position.x,position.y+spacing,position.z));
+        if (z < count-1) addSpring(position, new THREE.Vector3(position.x,position.y,position.z+spacing));
+      }
+    }
+  }
+}
+
+function addSpring(a,b) {
+  const geometry = new THREE.BufferGeometry().setFromPoints([a,b]);
+  const material = new THREE.LineBasicMaterial({
+    color:0xa8b8cb, transparent:true, opacity:0.8
+  });
+  const line = new THREE.Line(geometry,material);
+  atomGroup.add(line);
+  springs.push({line,a:a.clone(),b:b.clone()});
+}
+
+function updateAtoms() {
+  if (!atomGroup) return;
+  const c = calculate();
+  const deltaT = c.deltaT;
+  const thermal = Math.max(0, Math.min(1.5, (state.temperature+100)/650));
+  const visualExpansion = Math.max(0.75, 1 + c.alpha*deltaT*900);
+  const amplitude = 0.012 + thermal*0.075;
+
+  atoms.forEach(atom => {
+    const p = atom.base.clone().multiplyScalar(visualExpansion);
+    atom.mesh.position.set(
+      p.x + Math.sin(state.time*5+atom.phase)*amplitude,
+      p.y + Math.cos(state.time*4.2+atom.phase)*amplitude,
+      p.z + Math.sin(state.time*4.7+atom.phase*1.3)*amplitude
+    );
+
+    const atomColor = temperatureColor(state.temperature, 0x3b82c4);
+    atom.mesh.material.color.copy(atomColor);
+  });
+
+  springs.forEach(s => {
+    const a = s.a.clone().multiplyScalar(visualExpansion);
+    const b = s.b.clone().multiplyScalar(visualExpansion);
+    const points = [a,b];
+    s.line.geometry.dispose();
+    s.line.geometry = new THREE.BufferGeometry().setFromPoints(points);
+  });
+}
+
+function resizeRenderer(r, camera, canvas) {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if (!width || !height) return;
+  r.setSize(width, height, false);
+  camera.aspect = width/height;
+  camera.updateProjectionMatrix();
+}
+
+function animate(now=0) {
+  animationId = requestAnimationFrame(animate);
+  const dt = Math.min(0.05, (now-lastTime)/1000 || 0);
+  lastTime = now;
+  state.time += dt;
+
+  if (state.auto) {
+    state.temperature += dt*24;
+    if (state.temperature >= 1000) {
+      state.temperature = 1000;
+      state.auto = false;
+      $("autoBtn").textContent = "▶ Aquecer automaticamente";
+      $("pauseBtn").disabled = true;
+    }
+    $("temperature").value = state.temperature;
+    updateUI();
+  }
+
+  if (flameGroup.visible) {
+    flameGroup.children.forEach((child,i) => {
+      if (child.geometry.type === "ConeGeometry") {
+        child.scale.x = 0.85 + 0.15*Math.sin(state.time*9+i);
+        child.scale.z = 0.85 + 0.15*Math.cos(state.time*8+i);
+      }
+    });
+  }
+
+  controls.update();
+  renderer.render(scene,camera);
+
+  if (state.showAtoms) {
+    atomControls.update();
+    atomRenderer.render(atomScene,atomCamera);
+  }
+}
+
+function setTemperature(value) {
+  state.temperature = Math.max(-100, Math.min(1000, Number(value)));
+  $("temperature").value = state.temperature;
+  updateUI();
+}
+
+$("material").addEventListener("change", e => {
+  state.material = e.target.value;
+  updateUI();
+});
+
+$("temperature").addEventListener("input", e => {
+  state.auto = false;
+  $("autoBtn").textContent = "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = true;
+  setTemperature(e.target.value);
+});
+
+$("dimension").addEventListener("input", e => {
+  state.dimension = Number(e.target.value);
+  updateUI();
+});
+
+document.querySelectorAll("[data-mode]").forEach(button => {
+  button.addEventListener("click", () => {
+    state.mode = button.dataset.mode;
+    updateUI();
+  });
+});
+
+$("showHole").addEventListener("change", e => {
+  state.showHole = e.target.checked;
+  updateUI();
+});
+
+$("coolBtn").addEventListener("click", () => {
+  state.auto = false;
+  $("autoBtn").textContent = "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = true;
+  setTemperature(state.temperature-50);
+});
+
+$("heatBtn").addEventListener("click", () => {
+  state.auto = false;
+  $("autoBtn").textContent = "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = true;
+  setTemperature(state.temperature+50);
+});
+
+$("autoBtn").addEventListener("click", () => {
+  state.auto = !state.auto;
+  $("autoBtn").textContent = state.auto
+    ? "Ⅱ Pausar aquecimento" : "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = !state.auto;
+  updateUI();
+});
+
+$("pauseBtn").addEventListener("click", () => {
+  state.auto = false;
+  $("autoBtn").textContent = "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = true;
+  updateUI();
+});
+
+$("atomsToggle").addEventListener("click", () => {
+  state.showAtoms = !state.showAtoms;
+  $("atomsPanel").style.display = state.showAtoms ? "" : "none";
+  $("atomsToggle").textContent = state.showAtoms ? "Ocultar" : "Mostrar";
+});
+
+$("resetBtn").addEventListener("click", () => {
+  state.mode = "linear";
+  state.material = "aluminum";
+  state.temperature = 20;
+  state.initialTemperature = 20;
+  state.dimension = 2;
+  state.auto = false;
+  state.showAtoms = true;
+  state.showHole = true;
+
+  $("material").value = state.material;
+  $("temperature").value = 20;
+  $("dimension").value = 2;
+  $("showHole").checked = true;
+  $("atomsPanel").style.display = "";
+  $("atomsToggle").textContent = "Ocultar";
+  $("autoBtn").textContent = "▶ Aquecer automaticamente";
+  $("pauseBtn").disabled = true;
+
+  controls.reset();
+  controls.target.set(0,0.35,0);
+  camera.position.set(5.8,4.4,7.5);
+  atomControls.reset();
+
+  updateUI();
+});
+
+function onResize() {
+  resizeRenderer(renderer,camera,$("scene"));
+  resizeRenderer(atomRenderer,atomCamera,$("atomScene"));
+}
+
+initMainScene();
+initAtoms();
+updateUI();
+onResize();
+
+const resizeObserver = new ResizeObserver(onResize);
+resizeObserver.observe($("scene"));
+resizeObserver.observe($("atomScene"));
+window.addEventListener("resize",onResize);
+
+animate();
 </script>
-
+<script src="https://erik-bernardo.github.io/SimuLabb/dados/head.js"></script>
 </body>
 </html>
