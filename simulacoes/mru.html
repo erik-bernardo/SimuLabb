@@ -1,866 +1,1484 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRU - Movimento Retilíneo Uniforme</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Variável de largura da sidebar */
-        :root {
-            --sidebar-width: 300px;
-            --header-height: 55px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimuLab | Laboratório de Cinemática</title>
 
-        /* --- ESTILOS DO HEADER --- */
-        .top-bar {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 0;
-            height: var(--header-height); 
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 100; 
-            display: flex;
-            align-items: stretch; 
-            border-bottom: 1px solid #ddd; 
-            box-sizing: border-box; 
-        }
+<style>
+:root {
+  --blue: #2878e8;
+  --blue-dark: #175bb8;
+  --blue-light: #eaf3ff;
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --border: #dce2ea;
+  --text: #243247;
+  --muted: #78869a;
+  --green: #1da879;
+  --orange: #ed9635;
+  --red: #e45b67;
+  --radius: 12px;
+}
 
-        .logo-link {
-            text-decoration: none;
-            color: #D2691E; 
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 25px; 
-            display: flex;
-            align-items: center; 
-            border-right: 1px solid #ddd; 
-            transition: background-color 0.3s;
-        }
-        
-        .logo-link:hover {
-            background-color: #f5f5f5;
-        }
+* { box-sizing: border-box; }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: flex-start;
-            flex-grow: 1;
-        }
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
 
-        .page-title {
-            padding: 0 25px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #555;
-            display: flex;
-            align-items: center;
-        }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
 
-        /* --- ESTILOS GERAIS DO BODY --- */
-        body {
-            background-color: #f0f8ff;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            font-family: sans-serif;
-            padding-top: var(--header-height); 
-            overflow: hidden; /* Evita barras de rolagem estranhas */
-        }
+.topbar {
+  height: 64px;
+  padding: 0 24px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
 
-        /* --- ESTILO DO PAINEL DE CONTROLE (SIDEBAR) --- */
-        #inputPanel {
-            position: fixed;
-            top: var(--header-height); 
-            left: 0;
-            width: var(--sidebar-width); 
-            height: calc(100vh - var(--header-height)); 
-            background-color: white;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
-            padding: 15px; 
-            box-sizing: border-box;
-            z-index: 10;
-            
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto; 
-        }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.5px;
+}
 
-        /* --- SELETORES DE MODO --- */
-        .mode-selector-group {
-            display: flex;
-            margin-bottom: 15px;
-            border: 1px solid #008CBA;
-            border-radius: 5px;
-            overflow: hidden;
-        }
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--blue);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+}
 
-        .mode-selector {
-            flex-grow: 1;
-            padding: 8px 5px;
-            font-size: 11px;
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-            background-color: white;
-            color: #008CBA;
-            transition: background-color 0.2s, color 0.2s;
-            border-right: 1px solid #008CBA;
-        }
-        
-        .mode-selector:last-child {
-            border-right: none;
-        }
+.brand small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  margin-top: 3px;
+}
 
-        .mode-selector.active {
-            background-color: #008CBA;
-            color: white;
-        }
-        
-        .mode-selector:not(.active):hover {
-            background-color: #e0f7ff;
-        }
-        
-        /* --- GRUPOS DE INPUTS --- */
-        .input-group-container {
-            display: flex;
-            flex-direction: column; 
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
 
-        .input-group {
-            width: 100%; 
-        }
-        
-        .dataInput {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
 
-        .button-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        /* Estilo do resultado na sidebar */
-        #resultado {
-            margin-top: 5px;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-            min-height: 40px;
-            color: #333;
-        }
-        
-        .formula {
-            font-style: italic;
-            font-family: serif;
-            font-size: 1.1em;
-            color: #333;
-            margin-left: 15px; 
-            line-height: 1.5;
-        }
-        
-        .label {
-            font-size: 12px;
-            margin-bottom: 4px;
-            color: #555;
-            font-weight: bold;
-            display: block; 
-        }
+.app {
+  display: grid;
+  grid-template-columns: 310px minmax(0, 1fr);
+  min-height: calc(100vh - 64px);
+}
 
-        /* --- ESTILOS DO PLANO CARTESIANO (ÁREA DE VISUALIZAÇÃO) --- */
-        #planoCartesiano {
-            position: fixed;
-            top: var(--header-height); 
-            left: var(--sidebar-width); 
-            width: calc(100% - var(--sidebar-width)); 
-            height: calc(100vh - var(--header-height)); 
-            background-color: white; 
-            z-index: -1; 
-            
-            /* Criação do Grid */
-            background-size: 25px 25px; 
-            background-image: 
-                linear-gradient(to right, lightblue 1px, transparent 1px),
-                linear-gradient(to bottom, lightblue 1px, transparent 1px);
-            
-            background-position: 50% 50%; 
-        }
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 21px 19px;
+  overflow: hidden;
+}
 
-        /* Criação do eixo x (horizontal) - NO CENTRO VERTICAL */
-        #planoCartesiano::before {
-            content: '';
-            position: absolute;
-            top: 50%; 
-            transform: translateY(-50%); 
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: red; 
-        }
+.eyebrow {
+  color: var(--blue);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
 
-        /* Criação do eixo y (vertical no centro) */
-        #planoCartesiano::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background-color: red; 
-        }
+h1, h2, h3, p { margin-top: 0; }
 
-        /* --- ESTILOS DO CORPO / OBJETO --- */
-        #corpo {
-            position: absolute;
-            top: 50%; 
-            transform: translateY(-50%); 
-            width: 20px;
-            height: 20px;
-            background-color: black;
-            border-radius: 50%;
-            z-index: 5;
-            cursor: grab; /* Indica que pode ser arrastado */
-            transition: left 0s linear; 
-        }
-        
-        #corpo:active {
-            cursor: grabbing;
-        }
-        
-        /* Balão de Velocidade */
-        #speedDisplay {
-            position: absolute;
-            bottom: 100%; /* Posiciona acima da bola */
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            padding: 3px 6px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 12px;
-            border-radius: 3px;
-            pointer-events: none; /* Garante que não interfira no clique */
-            opacity: 0; /* Inicialmente escondido */
-            transition: opacity 0.1s;
-        }
-        
-        /* Estilos dos botões */
-        .action-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-            flex-grow: 1;
-        }
+.sidebar h2 {
+  font-size: 19px;
+  margin: 8px 0 5px;
+}
 
-        #startStopButton {
-            background-color: #4CAF50;
-            color: white;
-        }
+.subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
 
-        #startStopButton:hover:not(:disabled) {
-            background-color: #45a049;
-        }
-        
-        #startStopButton:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
+.section-title {
+  font-size: 12px;
+  font-weight: 800;
+  margin: 19px 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        #resetButton {
-            background-color: #f44336;
-            color: white;
-        }
+.model-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #edf1f6;
+  padding: 4px;
+  border-radius: 9px;
+  gap: 4px;
+}
 
-        #resetButton:hover {
-            background-color: #da190b;
-        }
-    </style>
+.model-switch button {
+  border: 0;
+  padding: 10px 6px;
+  border-radius: 7px;
+  color: #65738a;
+  background: transparent;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.model-switch button.active {
+  color: var(--blue-dark);
+  background: white;
+  box-shadow: 0 1px 4px #1c31551c;
+}
+
+.control {
+  margin: 15px 0;
+}
+
+.control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 9px;
+  gap: 8px;
+}
+
+.control-head label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.unit {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.value-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+  height: 35px;
+  width: 105px;
+  background: white;
+}
+
+.value-input input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 0;
+  outline: 0;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+  background: transparent;
+}
+
+.value-input span {
+  color: var(--muted);
+  font-size: 10px;
+  padding-right: 7px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #98a3b3;
+  margin-top: 3px;
+}
+
+.formula-box {
+  padding: 12px;
+  background: #f7f9fc;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  margin-top: 19px;
+}
+
+.formula-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: .8px;
+  margin-bottom: 9px;
+}
+
+.formula {
+  font-family: "Cambria Math", Georgia, serif;
+  font-size: 15px;
+  margin: 8px 0;
+  color: #324a6b;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.btn:hover { background: #f2f6fb; }
+
+.btn-primary {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.btn-primary:hover {
+  background: var(--blue-dark);
+}
+
+.sidebar-actions .btn { flex: 1; }
+
+.main {
+  padding: 24px;
+  min-width: 0;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 19px;
+}
+
+.page-heading h1 {
+  font-size: 23px;
+  letter-spacing: -.7px;
+  margin: 5px 0 7px;
+}
+
+.page-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.live-label {
+  border: 1px solid #bce8d6;
+  color: #16845d;
+  background: #e9faf2;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 225px;
+  gap: 15px;
+  align-items: start;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.card-header {
+  padding: 15px 17px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #edf0f5;
+  gap: 10px;
+}
+
+.card-header h3 {
+  font-size: 13px;
+  margin: 0;
+}
+
+.card-header p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tag {
+  color: var(--blue-dark);
+  background: var(--blue-light);
+  padding: 6px 8px;
+  font-size: 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.canvas-wrap {
+  position: relative;
+  padding: 8px;
+  background: #fff;
+}
+
+#motionCanvas {
+  display: block;
+  width: 100%;
+  height: 260px;
+}
+
+.canvas-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 12px 17px;
+  border-top: 1px solid #edf0f5;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.playback {
+  padding: 14px 17px;
+  border-top: 1px solid #edf0f5;
+}
+
+.playback-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.playback-buttons {
+  display: flex;
+  gap: 7px;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 32px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.icon-btn.primary {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.clock {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.clock strong {
+  color: var(--blue);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playback input { display: block; }
+
+.playback-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.metric {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.metric-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  gap: 5px;
+}
+
+.metric-symbol {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.metric-value {
+  font-size: 25px;
+  letter-spacing: -.8px;
+  font-weight: 750;
+  margin: 13px 0 5px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-unit {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.metric-foot {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid #edf0f5;
+}
+
+.chart-card { margin-top: 16px; }
+
+.chart-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chart-tabs button {
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: #758297;
+  background: white;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chart-tabs button.active {
+  color: var(--blue-dark);
+  background: var(--blue-light);
+  border-color: #b8d4ff;
+}
+
+#chartCanvas {
+  display: block;
+  width: 100%;
+  height: 245px;
+}
+
+.chart-description {
+  padding: 0 17px 14px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.footer {
+  padding: 20px 0 4px;
+  text-align: center;
+  color: #97a2b2;
+  font-size: 10px;
+}
+
+@media (min-width: 1450px) {
+  .app { grid-template-columns: 330px minmax(0, 1fr); }
+  .main { padding: 30px; }
+  #motionCanvas { height: 310px; }
+}
+
+@media (max-width: 1050px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .metric { padding: 12px; }
+  .metric-value { font-size: 21px; }
+}
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+  .main { padding: 17px; }
+  .topbar { padding: 0 15px; }
+  .top-right { display: none; }
+  .page-heading h1 { font-size: 20px; }
+  .metrics { grid-template-columns: 1fr; }
+  .metric {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+  .metric-value { margin: 0; }
+  .metric-unit, .metric-foot { grid-column: 1 / -1; }
+  .metric-foot { margin-top: 8px; }
+  #motionCanvas { height: 230px; }
+  .card-header { flex-wrap: wrap; }
+}
+</style>
 </head>
+
 <body>
-    <header class="top-bar">
-        <a href="index.html" class="logo-link">
-            <i class="fas fa-book-reader"></i> PLATAFORMA
-        </a>
-        <div class="nav-buttons">
-            <span class="page-title">MRU - MOVIMENTO RETILÍNEO UNIFORME</span>
-        </div>
-    </header>
-    
-    <div id="planoCartesiano"></div>
 
-    <div id="inputPanel">
-        <div class="mode-selector-group">
-            <div class="mode-selector active" data-mode="simulacao">Simulação</div>
-            <div class="mode-selector" data-mode="posicao">Calcular Posição (S)</div>
-            <div class="mode-selector" data-mode="velocidade">Calcular Velocidade (v)</div>
-            <div class="mode-selector" data-mode="tempo">Calcular Tempo (Δt)</div>
-        </div>
-        
-        <div id="resultado">Selecione um modo para começar.</div>
-        
-        <div class="input-group-container">
-            <div class="input-group" data-input-group="s-start">
-                <label class="label">Posição Inicial (S₀) (m) - **ARRASTE A BOLA**</label>
-                <input type="number" id="sStart" class="dataInput" value="0">
-            </div>
-            <div class="input-group" data-input-group="s-end" style="display: none;">
-                <label class="label">Posição Final (S) (m)</label>
-                <input type="number" id="sEnd" class="dataInput" value="10">
-            </div>
-            <div class="input-group" data-input-group="t-start">
-                <label class="label">Tempo Inicial (t₀) (s)</label>
-                <input type="number" id="tStart" class="dataInput" value="0">
-            </div>
-            <div class="input-group" data-input-group="t-end">
-                <label class="label">Tempo Final (t) (s)</label>
-                <input type="number" id="tEnd" class="dataInput" value="10">
-            </div>
-            <div class="input-group" data-input-group="v">
-                <label class="label">Velocidade (v) (m/s)</label>
-                <input type="number" id="velocity" class="dataInput" value="1">
-            </div>
-        </div>
-        
-        <div class="button-row">
-            <button id="startStopButton" class="action-button">Iniciar Simulação</button>
-            <button id="resetButton" class="action-button">Resetar</button>
-        </div>
-    </div>
-    
-    <div id="corpo">
-        <div id="speedDisplay"></div>
+
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="eyebrow">Experimento 01</div>
+    <h2>Configuração</h2>
+    <p class="subtitle">
+      Ajuste as condições iniciais e observe como o movimento se comporta.
+    </p>
+
+    <div class="section-title">Modelo físico</div>
+    <div class="model-switch">
+      <button id="mruBtn" class="active" data-model="MRU">MRU</button>
+      <button id="mruvBtn" data-model="MRUV">MRUV</button>
     </div>
 
-    <script>
-        class Calculadora {
-            constructor() {
-                // Constantes
-                this.SIDEBAR_WIDTH = 300; 
-                this.CORPO_WIDTH = 20; 
-                this.tamanhoQuadrado = 25; // 25px por unidade (metro)
+    <div class="section-title">
+      Condições iniciais
+      <span class="unit">SI</span>
+    </div>
 
-                // Elementos DOM
-                this.corpo = document.getElementById('corpo');
-                this.speedDisplay = document.getElementById('speedDisplay'); // Novo elemento
-                this.planoCartesiano = document.getElementById('planoCartesiano');
-                this.sStartInput = document.getElementById('sStart');
-                this.sEndInput = document.getElementById('sEnd');
-                this.tStartInput = document.getElementById('tStart'); 
-                this.tEndInput = document.getElementById('tEnd');    
-                this.velocityInput = document.getElementById('velocity');
-                this.resultadoDiv = document.getElementById('resultado');
-                this.actionButton = document.getElementById('startStopButton'); 
-                this.resetButton = document.getElementById('resetButton');
-                this.modeSelectors = document.querySelectorAll('.mode-selector');
-                
-                // Variáveis de estado
-                this.animacaoID = null;
-                this.tempoInicialAnimacao = 0;
-                this.isSimulando = false;
-                this.isDemonstracao = false; 
-                this.tempoLimiteDemonstracao = null;
-                this.modoAtual = 'simulacao'; 
-                this.isDragging = false; // Estado do arraste
-                
-                this.corpoData = {
-                    posicaoInicial: 0,
-                    velocidade: 0,
-                    tempoTotal: 0
-                };
-                
-                this.configurarListeners();
-                this.setMode('simulacao');
-                this.resetarSimulacao();
-            }
+    <div class="control">
+      <div class="control-head">
+        <label for="x0">Posição inicial (x₀)</label>
+        <div class="value-input">
+          <input id="x0" type="number" min="-100" max="100" step="1" value="0">
+          <span>m</span>
+        </div>
+      </div>
+      <input id="x0Range" type="range" min="-100" max="100" step="1" value="0">
+      <div class="range-labels"><span>−100 m</span><span>100 m</span></div>
+    </div>
 
-            // --- AUXILIAR DE PARSING ---
-            
-            _parseInput(inputElement) {
-                if (!inputElement || inputElement.value === '') return NaN;
-                return parseFloat(inputElement.value.replace(',', '.'));
-            }
-            
-            // --- CONVERSÃO DE COORDENADAS ---
-            
-            // Converte Posição S (unidades) para Coordenada X (pixels) na tela
-            posicaoToX(s) {
-                const canvasWidth = window.innerWidth - this.SIDEBAR_WIDTH; 
-                const centroX_canvas = canvasWidth / 2;
-                const offsetX_movimento = s * this.tamanhoQuadrado; 
-                // Posição na tela = (Lado Direito da Sidebar) + (Centro do Canvas) + (Offset do Movimento) - (Metade da Bola)
-                return this.SIDEBAR_WIDTH + centroX_canvas + offsetX_movimento - (this.CORPO_WIDTH / 2); 
-            }
-            
-            // Converte Coordenada X (pixels) na tela para Posição S (unidades)
-            xToPosicao(x_tela) {
-                const canvasWidth = window.innerWidth - this.SIDEBAR_WIDTH; 
-                const centroX_canvas = canvasWidth / 2;
-                
-                // Offset do Movimento em pixels
-                const offsetX_movimento = x_tela - this.SIDEBAR_WIDTH - centroX_canvas + (this.CORPO_WIDTH / 2);
-                
-                // Posição S em unidades
-                return offsetX_movimento / this.tamanhoQuadrado;
-            }
+    <div class="control">
+      <div class="control-head">
+        <label for="v0">Velocidade inicial (v₀)</label>
+        <div class="value-input">
+          <input id="v0" type="number" min="-30" max="30" step="0.5" value="5">
+          <span>m/s</span>
+        </div>
+      </div>
+      <input id="v0Range" type="range" min="-30" max="30" step="0.5" value="5">
+      <div class="range-labels"><span>−30 m/s</span><span>30 m/s</span></div>
+    </div>
 
+    <div class="control" id="accelerationControl">
+      <div class="control-head">
+        <label for="a">Aceleração (a)</label>
+        <div class="value-input">
+          <input id="a" type="number" min="-10" max="10" step="0.5" value="2">
+          <span>m/s²</span>
+        </div>
+      </div>
+      <input id="aRange" type="range" min="-10" max="10" step="0.5" value="2">
+      <div class="range-labels"><span>−10 m/s²</span><span>10 m/s²</span></div>
+    </div>
 
-            // --- CONFIGURAÇÃO DE LISTENERS ---
-            
-            configurarListeners() {
-                this.resetButton.addEventListener('click', () => this.resetarSimulacao());
-                this.actionButton.addEventListener('click', () => {
-                    if (this.isDemonstracao) return; 
-                    if (this.modoAtual === 'simulacao') {
-                        this.toggleSimulacao();
-                    } else {
-                        this.handleOperacoes(this.modoAtual);
-                    }
-                });
-                this.modeSelectors.forEach(selector => {
-                    selector.addEventListener('click', (e) => {
-                        this.setMode(e.target.getAttribute('data-mode'));
-                    });
-                });
-                
-                // Atualiza S₀ se o input for mudado
-                this.sStartInput.addEventListener('change', () => {
-                     this.resetarSimulacao();
-                });
-                // Atualiza v se o input for mudado
-                 this.velocityInput.addEventListener('change', () => {
-                     this.resetarSimulacao();
-                });
-                
-                // LISTENERS DE ARRASTE
-                this.corpo.addEventListener('mousedown', (e) => this.startDrag(e));
-                this.corpo.addEventListener('touchstart', (e) => this.startDrag(e));
-                window.addEventListener('mousemove', (e) => this.drag(e));
-                window.addEventListener('touchmove', (e) => this.drag(e));
-                window.addEventListener('mouseup', () => this.stopDrag());
-                window.addEventListener('touchend', () => this.stopDrag());
-            }
-            
-            // --- LÓGICA DE ARRASTAR O CORPO ---
-            
-            startDrag(e) {
-                if (this.isSimulando || this.modoAtual !== 'simulacao') return; // Apenas permite arrastar na simulação e parado
-                
-                e.preventDefault();
-                this.isDragging = true;
-                this.corpo.style.cursor = 'grabbing';
-            }
+    <div class="control">
+      <div class="control-head">
+        <label for="duration">Duração da simulação</label>
+        <div class="value-input">
+          <input id="duration" type="number" min="1" max="60" step="1" value="10">
+          <span>s</span>
+        </div>
+      </div>
+      <input id="durationRange" type="range" min="1" max="60" step="1" value="10">
+      <div class="range-labels"><span>1 s</span><span>60 s</span></div>
+    </div>
 
-            drag(e) {
-                if (!this.isDragging) return;
-                
-                let clientX;
-                if (e.touches) {
-                    clientX = e.touches[0].clientX;
-                } else {
-                    clientX = e.clientX;
-                }
+    <div class="formula-box">
+      <div class="formula-title">EQUAÇÕES DO MOVIMENTO</div>
+      <div class="formula" id="positionFormula">x(t) = x₀ + v₀t</div>
+      <div class="formula" id="velocityFormula">v(t) = v₀</div>
+      <div class="formula" id="accelerationFormula">a(t) = 0</div>
+    </div>
 
-                // Calcula a nova posição X da bola
-                // x_tela = clientX (mouse)
-                let newXPos = clientX;
-                
-                // Mapeia a nova posição X para a posição S em unidades
-                let newS = this.xToPosicao(newXPos);
-                
-                // Arredonda para o múltiplo do tamanho do quadrado (para "encaixar" na grade)
-                newS = Math.round(newS * 4) / 4; // Arredonda para 0.25 unidades
-                
-                // Atualiza o input e a posição visual
-                this.sStartInput.value = newS.toFixed(2);
-                this.corpoData.posicaoInicial = newS;
-                this.atualizaPosicaoCorpo(newS);
-                
-                this.resultadoDiv.innerHTML = `**S₀** definida em **${newS.toFixed(2)}m** (Arraste e solte).`;
-            }
+    <div class="sidebar-actions">
+      <button class="btn" id="resetBtn">↺ Restaurar</button>
+      <button class="btn btn-primary" id="applyBtn">Aplicar valores</button>
+    </div>
+  </aside>
 
-            stopDrag() {
-                if (this.isDragging) {
-                    this.isDragging = false;
-                    this.corpo.style.cursor = 'grab';
-                    this.resetarSimulacao(); // Reseta para aplicar o novo S₀
-                }
-            }
+  <main class="main">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">Física • Mecânica</div>
+        <h1>Laboratório de Cinemática</h1>
+        <p>Explore o movimento retilíneo com uma simulação em tempo real.</p>
+      </div>
+      <div class="live-label">● INTERATIVO</div>
+    </div>
 
+    <div class="workspace">
+      <div>
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h3>Visualização do movimento</h3>
+              <p>Trajetória unidimensional • Referencial espacial</p>
+            </div>
+            <span class="tag" id="modelTag">MRU · a = 0</span>
+          </div>
 
-            // --- LÓGICA DE MUDANÇA DE MODO ---
+          <div class="canvas-wrap">
+            <canvas id="motionCanvas" aria-label="Animação do movimento retilíneo">
+              Seu navegador não suporta Canvas.
+            </canvas>
+          </div>
 
-            setMode(novoModo) {
-                this.stopSimulacao(); 
-                this.modoAtual = novoModo;
-                
-                this.modeSelectors.forEach(selector => {
-                    selector.classList.remove('active');
-                    if (selector.getAttribute('data-mode') === novoModo) {
-                        selector.classList.add('active');
-                    }
-                });
+          <div class="canvas-legend">
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#2878e8"></span>
+              Móvel
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#1da879"></span>
+              Posição inicial
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot" style="background:#ed9635"></span>
+              Posição atual
+            </span>
+          </div>
 
-                this.configurarInputs(novoModo);
-                
-                const isSimulacao = novoModo === 'simulacao';
-                this.actionButton.textContent = isSimulacao ? 'Iniciar Simulação' : 'Calcular e Simular';
-                this.actionButton.style.backgroundColor = isSimulacao ? '#4CAF50' : '#008CBA';
-                
-                this.resetarSimulacao();
-            }
+          <div class="playback">
+            <div class="playback-top">
+              <div class="playback-buttons">
+                <button class="icon-btn" id="restartBtn" title="Reiniciar" aria-label="Reiniciar">↺</button>
+                <button class="icon-btn primary" id="playBtn" title="Reproduzir" aria-label="Reproduzir">▶</button>
+                <button class="icon-btn" id="stepBtn" title="Avançar 0,1 segundo" aria-label="Avançar um passo">▸|</button>
+              </div>
+              <div class="clock">Tempo: <strong id="timeDisplay">0.0</strong> s</div>
+            </div>
+            <input id="timeRange" type="range" min="0" max="10" step="0.1" value="0" aria-label="Tempo da simulação">
+            <div class="playback-scale">
+              <span>0 s</span>
+              <span id="durationDisplay">10 s</span>
+            </div>
+          </div>
+        </section>
 
-            getModeName(modo) {
-                switch(modo) {
-                    case 'simulacao': return 'Simulação';
-                    case 'posicao': return 'Posição (S)';
-                    case 'velocidade': return 'Velocidade (v)';
-                    case 'tempo': return 'Tempo (Δt)';
-                    default: return '';
-                }
-            }
-            
-            // --- LÓGICA DE SIMULAÇÃO/ANIMAÇÃO UNIFICADA ---
+        <section class="card chart-card">
+          <div class="card-header">
+            <div>
+              <h3>Gráficos do movimento</h3>
+              <p>Relação entre as grandezas físicas e o tempo</p>
+            </div>
+            <div class="chart-tabs">
+              <button class="active" data-chart="position">x × t</button>
+              <button data-chart="velocity">v × t</button>
+              <button data-chart="acceleration">a × t</button>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="chartCanvas" aria-label="Gráfico cinemático">
+              Seu navegador não suporta Canvas.
+            </canvas>
+          </div>
+          <div class="chart-description" id="chartDescription">
+            No MRU, a posição varia linearmente com o tempo. A inclinação da reta representa a velocidade.
+          </div>
+        </section>
+      </div>
 
-            resetarSimulacao() {
-                this.stopSimulacao();
-                this.actionButton.textContent = (this.modoAtual === 'simulacao') ? 'Iniciar Simulação' : 'Calcular e Simular';
-                this.actionButton.style.backgroundColor = (this.modoAtual === 'simulacao') ? '#4CAF50' : '#008CBA';
-                this.actionButton.disabled = false;
-                
-                this.corpoData.posicaoInicial = this._parseInput(this.sStartInput) || 0;
-                this.corpoData.velocidade = this._parseInput(this.velocityInput) || 0;
-                this.corpoData.tempoTotal = 0; 
-                
-                this.isDemonstracao = false;
-                this.tempoLimiteDemonstracao = null;
+      <aside class="metrics">
+        <div class="metric">
+          <div class="metric-label">
+            Posição atual
+            <span class="metric-symbol">x</span>
+          </div>
+          <div class="metric-value" id="positionValue">0.00</div>
+          <div class="metric-unit">metros (m)</div>
+          <div class="metric-foot">Coordenada no referencial</div>
+        </div>
 
-                this.atualizaPosicaoCorpo(this.corpoData.posicaoInicial); 
-                this.hideSpeedDisplay();
-                
-                if (this.modoAtual === 'simulacao') {
-                    this.resultadoDiv.innerHTML = `Pronto para simular **MRU (S = S₀ + v·Δt)**. Arraste a bola para definir S₀.`;
-                } else {
-                     this.resultadoDiv.innerHTML = `Pronto para calcular **${this.getModeName(this.modoAtual)}**. Clique em 'Calcular e Simular'.`;
-                }
-            }
+        <div class="metric">
+          <div class="metric-label">
+            Velocidade atual
+            <span class="metric-symbol">v</span>
+          </div>
+          <div class="metric-value" id="velocityValue">5.00</div>
+          <div class="metric-unit">metros por segundo (m/s)</div>
+          <div class="metric-foot" id="velocityFoot">Movimento progressivo</div>
+        </div>
 
-            toggleSimulacao() {
-                if (this.isSimulando) {
-                    this.stopSimulacao();
-                    this.actionButton.textContent = 'Continuar Simulação';
-                    this.actionButton.style.backgroundColor = '#f39c12';
-                    this.hideSpeedDisplay();
-                } else {
-                    this.iniciarSimulacao();
-                }
-            }
+        <div class="metric">
+          <div class="metric-label">
+            Aceleração atual
+            <span class="metric-symbol">a</span>
+          </div>
+          <div class="metric-value" id="accelerationValue">0.00</div>
+          <div class="metric-unit">metros por segundo² (m/s²)</div>
+          <div class="metric-foot" id="accelerationFoot">Velocidade constante</div>
+        </div>
 
-            iniciarSimulacao() {
-                if (this.isSimulando) return;
-                
-                this.corpoData.posicaoInicial = this._parseInput(this.sStartInput) || 0;
-                this.corpoData.velocidade = this._parseInput(this.velocityInput) || 0;
-                const v = this.corpoData.velocidade;
-                
-                if (isNaN(v)) {
-                     this.resultadoDiv.innerHTML = '<span style="color: red; font-weight: bold;">ERRO:</span> Insira um valor válido para Velocidade (v).';
-                     return;
-                }
+        <div class="metric">
+          <div class="metric-label">
+            Deslocamento
+            <span class="metric-symbol">Δx</span>
+          </div>
+          <div class="metric-value" id="displacementValue">0.00</div>
+          <div class="metric-unit">metros (m)</div>
+          <div class="metric-foot">x(t) − x₀</div>
+        </div>
+      </aside>
+    </div>
 
-                this.isSimulando = true;
-                this.actionButton.textContent = 'Parar Simulação';
-                this.actionButton.style.backgroundColor = '#4CAF50';
-                
-                this.tempoInicialAnimacao = performance.now() - (this.corpoData.tempoTotal * 1000); 
-                
-                this.animacaoID = requestAnimationFrame(this.loopAnimacao.bind(this));
-            }
+    <div class="footer">
+      SimuLab • Laboratório Virtual de Física • Modelo ideal sem resistência do ar
+    </div>
+  </main>
+</div>
 
-            stopSimulacao() {
-                if (this.animacaoID) {
-                    cancelAnimationFrame(this.animacaoID);
-                }
-                this.isSimulando = false;
-                this.isDemonstracao = false;
-                this.hideSpeedDisplay();
-            }
+<script>
+(() => {
+  "use strict";
 
-            loopAnimacao(timestamp) {
-                if (!this.isSimulando) return;
-                
-                const v = this.corpoData.velocidade;
-                const s0 = this.corpoData.posicaoInicial;
-                const t0 = this._parseInput(this.tStartInput) || 0;
-                const tempoLimiteGlobal = this._parseInput(this.tEndInput); 
-                
-                const tempoDecorridoReal = (timestamp - this.tempoInicialAnimacao) / 1000; 
-                
-                let t_simulacao = tempoDecorridoReal;
-                let deveParar = false;
+  const $ = id => document.getElementById(id);
 
-                // Lógica de Parada para Demonstração/Simulação
-                let tempoLimite = this.isDemonstracao ? this.tempoLimiteDemonstracao : tempoLimiteGlobal;
+  const fields = {
+    x0: { min: -100, max: 100, step: 1 },
+    v0: { min: -30, max: 30, step: 0.5 },
+    a: { min: -10, max: 10, step: 0.5 },
+    duration: { min: 1, max: 60, step: 1 }
+  };
 
-                if (!isNaN(tempoLimite) && tempoLimite > 0) {
-                    if (t_simulacao >= tempoLimite) {
-                        t_simulacao = tempoLimite;
-                        deveParar = true;
-                    }
-                }
+  const state = {
+    model: "MRU",
+    chart: "position",
+    t: 0,
+    playing: false,
+    lastFrame: 0,
+    accumulator: 0
+  };
 
-                this.corpoData.tempoTotal = t_simulacao;
+  let motionCtx;
+  let chartCtx;
+  let motionSize = { w: 0, h: 0 };
+  let chartSize = { w: 0, h: 0 };
 
-                const tempoNaEquacao = t_simulacao - t0;
-                const sAtual = s0 + v * tempoNaEquacao;
-                const tAtual = t_simulacao;
+  function read(id) {
+    const value = Number($(id).value);
+    return Number.isFinite(value) ? value : 0;
+  }
 
-                this.atualizaPosicaoCorpo(sAtual);
-                this.atualizaResultadoAnimacao(s0, v, t0, tAtual, sAtual);
-                this.showSpeedDisplay(v); // Mostra a velocidade
-                
+  function params() {
+    return {
+      x0: read("x0"),
+      v0: read("v0"),
+      a: state.model === "MRUV" ? read("a") : 0,
+      duration: Math.max(1, read("duration"))
+    };
+  }
 
-                if (deveParar) {
-                    this.stopSimulacao();
-                    
-                    if (this.isDemonstracao) {
-                        this.actionButton.textContent = 'Demonstração Concluída';
-                        this.actionButton.style.backgroundColor = '#007bb5'; 
-                    } else {
-                        this.actionButton.textContent = 'Simulação Concluída';
-                        this.actionButton.style.backgroundColor = '#007bb5'; 
-                    }
-                    this.actionButton.disabled = false;
-                    this.hideSpeedDisplay();
+  function position(t, p = params()) {
+    return p.x0 + p.v0 * t + 0.5 * p.a * t * t;
+  }
 
-                } else {
-                    this.animacaoID = requestAnimationFrame(this.loopAnimacao.bind(this));
-                }
-            }
-            
-            // --- ATUALIZAÇÃO VISUAL (Corpo e Resultados) ---
-            
-            showSpeedDisplay(v) {
-                this.speedDisplay.textContent = `v: ${v.toFixed(2)} m/s`;
-                this.speedDisplay.style.opacity = 1;
-            }
-            
-            hideSpeedDisplay() {
-                 this.speedDisplay.style.opacity = 0;
-            }
+  function velocity(t, p = params()) {
+    return p.v0 + p.a * t;
+  }
 
-            atualizaPosicaoCorpo(s) {
-                this.corpo.style.left = `${this.posicaoToX(s)}px`;
-            }
+  function acceleration(t, p = params()) {
+    return p.a;
+  }
 
-            // Exibe o cálculo instantâneo durante a animação
-            atualizaResultadoAnimacao(s0, v, t0, t, s) {
-                const deltaT = (t - t0) >= 0 ? (t - t0) : 0;
-                
-                // Texto de Status
-                let status = this.isDemonstracao ? '**DEMONSTRAÇÃO:**' : '**SIMULANDO:**';
-                
-                // Cálculo instantâneo
-                this.resultadoDiv.innerHTML = `
-                    ${status} <br>
-                    <p style="margin: 5px 0 0 0;">Equação Horária (S = S₀ + v·Δt):</p>
-                    <p class="formula">S = ${s0.toFixed(2)} + ${v.toFixed(2)} · ${deltaT.toFixed(2)}</p>
-                    <hr style="border-color: #eee; margin: 5px 0;">
-                    <p style="font-weight: bold;">S = ${s.toFixed(2)}m &nbsp;|&nbsp; t = ${t.toFixed(2)}s &nbsp;|&nbsp; Δt = ${deltaT.toFixed(2)}s</p>
-                `;
-            }
+  function fmt(n, digits = 2) {
+    if (!Number.isFinite(n)) return "—";
+    if (Math.abs(n) < 0.0005) n = 0;
+    return n.toFixed(digits);
+  }
 
-            iniciarDemonstracaoCalculo(sStart, v, deltaT) {
-                this.corpoData.posicaoInicial = sStart;
-                this.corpoData.velocidade = v;
-                this.corpoData.tempoTotal = 0; 
-                
-                this.tempoLimiteDemonstracao = deltaT; 
-                this.isDemonstracao = true;
-                
-                this.isSimulando = true;
-                this.actionButton.textContent = 'Demonstrando...';
-                this.actionButton.style.backgroundColor = '#f39c12';
-                this.actionButton.disabled = true;
+  function setValue(id, value) {
+    $(id).value = value;
+    const range = $(id + "Range");
+    if (range) range.value = value;
+  }
 
-                this.tempoInicialAnimacao = performance.now();
-                this.animacaoID = requestAnimationFrame(this.loopAnimacao.bind(this));
-            }
+  function syncRange(id) {
+    const input = $(id);
+    const range = $(id + "Range");
+    const limits = fields[id];
+    let value = Number(input.value);
 
+    if (!Number.isFinite(value)) value = 0;
 
-            // --- FUNÇÕES DE CÁLCULO ---
+    value = Math.max(limits.min, Math.min(limits.max, value));
 
-            handleOperacoes(modoCalculo) {
-                this.stopSimulacao();
-                
-                try {
-                    const sStart = this._parseInput(this.sStartInput);
-                    const sEnd = this._parseInput(this.sEndInput);
-                    const tStart = this._parseInput(this.tStartInput);
-                    const tEnd = this._parseInput(this.tEndInput);
-                    const vInput = this._parseInput(this.velocityInput);
+    // Alinha ao incremento permitido, evitando valores inválidos.
+    value = limits.min +
+      Math.round((value - limits.min) / limits.step) * limits.step;
 
-                    if (isNaN(sStart) || isNaN(tStart)) throw new Error("Posição Inicial (S₀) e Tempo Inicial (t₀) são obrigatórios.");
-                    
-                    let output = `<h4 style="color: #008CBA; margin: 0 0 5px 0;">Cálculo de ${this.getModeName(modoCalculo)}:</h4>`;
+    value = Math.max(limits.min, Math.min(limits.max, value));
 
-                    let v_demo = 0;
-                    let deltaT_demo = 0;
+    input.value = value;
+    range.value = value;
+  }
 
-                    if (modoCalculo === 'posicao') {
-                        // CÁLCULO DE POSIÇÃO (S = S₀ + v*Δt)
-                        const v = vInput;
-                        const deltaT = tEnd - tStart; 
-                        
-                        if (isNaN(v) || isNaN(tEnd)) throw new Error("Preencha Velocidade (v) e Tempo Final (t).");
-                        if (deltaT < 0) throw new Error("O Intervalo de Tempo (t - t₀) não pode ser negativo.");
+  function resizeCanvas(canvas, ctx, store) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, rect.width);
+    const h = Math.max(1, rect.height);
 
-                        const sFinal = sStart + v * deltaT;
-                        
-                        output += `
-                            <p style="margin: 5px 0 0 0;">1. **Δt** = ${tEnd.toFixed(2)} - ${tStart.toFixed(2)} = **${deltaT.toFixed(2)} s**</p>
-                            <p style="margin: 10px 0 0 0;">2. **S = S₀ + v · Δt**</p>
-                            <p class="formula">S = ${sStart.toFixed(2)} + ${v.toFixed(2)} · ${deltaT.toFixed(2)}</p>
-                            <hr style="border-color: #ddd; margin: 5px 0;">
-                            <p style="font-size: 1.2em; color: #4CAF50; font-weight: bold;">S = ${sFinal.toFixed(2)} m</p>
-                        `;
-                        v_demo = v;
-                        deltaT_demo = deltaT;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
 
-                    } else if (modoCalculo === 'velocidade') {
-                        // CÁLCULO DE VELOCIDADE (v = ΔS / Δt)
-                        if (isNaN(sEnd) || isNaN(tEnd)) throw new Error("Preencha Posição Final (S) e Tempo Final (t).");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    store.w = w;
+    store.h = h;
+  }
 
-                        const deltaS = sEnd - sStart;
-                        const deltaT = tEnd - tStart;
-                        
-                        if (deltaT <= 0) throw new Error("O Intervalo de Tempo (t - t₀) deve ser maior que zero.");
+  function setupCanvases() {
+    resizeCanvas($("motionCanvas"), motionCtx, motionSize);
+    resizeCanvas($("chartCanvas"), chartCtx, chartSize);
+    drawAll();
+  }
 
-                        const vFinal = deltaS / deltaT;
+  function roundedRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+  }
 
-                        output += `
-                            <p style="margin: 5px 0 0 0;">1. **ΔS** = ${sEnd.toFixed(2)} - ${sStart.toFixed(2)} = **${deltaS.toFixed(2)} m**</p>
-                            <p>2. **Δt** = ${tEnd.toFixed(2)} - ${tStart.toFixed(2)} = **${deltaT.toFixed(2)} s**</p>
-                            <p style="margin: 10px 0 0 0;">3. **v = ΔS / Δt**</p>
-                            <p class="formula">v = ${deltaS.toFixed(2)} / ${deltaT.toFixed(2)}</p>
-                            <hr style="border-color: #ddd; margin: 5px 0;">
-                            <p style="font-size: 1.2em; color: #4CAF50; font-weight: bold;">v = ${vFinal.toFixed(2)} m/s</p>
-                        `;
+  function drawMotion() {
+    const ctx = motionCtx;
+    const { w, h } = motionSize;
+    if (!w || !h) return;
 
-                        this.velocityInput.value = vFinal.toFixed(2);
-                        v_demo = vFinal;
-                        deltaT_demo = deltaT;
-                    
-                    } else if (modoCalculo === 'tempo') {
-                        // CÁLCULO DE TEMPO (Δt = ΔS / v)
-                        if (isNaN(sEnd) || isNaN(vInput)) throw new Error("Preencha Posição Final (S) e Velocidade (v).");
-                        if (vInput === 0) throw new Error("A Velocidade (v) não pode ser zero.");
-                        
-                        const deltaS = sEnd - sStart;
-                        const v = vInput;
-                        
-                        // Garante que o sinal de deltaT é o mesmo que o de S/v
-                        const deltaTFinal = deltaS / v;
-                        
-                        // O tempo final é o tempo inicial + o tempo decorrido
-                        const tFinal = tStart + Math.abs(deltaTFinal); 
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
 
-                        output += `
-                            <p style="margin: 5px 0 0 0;">1. **ΔS** = ${sEnd.toFixed(2)} - ${sStart.toFixed(2)} = **${deltaS.toFixed(2)} m**</p>
-                            <p style="margin: 10px 0 0 0;">2. **Δt = ΔS / v**</p>
-                            <p class="formula">Δt = ${deltaS.toFixed(2)} / ${v.toFixed(2)} = **${deltaTFinal.toFixed(2)} s**</p>
-                            <p style="margin: 10px 0 0 0;">3. **t = t₀ + |Δt|**</p>
-                            <p class="formula">t = ${tStart.toFixed(2)} + ${Math.abs(deltaTFinal).toFixed(2)} = **${tFinal.toFixed(2)} s**</p>
-                            <hr style="border-color: #ddd; margin: 5px 0;">
-                            <p style="font-size: 1.2em; color: #4CAF50; font-weight: bold;">Δt = ${deltaTFinal.toFixed(2)} s</p>
-                        `;
-                        
-                        this.tEndInput.value = tFinal.toFixed(2);
-                        v_demo = v;
-                        deltaT_demo = Math.abs(deltaTFinal);
-                    }
-                    
-                    this.resultadoDiv.innerHTML = output;
+    const p = params();
+    const currentX = position(state.t, p);
 
-                    // Inicia a demonstração visual
-                    this.iniciarDemonstracaoCalculo(sStart, v_demo, deltaT_demo);
+    // Inclui toda a trajetória no enquadramento, com margem.
+    const values = [];
+    for (let i = 0; i <= 100; i++) {
+      values.push(position(p.duration * i / 100, p));
+    }
+    values.push(p.x0, currentX);
 
-                } catch (error) {
-                    this.resultadoDiv.innerHTML = `<span style="color: red; font-weight: bold;">ERRO:</span> ${error.message}`;
-                    this.actionButton.disabled = false;
-                }
-            }
-            
-            // --- CONFIGURAÇÕES VISUAIS ---
+    let minX = Math.min(...values);
+    let maxX = Math.max(...values);
+    const span = maxX - minX || 1;
+    minX -= span * 0.15 + 1;
+    maxX += span * 0.15 + 1;
 
-            redimensionarCanvas() {
-                this.corpoData.posicaoInicial = this._parseInput(this.sStartInput) || 0;
-                this.corpoData.velocidade = this._parseInput(this.velocityInput) || 0;
-                this.atualizaPosicaoCorpo(this.corpoData.posicaoInicial); 
-            }
-            
-            configurarInputs(modo) {
-                const allGroups = ['s-start', 's-end', 't-start', 't-end', 'v'];
-                let gruposAtivos = [];
-                
-                allGroups.forEach(groupSelector => {
-                    const groupElement = document.querySelector(`[data-input-group="${groupSelector}"]`);
-                    if (groupElement) {
-                        groupElement.style.display = 'none';
-                    }
-                });
-                
-                // Mapeamento de quais inputs são necessários por modo
-                if (modo === 'simulacao' || modo === 'posicao') {
-                    // S = S₀ + v*Δt: Precisa de S₀, v, t₀, t
-                    gruposAtivos = ['s-start', 'v', 't-start', 't-end'];
-                    
-                } else if (modo === 'velocidade') {
-                    // v = ΔS / Δt: Precisa de S₀, S, t₀, t
-                    gruposAtivos = ['s-start', 's-end', 't-start', 't-end'];
-                    
-                } else if (modo === 'tempo') {
-                    // Δt = ΔS / v: Precisa de S₀, S, v, t₀
-                    gruposAtivos = ['s-start', 's-end', 'v', 't-start'];
-                }
-                
-                gruposAtivos.forEach(groupSelector => {
-                    const groupElement = document.querySelector(`[data-input-group="${groupSelector}"]`);
-                    if (groupElement) {
-                        groupElement.style.display = 'flex';
-                    }
-                });
-                
-                // Atualiza a label do S₀ para indicar a funcionalidade de arrastar apenas no modo simulação
-                const sStartLabel = document.querySelector('[data-input-group="s-start"] .label');
-                if (sStartLabel) {
-                    sStartLabel.textContent = `Posição Inicial (S₀) (m)${modo === 'simulacao' ? ' - ARRASTE A BOLA' : ''}`;
-                }
-            }
-        }
+    const left = 35;
+    const right = w - 30;
+    const axisY = Math.round(h * 0.59);
+    const px = x => left + (x - minX) / (maxX - minX) * (right - left);
 
-        // Cria a instância global
-        const calculadora = new Calculadora();
-        window.addEventListener('resize', () => calculadora.redimensionarCanvas());
-        document.addEventListener('DOMContentLoaded', () => {
-            calculadora.setMode('simulacao');
-            calculadora.redimensionarCanvas();
-        });
-    </script>
+    // Régua e linhas auxiliares.
+    ctx.strokeStyle = "#e8edf4";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#8390a3";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "center";
+
+    for (let i = 0; i <= 6; i++) {
+      const x = left + (right - left) * i / 6;
+      ctx.beginPath();
+      ctx.moveTo(x, axisY - 37);
+      ctx.lineTo(x, axisY + 37);
+      ctx.stroke();
+
+      const world = minX + (maxX - minX) * i / 6;
+      ctx.fillText(fmt(world, 1) + " m", x, axisY + 58);
+    }
+
+    // Linha principal da trajetória.
+    ctx.strokeStyle = "#aab6c7";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(left, axisY);
+    ctx.lineTo(right, axisY);
+    ctx.stroke();
+
+    // Extremidades.
+    ctx.fillStyle = "#aab6c7";
+    ctx.beginPath();
+    ctx.moveTo(right + 6, axisY);
+    ctx.lineTo(right - 2, axisY - 4);
+    ctx.lineTo(right - 2, axisY + 4);
+    ctx.fill();
+
+    // Segmento percorrido até o instante atual.
+    ctx.strokeStyle = "#9fc6ff";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(px(p.x0), axisY);
+    ctx.lineTo(px(currentX), axisY);
+    ctx.stroke();
+
+    // Marcador da posição inicial.
+    ctx.fillStyle = "#1da879";
+    ctx.beginPath();
+    ctx.arc(px(p.x0), axisY, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Seta de velocidade: o sentido depende do sinal de v.
+    const v = velocity(state.t, p);
+    if (Math.abs(v) > 0.0001) {
+      const dir = Math.sign(v);
+      const arrowLen = Math.min(52, Math.max(22, Math.abs(v) * 2.5));
+      const startX = px(currentX);
+      const endX = Math.max(left + 4, Math.min(right - 4, startX + dir * arrowLen));
+
+      ctx.strokeStyle = "#2878e8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(startX, axisY - 19);
+      ctx.lineTo(endX, axisY - 19);
+      ctx.stroke();
+
+      ctx.fillStyle = "#2878e8";
+      ctx.beginPath();
+      ctx.moveTo(endX + dir * 5, axisY - 19);
+      ctx.lineTo(endX - dir * 3, axisY - 24);
+      ctx.lineTo(endX - dir * 3, axisY - 14);
+      ctx.fill();
+    }
+
+    // Móvel.
+    const carX = px(currentX);
+    ctx.fillStyle = "#dceaff";
+    ctx.beginPath();
+    ctx.arc(carX, axisY, 17, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#2878e8";
+    ctx.beginPath();
+    ctx.arc(carX, axisY, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(carX - 3, axisY - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Identificação da posição atual.
+    const label = "x = " + fmt(currentX) + " m";
+    ctx.font = "bold 12px Arial";
+    const labelW = ctx.measureText(label).width + 16;
+    const labelX = Math.max(4, Math.min(w - labelW - 4, carX - labelW / 2));
+
+    ctx.fillStyle = "#edf4ff";
+    roundedRect(ctx, labelX, axisY - 57, labelW, 25, 6);
+    ctx.fill();
+
+    ctx.fillStyle = "#175bb8";
+    ctx.textAlign = "center";
+    ctx.fillText(label, labelX + labelW / 2, axisY - 41);
+
+    ctx.fillStyle = "#66758b";
+    ctx.font = "11px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Eixo de posição (x)", 12, 20);
+
+    ctx.textAlign = "right";
+    ctx.fillText(
+      v > 0 ? "Sentido progressivo →" :
+      v < 0 ? "← Sentido retrógrado" : "Repouso instantâneo",
+      w - 12, 20
+    );
+
+    ctx.textAlign = "center";
+    ctx.font = "11px Arial";
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("Posição inicial", px(p.x0), axisY + 79);
+    ctx.fillText("Tempo: " + fmt(state.t, 1) + " s", w / 2, h - 9);
+  }
+
+  function niceStep(range) {
+    if (!Number.isFinite(range) || range <= 0) return 1;
+
+    const raw = range / 5;
+    const power = Math.pow(10, Math.floor(Math.log10(raw)));
+    const fraction = raw / power;
+
+    const nice = fraction <= 1 ? 1 :
+                 fraction <= 2 ? 2 :
+                 fraction <= 5 ? 5 : 10;
+
+    return nice * power;
+  }
+
+  function drawChart() {
+    const ctx = chartCtx;
+    const { w, h } = chartSize;
+    if (!w || !h) return;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+
+    const p = params();
+
+    const configs = {
+      position: {
+        color: "#2878e8",
+        title: "Posição (m)",
+        value: t => position(t, p)
+      },
+      velocity: {
+        color: "#1da879",
+        title: "Velocidade (m/s)",
+        value: t => velocity(t, p)
+      },
+      acceleration: {
+        color: "#ed9635",
+        title: "Aceleração (m/s²)",
+        value: t => acceleration(t, p)
+      }
+    };
+
+    const cfg = configs[state.chart];
+    const samples = 160;
+    const data = [];
+
+    for (let i = 0; i <= samples; i++) {
+      const t = p.duration * i / samples;
+      data.push({ t, y: cfg.value(t) });
+    }
+
+    let minY = Math.min(...data.map(d => d.y), 0);
+    let maxY = Math.max(...data.map(d => d.y), 0);
+
+    if (Math.abs(maxY - minY) < 0.00001) {
+      minY -= 1;
+      maxY += 1;
+    } else {
+      const padding = (maxY - minY) * 0.15;
+      minY -= padding;
+      maxY += padding;
+    }
+
+    const left = 51;
+    const right = w - 17;
+    const top = 28;
+    const bottom = h - 39;
+
+    const px = t => left + (t / p.duration) * (right - left);
+    const py = y => bottom - ((y - minY) / (maxY - minY)) * (bottom - top);
+
+    ctx.font = "10px Arial";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+
+    const stepY = niceStep(maxY - minY);
+    const startY = Math.ceil(minY / stepY) * stepY;
+
+    // Grade horizontal e valores.
+    for (let y = startY; y <= maxY + stepY * 0.001; y += stepY) {
+      const cy = py(y);
+      ctx.strokeStyle = "#edf1f6";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, cy);
+      ctx.lineTo(right, cy);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8290a3";
+      ctx.fillText(fmt(y, 2).replace(/\.?0+$/, ""), left - 8, cy);
+    }
+
+    // Grade vertical.
+    const stepX = niceStep(p.duration);
+    for (let t = 0; t <= p.duration + 0.0001; t += stepX) {
+      const cx = px(t);
+
+      ctx.strokeStyle = "#f0f3f7";
+      ctx.beginPath();
+      ctx.moveTo(cx, top);
+      ctx.lineTo(cx, bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = "#8290a3";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(fmt(t, 1), cx, bottom + 9);
+    }
+
+    // Eixos.
+    ctx.strokeStyle = "#b9c4d3";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(left, top);
+    ctx.lineTo(left, bottom);
+    ctx.lineTo(right, bottom);
+    ctx.stroke();
+
+    // Curva.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(left, top, right - left, bottom - top);
+    ctx.clip();
+
+    ctx.strokeStyle = cfg.color;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+
+    data.forEach((d, i) => {
+      const x = px(d.t);
+      const y = py(d.y);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Marcador sincronizado com a animação.
+    const t = Math.min(state.t, p.duration);
+    const cy = py(cfg.value(t));
+    const cx = px(t);
+
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#a8b5c7";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx, top);
+    ctx.lineTo(cx, bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = cfg.color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Rótulos dos eixos.
+    ctx.fillStyle = "#5e6f85";
+    ctx.font = "11px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(cfg.title, left + 3, 5);
+
+    ctx.textAlign = "right";
+    ctx.fillText("Tempo (s)", right, h - 15);
+  }
+
+  function updateMetrics() {
+    const p = params();
+    const x = position(state.t, p);
+    const v = velocity(state.t, p);
+    const a = acceleration(state.t, p);
+    const dx = x - p.x0;
+
+    $("positionValue").textContent = fmt(x);
+    $("velocityValue").textContent = fmt(v);
+    $("accelerationValue").textContent = fmt(a);
+    $("displacementValue").textContent = fmt(dx);
+
+    $("timeDisplay").textContent = fmt(state.t, 1);
+    $("durationDisplay").textContent = fmt(p.duration, 0);
+    $("timeRange").max = p.duration;
+    $("timeRange").value = state.t;
+
+    $("velocityFoot").textContent =
+      Math.abs(v) < 0.0001 ? "Repouso instantâneo" :
+      v > 0 ? "Movimento progressivo" : "Movimento retrógrado";
+
+    $("accelerationFoot").textContent =
+      Math.abs(a) < 0.0001 ? "Velocidade constante" :
+      "Aceleração " + (a > 0 ? "positiva" : "negativa");
+
+    $("modelTag").textContent = state.model +
+      (state.model === "MRU" ? " · a = 0" : " · a = " + fmt(a) + " m/s²");
+
+    $("positionFormula").textContent = state.model === "MRU"
+      ? "x(t) = x₀ + v₀t"
+      : "x(t) = x₀ + v₀t + ½at²";
+
+    $("velocityFormula").textContent = state.model === "MRU"
+      ? "v(t) = v₀"
+      : "v(t) = v₀ + at";
+
+    $("accelerationFormula").textContent = state.model === "MRU"
+      ? "a(t) = 0"
+      : "a(t) = constante";
+
+    const descriptions = {
+      position: state.model === "MRU"
+        ? "No MRU, o gráfico posição × tempo é uma reta. Sua inclinação representa a velocidade constante; uma inclinação negativa indica movimento retrógrado."
+        : "No MRUV, o gráfico posição × tempo é uma parábola. A concavidade depende do sinal da aceleração e a inclinação representa a velocidade instantânea.",
+      velocity: state.model === "MRU"
+        ? "No MRU, a velocidade permanece constante: o gráfico é uma reta horizontal. A área algébrica sob a curva representa o deslocamento."
+        : "No MRUV, a velocidade varia linearmente com o tempo. A inclinação da reta representa a aceleração e a área algébrica sob a curva representa o deslocamento.",
+      acceleration: state.model === "MRU"
+        ? "No MRU ideal, a aceleração é nula durante todo o movimento."
+        : "No MRUV, a aceleração é constante. O gráfico é uma reta horizontal; a área algébrica sob a curva corresponde à variação da velocidade."
+    };
+
+    $("chartDescription").textContent = descriptions[state.chart];
+  }
+
+  function drawAll() {
+    updateMetrics();
+    drawMotion();
+    drawChart();
+  }
+
+  function setModel(model) {
+    state.model = model;
+
+    $("mruBtn").classList.toggle("active", model === "MRU");
+    $("mruvBtn").classList.toggle("active", model === "MRUV");
+
+    $("accelerationControl").style.opacity =
+      model === "MRU" ? "0.45" : "1";
+
+    $("a").disabled = model === "MRU";
+    $("aRange").disabled = model === "MRU";
+
+    state.playing = false;
+    state.lastFrame = 0;
+    updatePlayButton();
+    drawAll();
+  }
+
+  function updatePlayButton() {
+    $("playBtn").textContent = state.playing ? "Ⅱ" : "▶";
+    $("playBtn").title = state.playing ? "Pausar" : "Reproduzir";
+    $("playBtn").setAttribute(
+      "aria-label",
+      state.playing ? "Pausar" : "Reproduzir"
+    );
+  }
+
+  function resetTime() {
+    state.t = 0;
+    state.playing = false;
+    state.lastFrame = 0;
+    state.accumulator = 0;
+    updatePlayButton();
+    drawAll();
+  }
+
+  function applyValues() {
+    Object.keys(fields).forEach(syncRange);
+
+    const duration = read("duration");
+    state.t = Math.min(state.t, duration);
+    state.playing = false;
+    state.lastFrame = 0;
+    updatePlayButton();
+    drawAll();
+  }
+
+  function animate(timestamp) {
+    if (state.playing) {
+      if (!state.lastFrame) state.lastFrame = timestamp;
+
+      const elapsed = Math.min((timestamp - state.lastFrame) / 1000, 0.05);
+      state.lastFrame = timestamp;
+
+      // A animação avança em tempo de simulação, independentemente
+      // da duração de cada quadro renderizado.
+      const p = params();
+      state.t += elapsed * 1.5;
+
+      if (state.t >= p.duration) {
+        state.t = p.duration;
+        state.playing = false;
+        state.lastFrame = 0;
+        updatePlayButton();
+      }
+
+      drawAll();
+    } else {
+      state.lastFrame = 0;
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  // Sincronização entre campos numéricos e controles deslizantes.
+  ["x0", "v0", "a", "duration"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      syncRange(id);
+      if (id === "duration") {
+        state.t = Math.min(state.t, read("duration"));
+      }
+      drawAll();
+    });
+
+    $(id + "Range").addEventListener("input", () => {
+      $(id).value = $(id + "Range").value;
+      if (id === "duration") {
+        state.t = Math.min(state.t, read("duration"));
+      }
+      drawAll();
+    });
+  });
+
+  document.querySelectorAll("[data-model]").forEach(button => {
+    button.addEventListener("click", () => setModel(button.dataset.model));
+  });
+
+  document.querySelectorAll("[data-chart]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.chart = button.dataset.chart;
+
+      document.querySelectorAll("[data-chart]").forEach(b => {
+        b.classList.toggle("active", b === button);
+      });
+
+      drawAll();
+    });
+  });
+
+  $("applyBtn").addEventListener("click", applyValues);
+  $("resetBtn").addEventListener("click", () => {
+    setValue("x0", 0);
+    setValue("v0", 5);
+    setValue("a", 2);
+    setValue("duration", 10);
+    setModel("MRU");
+    resetTime();
+  });
+
+  $("playBtn").addEventListener("click", () => {
+    const p = params();
+
+    if (state.t >= p.duration) state.t = 0;
+
+    state.playing = !state.playing;
+    state.lastFrame = 0;
+    updatePlayButton();
+    drawAll();
+  });
+
+  $("restartBtn").addEventListener("click", resetTime);
+
+  $("stepBtn").addEventListener("click", () => {
+    state.playing = false;
+    state.t = Math.min(params().duration, state.t + 0.1);
+    updatePlayButton();
+    drawAll();
+  });
+
+  $("timeRange").addEventListener("input", () => {
+    state.playing = false;
+    state.lastFrame = 0;
+    state.t = Number($("timeRange").value);
+    updatePlayButton();
+    drawAll();
+  });
+
+  // Pausa ao trocar de aba para evitar saltos de tempo.
+  document.addEventListener("visibilitychange", () => {
+    state.lastFrame = 0;
+  });
+
+  motionCtx = $("motionCanvas").getContext("2d");
+  chartCtx = $("chartCanvas").getContext("2d");
+
+  if (!motionCtx || !chartCtx) {
+    $("chartDescription").textContent =
+      "Não foi possível inicializar o Canvas neste navegador.";
+    return;
+  }
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(setupCanvases);
+    observer.observe($("motionCanvas"));
+    observer.observe($("chartCanvas"));
+  } else {
+    window.addEventListener("resize", setupCanvases);
+  }
+
+  setupCanvases();
+  setModel("MRU");
+  requestAnimationFrame(animate);
+})();
+</script>
+
+<script src="https://erik-bernardo.github.io/SimuLabb/dados/head.js"></script>
+
 </body>
 </html>
