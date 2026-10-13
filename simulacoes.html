@@ -101,6 +101,8 @@ button {
     font-size: 12px;
 }
 
+.search:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px #ff690018; }
+
 .search button {
     width: 49px;
     flex-shrink: 0;
@@ -210,9 +212,9 @@ button {
     font-size: 13px;
 }
 
-.math-color { background: #1685e8; }
+.math-color {background:#1683ee}   
 .physics-color { background: #f6ae28; }
-.chemistry-color { background: #19a568; }
+.chemistry-color {background:#92ff16}
 
 .mascot-note {
     margin-top: auto;
@@ -913,7 +915,20 @@ main {
 
 <body>
 
-
+<header class="topbar">
+  <a href="https://erik-bernardo.github.io/SimuLabb/" class="logo" aria-label="SimuLab início">
+    <i class="fa-solid fa-atom"></i>Simu<span>Lab</span>
+  </a>
+  <form class="search" id="searchForm" role="search">
+    <input id="searchInput" type="search" placeholder="Buscar simulador ou matéria..." aria-label="Buscar simulador ou matéria">
+    <button type="submit" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+  </form>
+  <nav class="top-links" aria-label="Navegação principal">
+    <a href="https://erik-bernardo.github.io/SimuLabb/">Início</a>
+    <a href="https://erik-bernardo.github.io/SimuLabb/games.html">Jogos</a>
+    <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="access-link">Simuladores</a>
+  </nav>
+</header>
 
 <div class="layout">
 
@@ -942,7 +957,7 @@ main {
         <span class="side-label">Matérias</span>
 
         <button class="side-link subject-filter" data-filter="matematica">
-            <span class="subject-icon math-color"><i class="fa-solid fa-sigma"></i></span>
+            <span class="subject-icon math-color"><i class="fa-solid fa-square-root-variable"></i></span>
             <span>Matemática</span>
         </button>
 
@@ -1469,7 +1484,7 @@ function normalizeText(text) {
 }
 
 function applyFilters() {
-    const query = normalizeText(searchInput.value);
+    const query = normalizeText(searchInput ? searchInput.value : '');
     let visibleCount = 0;
 
     cards.forEach(card => {
@@ -1544,9 +1559,9 @@ sidebarButtons.forEach(button => {
     });
 });
 
-searchInput.addEventListener('input', applyFilters);
+if (searchInput) searchInput.addEventListener('input', applyFilters);
 
-searchForm.addEventListener('submit', event => {
+if (searchForm) searchForm.addEventListener('submit', event => {
     event.preventDefault();
     applyFilters();
 });
@@ -1557,73 +1572,7 @@ applyFilters();
 (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="e3pwbdB7Yh7c7CqbtkE3u";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
 </script>
 <script src="dados/head.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Lógica para o Menu de Matérias (Filtragem de Conteúdo incluindo parceiros)
-        const subjectItems = document.querySelectorAll('.subject-item');
-        const mainCards = document.querySelectorAll('.card-container-wrapper > .card-link');
-        const partnerCards = document.querySelectorAll('.partner-card');
 
-        function filterContent(subject) {
-            // Oculta/Mostra cards principais
-            mainCards.forEach(card => {
-                card.style.display = (subject === 'all' || card.getAttribute('data-subject') === subject) ? 'block' : 'none';
-            });
-
-            // Oculta/Mostra cards parceiros
-            partnerCards.forEach(card => {
-                card.style.display = (subject === 'all' || card.getAttribute('data-subject') === subject) ? 'flex' : 'none';
-            });
-        }
-
-        subjectItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const fullSubjectName = this.textContent.trim().replace(/\s\s+/g, ' ');
-                let filterKey;
-                
-                if (fullSubjectName.startsWith('Matemática Financeira')) {
-                    filterKey = 'matematica financeira';
-                } else if (fullSubjectName.startsWith('Mostrar Todos')) {
-                    filterKey = 'all';
-                } else {
-                    const key = fullSubjectName.split(' ')[0];
-                    if (key === 'Química') filterKey = 'quimica';
-                    else if (key === 'Física') filterKey = 'fisica';
-                    else if (key === 'Matemática') filterKey = 'matematica';
-                }
-
-                const isSelected = this.classList.contains('selected');
-                
-                subjectItems.forEach(i => {
-                    i.classList.remove('selected');
-                    const icon = i.querySelector('.fas');
-                    if (icon) {
-                        icon.classList.remove('fa-arrow-up');
-                        icon.classList.add('fa-arrow-down');
-                    }
-                });
-
-                if (isSelected) {
-                    filterContent('all');
-                    return;
-                }
-
-                this.classList.add('selected');
-                const icon = this.querySelector('.fas');
-                if (icon) {
-                    icon.classList.remove('fa-arrow-down');
-                    icon.classList.add('fa-arrow-up');
-                }
-
-                if (filterKey) {
-                    filterContent(filterKey);
-                }
-            });
-        });
-        
-        filterContent('all');
-    });
-</script>
 
 
 </body></html>
