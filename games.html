@@ -299,5 +299,4 @@ document.getElementById("searchInput").addEventListener("input",e=>{query=e.targ
 document.addEventListener("click",e=>{const button=e.target.closest("[data-play]");if(!button)return;const game=games.find(g=>g.id===button.dataset.play);if(game&&game.link!=="#"){window.location.href=game.link;}else{alert(`"${game.title}" está pronto para receber o link do jogo.\\n\\nNo código, altere link: "#" pelo endereço da página ou do jogo.`);}});
 render();
 </script>
-<script src="https://erik-bernardo.github.io/SimuLabb/dados/head.js"></script>
 </body></html>
