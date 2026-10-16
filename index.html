@@ -1,261 +1,213 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimuLab </title>
-    <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
-    <style>
-        /* Cores: #D2691E (Principal - Marrom), #f8f8f8 (Fundo) */
-        /* ----------------------------------- */
-        /* ESTILOS GERAIS */
-        /* ----------------------------------- */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-            color: #333;
-        }
-
-        /* ----------------------------------- */
-        /* ESTILOS DO CONTEÚDO E PÁGINA */
-        /* ----------------------------------- */
-       /* --- HERO SECTION COM IMAGE OVERLAY --- */
-.hero-section { 
-    /* Camada preta (rgba 0,0,0,0.6) sobre a imagem */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-                      url('https://www.florence.edu.br/blog/wp-content/uploads/2022/04/Florence-tecnicas-de-estudo.jpg');
-    
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed; /* Opcional: dá um leve efeito parallax ao rolar */
-    padding: 120px 40px; /* Aumentei um pouco o respiro */
-    text-align: center; 
-    color: white; /* Cor do texto alterada para branco para dar contraste */
-}
-
-/* Ajuste específico para o título no fundo escuro */
-.hero-section h2 { 
-    font-size: 2.8em; 
-    color: #ffffff; /* Branco puro para máxima leitura */
-    margin-bottom: 15px; 
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Sombra no texto para destacar do fundo */
-}
-
-/* Ajuste para o parágrafo no fundo escuro */
-.hero-section p { 
-    font-size: 1.3em; 
-    color: #e0e0e0; /* Cinza claro para não cansar a vista */
-    max-width: 800px; 
-    margin: 0 auto 40px; 
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-}
-        .hero-button { 
-            background-color: #D2691E; 
-            color: white; 
-            text-decoration: none; 
-            font-weight: bold; 
-            padding: 12px 30px; 
-            border-radius: 5px; 
-            font-size: 1.1em; 
-            transition: background-color 0.3s; 
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
-            display: inline-block;
-        }
-        .hero-button:hover { background-color: #c05c18; }
-        .feature-section { padding: 60px 40px; display: flex; justify-content: space-around; align-items: center; gap: 40px; max-width: 1200px; margin: 0 auto; }
-        .feature-text { flex: 1; text-align: left; }
-        .feature-text h3 { color: #D2691E; font-size: 2em; margin-bottom: 15px; }
-        .feature-image-container { flex: 1; max-width: 500px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); overflow: hidden; }
-        .feature-image-container img { width: 100%; height: auto; display: block; }
-        .info-section { background-color: white; padding: 60px 40px; text-align: center; border-top: 1px solid #eee; }
-        .info-section h3 { color: #333; font-size: 1.8em; margin-bottom: 30px; }
-        .info-grid { display: flex; justify-content: center; gap: 30px; }
-        .info-card { flex-basis: 30%; padding: 20px; border-radius: 8px; border: 1px solid #ddd; transition: box-shadow 0.3s; }
-        .info-card:hover { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
-        .info-card i { font-size: 2em; color: #D2691E; margin-bottom: 10px; }
-        .info-card h4 { color: #333; margin-top: 0; }
-        footer { background-color: #333; color: white; text-align: center; padding: 20px 0; font-size: 0.9em; }
-
-        /* ----------------------------------- */
-        /* ESTILOS FALE CONOSCO (MELHORADO) */
-        /* ----------------------------------- */
-        .contact-section {
-            background-color: #D2691E; 
-            color: white;
-            padding: 50px 40px;
-            text-align: center;
-        }
-
-        .contact-section h3 {
-            font-size: 2em;
-            margin-bottom: 15px;
-        }
-        
-        .contact-options {
-            max-width: 700px;
-            margin: 30px auto 0;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap; /* Permite quebrar linha em telas menores */
-            gap: 20px;
-        }
-
-        /* Estilo para o Botão Google Forms (Mais destacado) */
-        .google-forms-button {
-            background-color: white; /* Fundo branco para destaque */
-            color: #4285F4; /* Azul Google para o texto */
-            text-decoration: none;
-            font-weight: bold;
-            padding: 15px 35px;
-            border-radius: 8px;
-            font-size: 1.2em;
-            transition: all 0.3s;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Sombra forte */
-            display: inline-flex; /* Alinha o ícone e o texto */
-            align-items: center;
-            gap: 10px;
-        }
-
-        .google-forms-button:hover {
-            background-color: #f0f0f0;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Estilo para o Botão WhatsApp (Cor do WhatsApp) */
-        .whatsapp-button {
-            background-color: #25D366; /* Verde WhatsApp */
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 15px 35px;
-            border-radius: 8px;
-            font-size: 1.2em;
-            transition: background-color 0.3s;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .whatsapp-button:hover {
-            background-color: #1eab56;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Início | SimuLab</title>
+<link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+:root{--orange:#ff6900;--orange-dark:#e85b00;--orange-light:#fff0df;--blue:#142b46;--text:#172a42;--muted:#65758b;--bg:#f7f9fb;--white:#fff;--border:#e2e8ef;--shadow:0 8px 28px rgba(24,49,74,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{font-family:Poppins,sans-serif;background:var(--bg);color:var(--text)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+.topbar{height:76px;position:sticky;top:0;z-index:100;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:25px;padding:0 clamp(16px,4vw,55px)}
+.logo{font-size:27px;font-weight:800;letter-spacing:-1px;color:var(--blue);display:flex;align-items:center;gap:10px}.logo i,.logo span{color:var(--orange)}
+.topbar-message{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto;margin-right:20px}.topbar-cta{display:inline-flex;align-items:center;gap:9px;padding:11px 15px;background:var(--orange);color:#fff;border-radius:9px;font-size:11px;font-weight:700}.topbar-cta:hover{background:var(--orange-dark)}
+.nav{display:flex;align-items:center;gap:28px;font-size:13px;font-weight:600}.nav a{transition:.2s}.nav a:hover{color:var(--orange)}
+.nav .nav-cta{padding:12px 18px;background:var(--orange);color:white;border-radius:10px}
+.menu-toggle{display:none;border:0;background:#fff0df;color:var(--orange);padding:10px 12px;border-radius:9px}
+.hero{position:relative;overflow:hidden;isolation:isolate;margin:24px auto 0;width:min(1440px,calc(100% - 48px));min-height:440px;border-radius:24px;padding:clamp(35px,6vw,85px);display:flex;align-items:center;background:radial-gradient(circle at 85% 20%,#ffd49b 0,transparent 25%),radial-gradient(circle at 75% 100%,#ffc078 0,transparent 30%),linear-gradient(115deg,#fff0df,#fffaf4 55%,#ffe2bd)}
+.hero:before,.hero:after{content:"";position:absolute;z-index:-1;border:1px solid #ff690026;border-radius:50%}.hero:before{width:450px;height:450px;right:-90px;top:-200px}.hero:after{width:320px;height:320px;right:80px;bottom:-230px}
+.hero-content{max-width:690px;position:relative;z-index:2}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #ffdec0;border-radius:30px;padding:8px 13px;color:var(--orange-dark);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
+.hero h1{font-size:clamp(36px,5.3vw,68px);line-height:1.08;letter-spacing:-2.5px;color:var(--blue);font-weight:800;margin-bottom:20px}.hero h1 span{color:var(--orange)}
+.hero p{max-width:580px;color:#50647a;line-height:1.9;font-size:15px;margin-bottom:29px}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-radius:11px;font-size:13px;font-weight:700;transition:transform .2s,box-shadow .2s,background .2s}.btn:hover{transform:translateY(-3px)}
+.btn-primary{background:var(--orange);color:white;box-shadow:0 8px 18px #ff69002b}.btn-primary:hover{background:var(--orange-dark)}
+.btn-secondary{background:white;border:1px solid #e5e8ed;color:var(--blue)}
+.hero-art{position:absolute;right:5%;bottom:0;width:min(34%,390px);height:88%;display:flex;align-items:flex-end;justify-content:center;color:var(--orange);opacity:.92}
+.art-orbit{width:280px;height:280px;border:2px dashed #ff9a4a;border-radius:50%;position:absolute;bottom:45px;display:grid;place-items:center;transform:rotate(-16deg)}
+.art-orbit i{font-size:145px;filter:drop-shadow(0 12px 15px #c35b1a20)}
+.floating-icon{position:absolute;background:white;border:1px solid #ffe0c3;border-radius:17px;box-shadow:var(--shadow);width:60px;height:60px;display:grid;place-items:center;font-size:25px}
+.floating-icon.one{top:18%;left:4%;color:#2185e8}.floating-icon.two{top:35%;right:0;color:#38a169}.floating-icon.three{bottom:10%;left:8%;color:#8c63d9}
+.wrap{width:min(1320px,calc(100% - 48px));margin:0 auto}
+.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:22px auto 0}
+.stat{background:white;border:1px solid var(--border);border-radius:15px;padding:19px 22px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 12px #142b4607}
+.stat-icon{width:46px;height:46px;border-radius:13px;background:var(--orange-light);color:var(--orange);display:grid;place-items:center;font-size:20px}.stat strong{display:block;font-size:14px;color:var(--blue)}.stat small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.section{padding:76px 0 0}.section-head{text-align:center;max-width:700px;margin:0 auto 32px}.kicker{font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:var(--orange);font-weight:800;margin-bottom:9px}.section h2{font-size:clamp(26px,3.5vw,38px);letter-spacing:-1px;color:var(--blue);line-height:1.2;margin-bottom:12px}.section-head p{font-size:13px;line-height:1.8;color:var(--muted)}
+.explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.explore-card{background:white;border:1px solid var(--border);border-radius:18px;padding:25px;min-height:235px;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:.25s;position:relative;overflow:hidden}
+.explore-card:after{content:"";position:absolute;width:130px;height:130px;border-radius:50%;background:var(--accent-bg,#fff0df);right:-48px;top:-55px;opacity:.7}
+.explore-card:hover{transform:translateY(-6px);border-color:#ffc18f;box-shadow:0 15px 35px #142b4615}
+.explore-icon{width:54px;height:54px;border-radius:16px;background:var(--accent-bg,#fff0df);color:var(--accent,var(--orange));display:grid;place-items:center;font-size:24px;margin-bottom:20px;z-index:1}
+.explore-card h3{font-size:18px;color:var(--blue);margin-bottom:8px}.explore-card p{font-size:12px;line-height:1.8;color:var(--muted);margin-bottom:22px;flex:1}.card-link{font-size:12px;font-weight:700;color:var(--orange);display:inline-flex;align-items:center;gap:9px}.card-link i{transition:transform .2s}.explore-card:hover .card-link i{transform:translateX(4px)}
+.feature{margin-top:76px;border-radius:22px;overflow:hidden;background:var(--blue);color:white;padding:clamp(28px,5vw,58px);display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:35px;position:relative}
+.feature .kicker{color:#ffb26f}.feature h2{color:white;font-size:clamp(27px,3.5vw,40px)}.feature p{font-size:13px;line-height:1.9;color:#d2dce7;margin:15px 0 24px;max-width:580px}
+.feature-visual{min-height:230px;display:grid;place-items:center;position:relative}.periodic-preview{display:grid;grid-template-columns:repeat(5,52px);gap:7px;transform:rotate(-5deg)}
+.element{width:52px;height:58px;border:1px solid #ffffff40;background:#ffffff0c;border-radius:8px;padding:5px;display:flex;flex-direction:column;justify-content:space-between}.element b{font-size:16px;color:#ffc17f}.element small{font-size:8px;color:#dce5ee}.element:nth-child(3n){background:#ff69002b;border-color:#ff9b5d}.element:nth-child(4n){transform:translateY(8px)}
+.subjects{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.subject{display:flex;align-items:center;gap:15px;padding:18px;background:white;border:1px solid var(--border);border-radius:14px;transition:.2s}.subject:hover{border-color:#ffb47d;transform:translateY(-3px)}.subject .subject-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:13px;font-size:21px}.subject h3{font-size:14px;color:var(--blue)}.subject p{font-size:10px;color:var(--muted);margin-top:4px}
+.cta{margin:76px 0;background:linear-gradient(110deg,#ff6900,#ff9138);border-radius:20px;padding:38px;display:flex;align-items:center;justify-content:space-between;gap:25px;color:white}.cta h2{font-size:clamp(23px,3vw,34px);line-height:1.2;margin-bottom:8px}.cta p{font-size:12px;line-height:1.8;color:#fff0e4;max-width:650px}.cta .btn{background:white;color:var(--orange-dark);white-space:nowrap}
+footer{background:#101f32;color:#dce4ec;padding:32px 24px;text-align:center;font-size:11px}footer strong{color:white}footer a{color:#ffb26f}
 
 
-        /* RESPONSIVIDADE BÁSICA */
-        @media (max-width: 768px) {
-            .feature-section { flex-direction: column; text-align: center; }
-            .feature-text { text-align: center; }
-            .info-grid { flex-direction: column; }
-            .info-card { flex-basis: 100%; }
-            .contact-options { flex-direction: column; gap: 15px; } /* Empilha os botões em telas pequenas */
-            .google-forms-button, .whatsapp-button { width: 80%; max-width: 350px; justify-content: center; }
-        }
-    </style>
-    
+.feedback-section{margin:55px 0 0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:clamp(24px,4vw,42px);box-shadow:var(--shadow)}
+.feedback-head{max-width:720px;margin-bottom:24px}.feedback-head .kicker{margin-bottom:8px}.feedback-head h2{font-size:clamp(24px,3vw,32px);line-height:1.2;color:var(--blue);margin-bottom:10px}.feedback-head p{font-size:12px;line-height:1.8;color:var(--muted)}
+.feedback-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.feedback-card{display:flex;align-items:center;gap:15px;border:1px solid var(--border);border-radius:14px;padding:18px;transition:.2s;background:#fff}
+.feedback-card:hover{transform:translateY(-3px);border-color:#ffbd8a;box-shadow:0 8px 20px #142b4610}
+.feedback-icon{width:48px;height:48px;flex:0 0 48px;border-radius:14px;display:grid;place-items:center;font-size:21px;color:#fff}
+.feedback-icon.forms{background:#6b62d9}.feedback-icon.whatsapp{background:#20a663}
+.feedback-card h3{font-size:14px;color:var(--blue);margin-bottom:4px}.feedback-card p{font-size:11px;line-height:1.6;color:var(--muted)}.feedback-card .arrow{margin-left:auto;color:var(--orange)}
+@media(max-width:650px){.feedback-actions{grid-template-columns:1fr}.feedback-card{padding:14px}}
+
+/* Navegação lateral no mesmo padrão da página de simuladores */
+.page-layout{display:grid;grid-template-columns:205px minmax(0,1fr);min-height:calc(100vh - 76px)}
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:22px 15px;display:flex;flex-direction:column;gap:7px;align-self:stretch}
+.side-label{font-size:10px;color:#96a1b0;font-weight:700;letter-spacing:1.2px;padding:12px 12px 6px;text-transform:uppercase}
+.side-link{display:flex;align-items:center;gap:12px;width:100%;padding:12px 13px;border:0;border-radius:10px;color:var(--text);background:transparent;font-size:12px;text-align:left;transition:.2s}
+.side-link i{width:20px;text-align:center;font-size:16px}
+.side-link:hover{background:#fff4e9;color:var(--orange)}
+.side-link.active{background:var(--orange);color:#fff;font-weight:600;box-shadow:0 4px 12px #ff69002b}
+.side-divider{height:1px;background:var(--border);margin:10px 2px}
+.subject-icon{display:inline-flex;width:25px;height:25px;flex:0 0 25px;align-items:center;justify-content:center;color:#fff;border-radius:8px;font-size:13px}
+.math-color{background:#1683ee}.chemistry-color{background:#79d915}.physics-color{background:#f6ae28}.biology-color{background:#087b39}.code-color{background:#080808}
+.sidebar .side-link span:last-child{white-space:nowrap}
+.sidebar .side-link.subject-active{background:#fff4e9;color:var(--orange)}
+.sidebar .mascot-note{margin-top:auto;padding:13px 10px;border-radius:13px;background:linear-gradient(135deg,#fff0df,#fffaf4);color:#40536a;font-size:10px;line-height:1.6}
+.page-content{min-width:0;overflow:hidden;padding-bottom:30px}
+.page-content .hero{width:calc(100% - 40px);margin:20px auto 0;min-height:390px}
+.page-content .wrap{width:calc(100% - 40px)}
+@media(max-width:950px){.page-layout{grid-template-columns:72px minmax(0,1fr)}.sidebar{padding:18px 9px;align-items:center}.side-link{justify-content:center;padding:13px 5px}.side-link span:not(.subject-icon),.side-label,.mascot-note{display:none}.side-link i{font-size:19px}.side-link .subject-icon{width:30px;height:30px;flex-basis:30px}}
+@media(max-width:600px){.page-layout{grid-template-columns:1fr}.sidebar{position:sticky;top:68px;z-index:80;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px 10px;gap:6px}.sidebar .side-link{flex:0 0 auto;width:auto;padding:8px 10px;gap:7px;white-space:nowrap}.sidebar .side-link span:not(.subject-icon){display:inline;font-size:11px}.sidebar .side-link i{font-size:14px}.sidebar .side-link .subject-icon{width:22px;height:22px;flex-basis:22px}.sidebar .side-divider,.sidebar .side-label,.sidebar .mascot-note{display:none}.page-content .hero{width:calc(100% - 24px);margin-top:12px}.page-content .wrap{width:calc(100% - 28px)}}
+
+@media(max-width:850px){.hero{min-height:400px}.hero-art{opacity:.22;width:50%;right:-5%}.explore-grid{grid-template-columns:1fr 1fr}.feature{grid-template-columns:1fr}.feature-visual{min-height:180px}.subjects{grid-template-columns:1fr 1fr}.nav{gap:15px}}
+@media(max-width:600px){.topbar{height:68px;padding:0 16px}.logo{font-size:23px}.topbar-message{display:none}.topbar-cta{padding:10px 11px;font-size:10px}.topbar-message{display:none}.hero{width:calc(100% - 24px);margin-top:12px;padding:30px 22px;min-height:440px;align-items:flex-start}.hero h1{font-size:39px;letter-spacing:-1.6px}.hero p{font-size:13px;max-width:100%}.hero-art{width:42%;height:38%;right:0;opacity:.14}.art-orbit{width:180px;height:180px;bottom:10px}.art-orbit i{font-size:90px}.floating-icon{width:42px;height:42px;font-size:18px}.wrap{width:calc(100% - 28px)}.quick-stats{grid-template-columns:1fr;gap:9px}.stat{padding:13px 16px}.section{padding-top:55px}.explore-grid,.subjects{grid-template-columns:1fr}.explore-card{min-height:210px;padding:21px}.feature{margin-top:55px;padding:28px 22px}.periodic-preview{grid-template-columns:repeat(5,39px);gap:5px}.element{width:39px;height:46px}.element b{font-size:13px}.cta{margin:55px 0;padding:28px 22px;align-items:flex-start;flex-direction:column}.cta .btn{white-space:normal}.section h2{font-size:28px}}
+</style>
 </head>
 <body>
-    <main>
-        <section class="hero-section" id="home">
-            <h2>Transforme seu Aprendizado em Resultados.</h2>
-            <p>
-                Sua plataforma completa de estudos para Ensino Médio e Curiosidades.
-                Acesse todo o conteúdo de simulações interativas.
-            </p>
-            <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="hero-button">COMECE A ESTUDAR AGORA <i class="fas fa-arrow-right"></i></a>
-        </section>
+<header class="topbar">
+  <a class="logo" href="index.html" aria-label="SimuLab - Início"><i class="fa-solid fa-flask"></i> Simu<span>Lab</span></a>
+  <div class="topbar-message">Aprender fica melhor quando você experimenta.</div>
+  <a class="topbar-cta" href="sobre.html">Conheça o projeto <i class="fa-solid fa-arrow-right"></i></a>
+</header>
 
-        <section class="feature-section" id="simulador">
-            <div class="feature-text">
-                <h3>Simulador em Destaque: Tabela Periódica</h3>
-                <p>
-                Entenda de forma prática como as famílias, períodos e propriedades influenciam o comportamento dos elementos químicos. Nossa ferramenta interativa de Química Geral descomplica a visualização das tendências (eletronegatividade, raio atômico, energia de ionização) e a identificação de metais, ametais e gases nobres.
-                <p>
-                    <a href="simulacoes/tabela_periodica.html" class="hero-button" style="background-color: #555;">Ver Simulação <i class="fas fa-calculator"></i></a>
-                </p>
-            </div>
+<div class="page-layout">
+  <aside class="sidebar" aria-label="Navegação principal">
+    <span class="side-label">Navegação</span>
+    <a href="index.html" class="side-link active"><i class="fa-solid fa-house"></i><span>Início</span></a>
+    <a href="games.html" class="side-link"><i class="fa-solid fa-gamepad"></i><span>Jogos</span></a>
+    <a href="simulacoes.html" class="side-link"><i class="fa-solid fa-calculator"></i><span>Simuladores</span></a>
+    <a href="sobre.html" class="side-link"><i class="fa-solid fa-circle-info"></i><span>Sobre Nós</span></a>
+    <div class="side-divider"></div>
+    <span class="side-label">Matérias</span>
+    <a href="simulacoes.html?materia=matematica" class="side-link"><span class="subject-icon math-color"><i class="fa-solid fa-square-root-variable"></i></span><span>Matemática</span></a>
+    <a href="simulacoes.html?materia=quimica" class="side-link"><span class="subject-icon chemistry-color"><i class="fa-solid fa-flask"></i></span><span>Química</span></a>
+    <a href="simulacoes.html?materia=fisica" class="side-link"><span class="subject-icon physics-color"><i class="fa-solid fa-atom"></i></span><span>Física</span></a>
+    <a href="games.html?materia=biologia" class="side-link"><span class="subject-icon biology-color"><i class="fa-solid fa-dna"></i></span><span>Biologia</span></a>
+    <a href="games.html?materia=programacao" class="side-link"><span class="subject-icon code-color"><i class="fa-solid fa-code"></i></span><span>Programação</span></a>
+    <div class="mascot-note">Explore, teste e descubra algo novo todos os dias!</div>
+  </aside>
+  <div class="page-content"><main>
+  <section class="hero" id="inicio">
+    <div class="hero-content">
+      <div class="eyebrow"><i class="fa-solid fa-sparkles"></i> Aprender pode ser uma aventura</div>
+      <h1>Descubra. Experimente.<br><span>Aprenda jogando.</span></h1>
+      <p>Bem-vindo ao SimuLab, um espaço para transformar conteúdos escolares em experiências interativas. Explore simuladores, teste suas habilidades e aprenda no seu ritmo.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="simulacoes.html"><i class="fa-solid fa-flask"></i> Explorar simuladores</a>
+        <a class="btn btn-secondary" href="games.html"><i class="fa-solid fa-gamepad"></i> Ver jogos educativos</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="art-orbit"><i class="fa-solid fa-atom"></i></div>
+      <span class="floating-icon one"><i class="fa-solid fa-square-root-variable"></i></span>
+      <span class="floating-icon two"><i class="fa-solid fa-flask"></i></span>
+      <span class="floating-icon three"><i class="fa-solid fa-lightbulb"></i></span>
+    </div>
+  </section>
 
-            <div class="feature-image-container">
-                <img src="dados/tabela.png" alt="Visualização da Tabela Periódica Interativa">
-            </div>
-        </section>
-            <section class="feature-section" id="simulador">
-            <div class="feature-text">
-                <h3>Jogo em Destaque: Tabela Periódica</h3>
-                <p>
-Entenda de forma prática como a posição e o comportamento dos elementos químicos definem cada combinação no jogo. Nosso match 3 de Química Geral descomplica a identificação dos Elementos principais com muita diversão      <p>
-                    <a href="games/periodica.html" class="hero-button" style="background-color: #555;">Ver Jogo <i class="fas fa-calculator"></i></a>
-                </p>
-            </div>
+  <div class="wrap">
+    <section class="quick-stats" aria-label="O que você encontra no SimuLab">
+      <div class="stat"><div class="stat-icon"><i class="fa-solid fa-gamepad"></i></div><div><strong>Jogos educativos</strong><small>Aprenda enquanto joga</small></div></div>
+      <div class="stat"><div class="stat-icon"><i class="fa-solid fa-atom"></i></div><div><strong>Experimentos virtuais</strong><small>Explore conceitos na prática</small></div></div>
+      <div class="stat"><div class="stat-icon"><i class="fa-solid fa-book-open"></i></div><div><strong>Conteúdo para estudar</strong><small>Reforce o que aprendeu</small></div></div>
+    </section>
 
-            <div class="feature-image-container">
-                <img src="dados/gtabela.png" alt="Visualização do jogo da Tabela Periódica">
-            </div>
-        </section>
+    <section class="section" id="explorar">
+      <div class="section-head"><div class="kicker">Seu próximo passo</div><h2>Como você quer aprender hoje?</h2><p>Escolha uma experiência e comece a explorar. Tudo em um só lugar, com uma abordagem visual, prática e divertida.</p></div>
+      <div class="explore-grid">
+        <a class="explore-card" href="games.html" style="--accent:#ff6900;--accent-bg:#fff0df">
+          <div class="explore-icon"><i class="fa-solid fa-gamepad"></i></div><h3>Jogos educativos</h3><p>Desafie seus conhecimentos com jogos que transformam matérias escolares em missões, fases e desafios.</p><span class="card-link">Explorar jogos <i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <a class="explore-card" href="simulacoes.html" style="--accent:#1685e8;--accent-bg:#e8f3ff">
+          <div class="explore-icon"><i class="fa-solid fa-atom"></i></div><h3>Simuladores interativos</h3><p>Mude variáveis, observe resultados e compreenda fenômenos científicos e matemáticos na prática.</p><span class="card-link">Abrir simuladores <i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <a class="explore-card" href="sobre.html" style="--accent:#7b61c9;--accent-bg:#f0eaff">
+          <div class="explore-icon"><i class="fa-solid fa-lightbulb"></i></div><h3>Conheça o SimuLab</h3><p>Descubra a proposta do projeto e como ele busca tornar o aprendizado mais acessível e interessante.</p><span class="card-link">Conhecer o projeto <i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+      </div>
+    </section>
 
-        <section class="info-section" id="recursos">
-            <h3>Nossos Pilares Educacionais</h3>
-            <div class="info-grid">
-                <div class="info-card">
-                    <i class="fas fa-globe-americas"></i>
-                    <h4>Cobertura Completa</h4>
-                    <p>Todo o conteúdo de Química, Física, Matemática  em um só lugar, seguindo o currículo padrão.</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    <h4>Foco na Prática</h4>
-                    <p>Jogos para fixação e simuladores interativos (Matemática Financeira, Física) para solidificar o conhecimento.</p>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-lightbulb"></i>
-                    <h4>Inovação e Expansão</h4>
-                    <p>Nosso projeto está sempre evoluindo, adicionando novas matérias, simuladores e jogos a cada mês.</p>
-                </div>
-            </div>
-        </section>
-        
-        <section class="contact-section" id="contato">
-            <h3>Envie seu Feedback e Sugestões! 🚀</h3>
-            <p>Sua opinião é fundamental para evoluir o SimuLab. Escolha a forma de contato que melhor lhe atende:</p>
-            
-            <div class="contact-options">
-                
-                <a 
-                    href="https://docs.google.com/forms/d/e/1FAIpQLSeuZHuF8Fp2-UIXH_fbMS7hN3OSddoI5HoehzwGJG2vAkJbTg/viewform?usp=publish-editor" 
-                    target="_blank" 
-                    class="google-forms-button"
-                >
-                    <i class="fab fa-google"></i> Abrir Formulário de Feedback
-                </a>
+    <section class="feature" aria-labelledby="feature-title">
+      <div>
+        <div class="kicker">Destaque de química</div>
+        <h2 id="feature-title">A ciência fica mais clara quando você pode explorar.</h2>
+        <p>Investigue os elementos químicos, observe padrões e conheça melhor a organização da Tabela Periódica com uma experiência visual e interativa.</p>
+        <a class="btn btn-primary" href="simulacoes/tabela_periodica.html">Explorar Tabela Periódica <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <div class="feature-visual" aria-label="Ilustração decorativa de elementos da tabela periódica">
+        <div class="periodic-preview">
+          <div class="element"><small>1</small><b>H</b><small>Hidrogênio</small></div><div class="element"><small>2</small><b>He</b><small>Hélio</small></div><div class="element"><small>3</small><b>Li</b><small>Lítio</small></div><div class="element"><small>4</small><b>Be</b><small>Berílio</small></div><div class="element"><small>5</small><b>B</b><small>Boro</small></div>
+          <div class="element"><small>6</small><b>C</b><small>Carbono</small></div><div class="element"><small>7</small><b>N</b><small>Nitrogênio</small></div><div class="element"><small>8</small><b>O</b><small>Oxigênio</small></div><div class="element"><small>9</small><b>F</b><small>Flúor</small></div><div class="element"><small>10</small><b>Ne</b><small>Neônio</small></div>
+          <div class="element"><small>11</small><b>Na</b><small>Sódio</small></div><div class="element"><small>12</small><b>Mg</b><small>Magnésio</small></div><div class="element"><small>13</small><b>Al</b><small>Alumínio</small></div><div class="element"><small>14</small><b>Si</b><small>Silício</small></div><div class="element"><small>15</small><b>P</b><small>Fósforo</small></div>
+        </div>
+      </div>
+    </section>
 
-                <a 
-                    href="https://wa.me/5547992677825?text=Ol%C3%A1%2C%20gostaria%20de%20enviar%20uma%20sugest%C3%A3o%20para%20o%20SimuLab." 
-                    target="_blank" 
-                    class="whatsapp-button"
-                >
-                    <i class="fab fa-whatsapp"></i> Falar no WhatsApp
-                </a>
-            </div>
-        </section>
+    <section class="section" id="materias">
+      <div class="section-head"><div class="kicker">Explore por matéria</div><h2>Conhecimento em várias áreas</h2><p>Encontre experiências para diferentes assuntos e descubra novas formas de entender cada conteúdo.</p></div>
+      <div class="subjects">
+        <a class="subject" href="simulacoes.html"><span class="subject-icon" style="background:#e8f3ff;color:#1685e8"><i class="fa-solid fa-square-root-variable"></i></span><div><h3>Matemática</h3><p>Funções, geometria e muito mais</p></div></a>
+        <a class="subject" href="simulacoes.html"><span class="subject-icon" style="background:#fff0df;color:#e85b00"><i class="fa-solid fa-atom"></i></span><div><h3>Física</h3><p>Movimento, energia e fenômenos</p></div></a>
+        <a class="subject" href="simulacoes.html"><span class="subject-icon" style="background:#e7f8eb;color:#259653"><i class="fa-solid fa-flask"></i></span><div><h3>Química</h3><p>Elementos, reações e matéria</p></div></a>
+      </div>
+    </section>
 
-    </main>
 
-    <footer>
-        &copy; 2026 SimuLab. Todos os direitos reservados.
-    </footer>
-<script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="P96RKjhIqAVffdojxvHRe";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
-    <script src="dados/head.js"></script>
-    <script src="devjokes/mudacor.js"></script>
-    <script src="devjokes/easter_egg_slide.js"></script>
-    <script src="devjokes/adm.js"></script>
-        <script src="devjokes/editor.js"></script>
+    <section class="feedback-section" id="feedback">
+      <div class="feedback-head">
+        <div class="kicker">Sua opinião importa</div>
+        <h2>Ajude o SimuLab a melhorar</h2>
+        <p>Conte o que você achou dos jogos e simuladores, sugira novas ideias ou fale diretamente com a equipe do projeto.</p>
+      </div>
+      <div class="feedback-actions">
+        <a class="feedback-card" href="COLE_AQUI_O_LINK_DO_GOOGLE_FORMS" target="_blank" rel="noopener noreferrer">
+          <span class="feedback-icon forms"><i class="fa-solid fa-star"></i></span>
+          <span><h3>Avaliação e feedback</h3><p>Responda ao formulário e avalie sua experiência no SimuLab.</p></span>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow"></i>
+        </a>
+        <a class="feedback-card" href="https://wa.me/?text=Olá!%20Quero%20enviar%20uma%20sugestão%20ou%20feedback%20sobre%20o%20SimuLab." target="_blank" rel="noopener noreferrer">
+          <span class="feedback-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+          <span><h3>Fale pelo WhatsApp</h3><p>Envie uma mensagem ou compartilhe uma sugestão para o projeto.</p></span>
+          <i class="fa-solid fa-arrow-up-right-from-square arrow"></i>
+        </a>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div><h2>Curiosidade é o começo de toda descoberta.</h2><p>Escolha um tema, experimente algo novo e avance um passo de cada vez. Seu próximo aprendizado começa aqui.</p></div>
+      <a class="btn" href="simulacoes.html">Começar agora <i class="fa-solid fa-arrow-right"></i></a>
+    </section>
+  </div>
+</main></div>
+</div>
+<footer><p><strong>SimuLab</strong> · Aprender, experimentar e descobrir.</p><p style="margin-top:7px">© 2026 SimuLab. Todos os direitos reservados. · <a href="sobre.html">Sobre o projeto</a></p></footer>
+<script>/* Links externos de avaliação e contato configurados no HTML. */</script>
 </body>
 </html>
