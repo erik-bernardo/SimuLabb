@@ -1,329 +1,392 @@
-const SEARCH_INDEX = [
 
-   // ---------- SIMULADORES: MATEMÁTICA ----------
-{ term: "Sim. Cálculo de Matriz", path: "Simulador > Matemática > Simulador", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/matriz.html" },
-{ term: "Sim. Análise de Funções", path: "Simulador > Matemática > Análise", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/funcoes.html" },
-{ term: "Sim. Juros", path: "Simulador > Matemática > Financeira", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/juros.html" },
-{ term: "Sim. Custo e Venda", path: "Simulador > Matemática > Financeira", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/custo_venda.html" },
-{ term: "Sim. Porcentagem", path: "Simulador > Matemática > Fundamentos", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/porcentagem.html" },
-{ term: "Sim. Probabilidade", path: "Simulador > Matemática > Estatística", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/probabilidade.html" },
-{ term: "Sim. Análise Combinatória", path: "Simulador > Matemática > Análise", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/combinatoria.html" },
-{ term: "Sim. Sequências Numéricas", path: "Simulador > Matemática > Álgebra", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/sequencias_numericas.html" },
-{ term: "Sim. Conjuntos Numéricos", path: "Simulador > Matemática > Fundamentos", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/conjuntos_numericos.html" },
-{ term: "Sim. Geometria Plana", path: "Simulador > Matemática > Geometria", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/geometria_plana.html" },
-{ term: "Sim. Arcos e Ângulos", path: "Simulador > Matemática > Trigonometria", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/arcos_angulos.html" },
-{ term: "Sim. Sistema Linear", path: "Simulador > Matemática > Sistemas", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/sistem-linear.html" },
+/* =====================================================
+   SIMULAB — SIDEBAR COMPLETA
+   HTML + CSS + JavaScript em um único arquivo
+   ===================================================== */
 
-// ---------- SIMULADORES: FÍSICA ----------
-{ term: "Sim. Queda Livre", path: "Simulador > Física > Cinemática", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/queda_livre.html" },
-{ term: "Sim. MRU/MRUV", path: "Simulador > Física > Cinemática", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/mru.html" },
-{ term: "Sim. Gravitação Universal", path: "Simulador > Física > Mecânica", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/gravitacao_universal.html" },
-{ term: "Sim. Conservação de Energia", path: "Simulador > Física > Mecânica", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/energia.html" },
-{ term: "Sim. Hidrostática", path: "Simulador > Física > Mecânica", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/hidrostatica.html" },
-{ term: "Sim. Ondas", path: "Simulador > Física > Ondulatória", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/ondas.html" },
-{ term: "Sim. Calorimetria", path: "Simulador > Física > Termologia", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/calorimetria.html" },
-{ term: "Sim. Dilatação Térmica", path: "Simulador > Física > Termologia", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/dilatacao_termica.html" },
-{ term: "Sim. Escalas Termométricas", path: "Simulador > Física > Termologia", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/escalas_termometricas.html" },
+(() => {
+  "use strict";
 
-// ---------- SIMULADORES: QUÍMICA ----------
-{ term: "Sim. Tabela Periódica", path: "Simulador > Química > Geral", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/tabela_periodica.html" },
-{ term: "Sim. Ligações Químicas", path: "Simulador > Química > Geral", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/ligacoes.html" },
-{ term: "Sim. Reações Químicas", path: "Simulador > Química > Geral", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/reacoes.html" },
-{ term: "Sim. Ácidos e Bases", path: "Simulador > Química > Inorgânica", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/acidos_bases.html" },
-{ term: "Sim. NOX (Nº Oxidação)", path: "Simulador > Química > RedOx", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/nox.html" },
-{ term: "Sim. Estequiometria", path: "Simulador > Química > Cálculos", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/estequiometria.html" },
-{ term: "Sim. Soluções", path: "Simulador > Química > Físico-Química", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/solucoes.html" },
-{ term: "Sim.Eletroquimica", path: "Simulador > Química > Físico-Química", url: "https://erik-bernardo.github.io/SimuLabb/simulacoes/eletroquimica.html" },
+  // Evita criar a sidebar duas vezes
+  if (window.__simulabSidebarLoaded) return;
+  window.__simulabSidebarLoaded = true;
 
-   
-  // ---------- SIMULADOR: PROGRAMAÇÃO ----------
-  { term: "Simulador IDE Virtual", path: "Simulador > Programação > Testador", url: "codeTester.html" },
+  /* =========================
+     1. ESTILOS CSS
+     ========================= */
 
-  // ---------- JOGOS ----------
-  { term: "Game Flappy Blocks", path: "Jogos > Física", url: "games/flappy-blocks/index.html" },
-  { term: "Game Labirinto", path: "Jogos > Matemática", url: "games/labirinto.html" },
-  { term: "Game Akinator", path: "Jogos > Geral", url: "games/make-your-akinator.html" },
-  { term: "Voa-Palavra: Sinônimos Perfeitos", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/flappy-words/index.html" },
-  { term: "Cobras Escadas", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/escada/index.html" },
-  { term: "Porques Blast", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/porque-blast/index.html" },
-  { term: "Acentos Runner", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/acentos/index.html" },
-  { term: "Português Social", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/portugues-social/index.html" },
-  { term: "Frase Oração e Periodo", path: "Jogos > Português", url: "https://erik-bernardo.github.io/SimuLabb/games/frases.html" },
-  { term: "The seer", path: "Jogos > Inglês", url: "https://erik-bernardo.github.io/SimuLabb/games/seer/index.html" },
-  { term: "Who is the owner?", path: "Jogos > Inglês", url: "https://erik-bernardo.github.io/SimuLabb/games/owner/index.html" },
-  { term: "", path: "Jogos > ", url: "" },
-
-   
-];
-
-
-// 2. ESTRUTURA HTML DO CABEÇALHO 
-const headerHTML = `
-    <header class="top-bar">
-        <div class="logo-area">
-            <a href="https://erik-bernardo.github.io/SimuLabb/index.html" class="logo-link">
-                <img src="https://erik-bernardo.github.io/SimuLabb/dados/simulab_banner.png" alt="SimuLab Logo" class="logo-image">
-            </a>
-        </div>
-        
-        <div class="search-wrapper">
-            <div class="search-container">
-                <input type="text" class="search-input" id="globalSearchInput" placeholder="Buscar por 'queda livre', 'matriz', 'juros' ou 'game'...">
-                <button class="search-button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-            <ul class="search-suggestions" id="searchSuggestions"></ul>
-        </div>
-
-        <nav class="nav-links">
-            <a href="https://erik-bernardo.github.io/SimuLabb/sobre.html" class="nav-link">Sobre o Projeto</a>
-            <a href="https://erik-bernardo.github.io/SimuLabb/games.html" class="nav-link">Games</a>
-            <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="nav-link main-action">ACESSAR CONTEÚDO</a>
-        </nav>
-    </header>
-`;
-
-// 3. ESTILOS CSS SOMENTE DO CABEÇALHO E PESQUISA
-const headerStyles = `
-    /* ----------------------------------- */
-    /* BARRA SUPERIOR DE NAVEGAÇÃO (TOP-BAR) */
-    /* ----------------------------------- */
-    .top-bar {
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: space-between; 
-        align-items: stretch;
-        border-bottom: 1px solid #ddd;
-        padding: 0 40px; 
-        min-height: 70px;
-    }
-    
-    .logo-area {
-        display: flex;
-        align-items: center;
+  const css = `
+    :root {
+      --orange: #ff690b;
+      --orange-dark: #e95700;
+      --ink: #14233d;
+      --muted: #778196;
+      --wash: #f7f9fc;
+      --sidebar-width: 230px;
+      --sidebar-border: #edf0f5;
     }
 
-    .logo-link {
-        text-decoration: none;
-        color: #D2691E;
-        font-size: 18px;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        padding: 15px 0;
+    .simulab-sidebar,
+    .simulab-sidebar * {
+      box-sizing: border-box;
     }
 
-    .logo-image {
-        max-height: 70px; 
-        width: auto;
-        object-fit: fill;
-    }
-    
-    /* ----------------------------------- */
-    /* ESTILOS DA BARRA DE PESQUISA E SUGESTÕES */
-    /* ----------------------------------- */
-    .search-wrapper {
-        position: relative; 
-        display: flex;
-        align-items: center;
-        flex-grow: 1;
-        max-width: 400px;
-        margin: 0 20px;
-    }
-    
-    .search-container {
-        display: flex;
-        width: 100%;
+    .simulab-sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px 18px;
+      background: #fff;
+      border-right: 1px solid var(--sidebar-border);
+      overflow-y: auto;
+      z-index: 9999;
+      font-family: "Nunito Sans", Arial, sans-serif;
     }
 
-    .search-input {
-        flex-grow: 1;
-        padding: 10px 15px;
-        border: 1px solid #ccc;
-        border-right: none;
-        border-radius: 5px 0 0 5px;
-        font-size: 14px;
-        outline: none;
-        transition: border-color 0.3s, box-shadow 0.3s;
+    .simulab-sidebar .sidebar-brand {
+      padding: 0 8px;
+      margin-bottom: 36px;
     }
 
-    .search-input:focus {
-        border-color: #D2691E;
-        box-shadow: 0 0 5px rgba(210, 105, 30, 0.5);
+    .simulab-sidebar .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
     }
 
-    .search-button {
-        padding: 10px 15px;
-        background-color: #D2691E;
-        color: white;
-        border: 1px solid #D2691E;
-        border-radius: 0 5px 5px 0;
-        cursor: pointer;
-        transition: background-color 0.3s;
+    .simulab-sidebar .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, #ff8a36, var(--orange-dark));
+      box-shadow: 0 5px 12px #ff690b35;
     }
 
-    .search-button:hover {
-        background-color: #c05c18;
-        border-color: #c05c18;
+    .simulab-sidebar .side-label {
+      display: block;
+      margin: 0 10px 11px;
+      color: #9aa3b3;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
     }
-    
-    /* Lista de Sugestões */
-    .search-suggestions {
-        position: absolute;
-        top: 100%; 
-        left: 0;
-        right: 0;
-        background-color: white;
-        border: 1px solid #D2691E;
-        border-top: none;
-        border-radius: 0 0 5px 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000; 
-        list-style: none;
+
+    .simulab-sidebar .side-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 28px;
+    }
+
+    .simulab-sidebar .side-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 44px;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: #5c6880;
+      font-size: 13px;
+      font-weight: 750;
+      text-decoration: none;
+      transition: background .2s, color .2s,
+                  border-color .2s, transform .2s;
+    }
+
+    .simulab-sidebar .side-link:hover {
+      color: var(--orange-dark);
+      background: #fff5ed;
+      transform: translateX(2px);
+    }
+
+    .simulab-sidebar .side-link.active,
+    .simulab-sidebar .side-link.subject-active {
+      color: var(--orange-dark);
+      background: #fff0e5;
+      border-color: #ffdfc6;
+    }
+
+    .simulab-sidebar .side-icon {
+      display: grid;
+      place-items: center;
+      width: 23px;
+      min-width: 23px;
+      font-size: 18px;
+    }
+
+    .simulab-sidebar .subject-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      flex: 0 0 9px;
+      border-radius: 50%;
+    }
+
+    .simulab-sidebar .math-dot {
+      background: #5688ff;
+    }
+
+    .simulab-sidebar .chemistry-dot {
+      background: #36bd86;
+    }
+
+    .simulab-sidebar .physics-dot {
+      background: #f5b942;
+    }
+
+    .simulab-sidebar .biology-dot {
+      background: #49b96b;
+    }
+
+    .simulab-sidebar .programming-dot {
+      background: #9b70e8;
+    }
+
+    .simulab-sidebar .sidebar-footer {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: auto;
+      padding: 15px 10px 4px;
+      border-top: 1px solid var(--sidebar-border);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .simulab-sidebar .footer-indicator {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 7px;
+      border-radius: 50%;
+      background: #36bd86;
+      box-shadow: 0 0 0 4px #36bd861a;
+    }
+
+    /* Espaço para o conteúdo da página */
+    body.has-simulab-sidebar {
+      margin-left: var(--sidebar-width);
+    }
+
+    /* Responsividade */
+    @media (max-width: 700px) {
+      :root {
+        --sidebar-width: 76px;
+      }
+
+      .simulab-sidebar {
+        padding: 20px 9px;
+      }
+
+      .simulab-sidebar .sidebar-brand {
         padding: 0;
-        margin: 0;
-        display: none; 
+        margin-bottom: 28px;
+        text-align: center;
+      }
+
+      .simulab-sidebar .brand-link {
+        justify-content: center;
+      }
+
+      .simulab-sidebar .brand-link > span:last-child,
+      .simulab-sidebar .side-label,
+      .simulab-sidebar .side-link > span:not(.side-icon):not(.subject-dot),
+      .simulab-sidebar .sidebar-footer {
+        display: none;
+      }
+
+      .simulab-sidebar .side-link {
+        justify-content: center;
+        padding: 12px 5px;
+      }
+
+      .simulab-sidebar .side-icon {
+        font-size: 20px;
+      }
+
+      .simulab-sidebar .subject-dot {
+        width: 11px;
+        height: 11px;
+      }
+
+      body.has-simulab-sidebar {
+        margin-left: var(--sidebar-width);
+      }
     }
-    
-    .search-suggestions li {
-        padding: 10px 15px;
-        cursor: pointer;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .search-suggestions li:last-child {
-        border-bottom: none;
-    }
+  `;
 
-    .search-suggestions li:hover {
-        background-color: #ffebcc; 
-        font-weight: bold;
-    }
-    
-    .suggestion-path {
-        font-size: 0.8em;
-        color: #777;
-        display: block;
-    }
-    
-    /* Links de Navegação */
-    .nav-links { display: flex; align-items: center; }
-    .nav-link { text-decoration: none; color: #555; font-size: 14px; font-weight: bold; padding: 0 15px; transition: color 0.3s, background-color 0.3s; display: flex; align-items: center; text-transform: uppercase; height: 100%; }
-    .nav-link:hover { color: #D2691E; background-color: #f0f0f0; }
-    .nav-link.main-action { background-color: #D2691E; color: white; padding: 0 20px; margin-left: 20px; }
-    .nav-link.main-action:hover { background-color: #c05c18; color: white; }
+  const style = document.createElement("style");
+  style.id = "simulab-sidebar-styles";
+  style.textContent = css;
+  document.head.appendChild(style);
 
+  /* =========================
+     2. HTML DA SIDEBAR
+     ========================= */
 
-    /* RESPONSIVIDADE BÁSICA (SOMENTE CABEÇALHO) */
-    @media (max-width: 768px) {
-        .top-bar { padding: 0 20px; flex-wrap: wrap; }
-        .search-wrapper { order: 3; width: 100%; margin: 10px 0 0 0; }
-        .search-input { border-radius: 5px; border-right: 1px solid #ccc; }
-        .search-button { border-radius: 5px; margin-left: 10px; }
-        .search-container { display: block; }
-        .search-suggestions { border-radius: 5px; width: 100%; margin-top: 50px; }
-        .nav-link { padding: 0 10px; }
-    }
-`;
+  function criarSidebar() {
+    const sidebar = document.createElement("aside");
 
+    sidebar.className = "simulab-sidebar";
+    sidebar.setAttribute("aria-label", "Navegação principal");
 
-document.addEventListener('DOMContentLoaded', () => {
+    sidebar.innerHTML = `
+      <div class="sidebar-brand">
+        <a href="index.html" class="brand-link">
+          <span class="brand-icon">S</span>
+          <span>SimuLab</span>
+        </a>
+      </div>
 
-    // --- PARTE 1: INJEÇÃO DE HTML E CSS DO CABEÇALHO ---
+      <span class="side-label">Navegação</span>
 
-    // 1. INJETA OS ESTILOS CSS ESPECÍFICOS DO CABEÇALHO NO <head>
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = headerStyles;
-    document.head.appendChild(styleSheet);
-    
-    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+      <nav class="side-nav">
+        <a href="index.html"
+           class="side-link"
+           data-page="index.html">
+          <span class="side-icon">⌂</span>
+          <span>Início</span>
+        </a>
 
+        <a href="games.html"
+           class="side-link"
+           data-page="games.html">
+          <span class="side-icon">🎮</span>
+          <span>Jogos</span>
+        </a>
 
-    
-    const searchInput = document.getElementById('globalSearchInput');
-    const suggestionsList = document.getElementById('searchSuggestions');
-    // Seletor mais específico para o botão de pesquisa
-    const searchButton = document.querySelector('.top-bar button.search-button'); 
-    
-    if (!searchInput || !searchButton || !suggestionsList) {
-        console.error("ERRO GRAVE: O cabeçalho foi injetado, mas elementos críticos de busca não foram encontrados.");
-        console.error("Verifique a ortografia dos IDs e classes no headerHTML.");
-        return; 
-    }
-    
-    function performSearch() {
-        const searchTerm = searchInput.value.trim().toLowerCase();
-        suggestionsList.style.display = 'none'; 
+        <a href="simulacoes.html"
+           class="side-link"
+           data-page="simulacoes.html">
+          <span class="side-icon">⚗</span>
+          <span>Simuladores</span>
+        </a>
 
-        if (searchTerm.length > 1) {
-            const match = SEARCH_INDEX.find(item => 
-                item.term.toLowerCase().includes(searchTerm) || 
-                item.url.toLowerCase().includes(searchTerm)
-            );
-            
-            if (match) {
-                window.location.href = match.url;
-            } else {
-                alert(`Pesquisa: "${searchTerm}" não encontrou um arquivo correspondente. Redirecionando para a página de Matérias.`);
-                window.location.href = 'https://erik-bernardo.github.io/SimuLabb/simulacoes.html'; 
-            }
-        } else {
-            alert('Por favor, digite pelo menos 2 caracteres para iniciar a busca.');
-        }
-    }
+        <a href="sobre.html"
+           class="side-link"
+           data-page="sobre.html">
+          <span class="side-icon">ⓘ</span>
+          <span>Sobre Nós</span>
+        </a>
+      </nav>
 
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim().toLowerCase();
-        suggestionsList.innerHTML = ''; 
+      <span class="side-label">Matérias</span>
 
-        if (query.length > 1) { 
-            const filtered = SEARCH_INDEX.filter(item => 
-                item.term.toLowerCase().includes(query) || 
-                item.path.toLowerCase().includes(query) ||
-                item.url.toLowerCase().includes(query)
-            ).slice(0, 5); 
+      <nav class="side-nav">
+        <a href="simulacoes.html?materia=matematica"
+           class="side-link subject-link"
+           data-subject="matematica">
+          <span class="subject-dot math-dot"></span>
+          <span>Matemática</span>
+        </a>
 
-            if (filtered.length > 0) {
-                filtered.forEach(item => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <strong>${item.term}</strong>
-                        <span class="suggestion-path">${item.path} (Arquivo: ${item.url})</span>
-                    `;
-                    li.addEventListener('click', () => {
-                        window.location.href = item.url;
-                        searchInput.value = item.term;
-                        suggestionsList.style.display = 'none';
-                    });
-                    suggestionsList.appendChild(li);
-                });
-                suggestionsList.style.display = 'block';
-            } else {
-                suggestionsList.style.display = 'none';
-            }
-        } else {
-            suggestionsList.style.display = 'none';
-        }
+        <a href="simulacoes.html?materia=quimica"
+           class="side-link subject-link"
+           data-subject="quimica">
+          <span class="subject-dot chemistry-dot"></span>
+          <span>Química</span>
+        </a>
+
+        <a href="simulacoes.html?materia=fisica"
+           class="side-link subject-link"
+           data-subject="fisica">
+          <span class="subject-dot physics-dot"></span>
+          <span>Física</span>
+        </a>
+
+        <a href="games.html?materia=biologia"
+           class="side-link subject-link"
+           data-subject="biologia">
+          <span class="subject-dot biology-dot"></span>
+          <span>Biologia</span>
+        </a>
+
+        <a href="games.html?materia=programacao"
+           class="side-link subject-link"
+           data-subject="programacao">
+          <span class="subject-dot programming-dot"></span>
+          <span>Programação</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="footer-indicator"></span>
+        <span>Aprender explorando</span>
+      </div>
+    `;
+
+    document.body.prepend(sidebar);
+    document.body.classList.add("has-simulab-sidebar");
+
+    return sidebar;
+  }
+
+  /* =========================
+     3. NAVEGAÇÃO ATIVA
+     ========================= */
+
+  function destacarLink(sidebar) {
+    const links = sidebar.querySelectorAll(".side-link");
+    const paginaAtual =
+      window.location.pathname.split("/").pop() || "index.html";
+
+    const parametros = new URLSearchParams(window.location.search);
+    const materiaAtual = parametros.get("materia");
+
+    links.forEach((link) => {
+      link.classList.remove("active", "subject-active");
+      link.removeAttribute("aria-current");
+
+      const paginaLink = link.dataset.page;
+      const materiaLink = link.dataset.subject;
+
+      if (materiaAtual && materiaLink === materiaAtual) {
+        link.classList.add("subject-active");
+        link.setAttribute("aria-current", "page");
+        return;
+      }
+
+      if (
+        !materiaAtual &&
+        paginaLink === paginaAtual
+      ) {
+        link.classList.add("active");
+        link.setAttribute("aria-current", "page");
+      }
     });
+  }
 
-    // 6. ATRIBUIÇÃO DOS EVENTOS
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    });
+  /* =========================
+     4. INICIALIZAÇÃO
+     ========================= */
 
-    // 7. Ocultar sugestões quando o usuário clica fora
-    document.addEventListener('click', (e) => {
-        const searchWrapper = document.querySelector('.search-wrapper');
-        if (searchWrapper && !searchWrapper.contains(e.target)) {
-            suggestionsList.style.display = 'none';
-        }
-    });
-    });
+  function iniciar() {
+    // Não adiciona outra sidebar se já existir uma
+    const sidebarExistente =
+      document.querySelector(".simulab-sidebar");
+
+    const sidebar = sidebarExistente || criarSidebar();
+
+    document.body.classList.add("has-simulab-sidebar");
+    destacarLink(sidebar);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar);
+  } else {
+    iniciar();
+  }
+})();
