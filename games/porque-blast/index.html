@@ -3,57 +3,690 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porquê Blast: O Desafio Gramatical</title>
-    <link rel="stylesheet" href="style.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>Defensor da Gramática: Os Porquês</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050510;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Neon UI Overlays */
+        .neon-text {
+            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+        
+        .neon-border {
+            box-shadow: 0 0 10px currentColor, inset 0 0 10px currentColor;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 16, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s;
+        }
+
+        .hidden {
+            display: none !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        button.btn-neon {
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 8px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), inset 0 0 15px rgba(0, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+
+        button.btn-neon:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), inset 0 0 20px rgba(0, 255, 255, 0.5);
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        /* HUD */
+        #hud {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #ammo-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .ammo-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: #111;
+            border: 2px solid;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ammo-btn .key-hint {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        /* Cores específicas das munições */
+        .ammo-btn[data-type="por que"] { border-color: #00ffff; color: #00ffff; }
+        .ammo-btn[data-type="porque"] { border-color: #ff00ff; color: #ff00ff; }
+        .ammo-btn[data-type="por quê"] { border-color: #ffff00; color: #ffff00; }
+        .ammo-btn[data-type="porquê"] { border-color: #00ff00; color: #00ff00; }
+
+        .ammo-btn.active {
+            background: currentColor;
+            color: #000 !important;
+            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.1);
+        }
+        .ammo-btn.active .key-hint { color: #000; opacity: 1; }
+
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="header">
-            <div>
-                <span class="label">PONTOS:</span>
-                <span id="score-value">0</span>
-            </div>
-            <div id="lives-display">
-                <span class="label">VIDAS:</span>
-                <span id="life-value">❤️❤️❤️</span>
-            </div>
-        </div>
 
-        <canvas id="game-canvas" width="600" height="800"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-        <div id="card-dom-container" class="card-dom-container">
-            <div class="card-text-part" id="card-part-start"></div>
-            <div class="card-text-gap" id="card-part-gap"> (____) </div>
-            <div class="card-text-part" id="card-part-end"></div>
-        </div>
+    <div id="ui-layer">
         
-        <div id="feedback-box" class="overlay">
-            <h2 id="message-text">PORQUÊ BLAST: O DESAFIO GRAMATICAL</h2>
-            <p id="rule-tip">Use as teclas **SETA ESQUERDA/DIREITA (ou 1-4)** para selecionar a munição correta.<br>Atire no inimigo com a **BARRA DE ESPAÇO** antes que ele passe do canhão!</p>
-            <button id="restart-button">COMEÇAR (ENTER)</button>
+        <!-- HUD (Em Jogo) -->
+        <div id="hud" class="hidden">
+            <div class="text-3xl text-white font-bold tracking-wider" style="text-shadow: 0 0 10px #fff;">
+                SCORE: <span id="scoreUI" class="text-[#00ffff]">0</span>
+            </div>
+            <div class="text-3xl text-white font-bold tracking-wider">
+                VIDAS: <span id="livesUI" class="text-[#ff00ff]">❤️❤️❤️</span>
+            </div>
         </div>
 
-        <div id="game-over-screen" class="overlay hidden">
-            <h2>GAME OVER</h2>
-            <p>Pontuação Final: <span id="final-score">0</span></p>
-            <button id="retry-button">Tentar Novamente (ENTER)</button>
+        <!-- Painel de Munição (Em Jogo) -->
+        <div id="ammo-panel" class="hidden">
+            <button class="ammo-btn active" data-index="0" data-type="por que" onclick="selectAmmo(0)">
+                <span class="key-hint">[ 1 ]</span> por que
+            </button>
+            <button class="ammo-btn" data-index="1" data-type="porque" onclick="selectAmmo(1)">
+                <span class="key-hint">[ 2 ]</span> porque
+            </button>
+            <button class="ammo-btn" data-index="2" data-type="por quê" onclick="selectAmmo(2)">
+                <span class="key-hint">[ 3 ]</span> por quê
+            </button>
+            <button class="ammo-btn" data-index="3" data-type="porquê" onclick="selectAmmo(3)">
+                <span class="key-hint">[ 4 ]</span> porquê
+            </button>
         </div>
 
-        <div id="educational-tip-box" class="tip-overlay">
-            <p id="tip-text"></p>
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen">
+            <h1 class="text-5xl md:text-7xl mb-6 text-[#00ffff] neon-text text-center">DEFENSOR DOS<br>PORQUÊS</h1>
+            <div class="text-xl text-gray-300 mb-10 text-center max-w-2xl px-4">
+                <p class="mb-2">Os alienígenas estão roubando as regras gramaticais!</p>
+                <p class="mb-4">Use o mouse para mirar e atirar. Pressione <strong>1, 2, 3 ou 4</strong> para trocar sua munição de porquês.</p>
+                <p class="text-[#ff00ff] font-bold">Destrua as frases incompletas atirando a resposta certa!</p>
+            </div>
+            <button class="btn-neon" onclick="startGame()">INICIAR MISSÃO</button>
         </div>
-        
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="screen hidden">
+            <h1 class="text-6xl mb-4 text-[#ff0055] neon-text" style="color: #ff0055;">GAME OVER</h1>
+            <p class="text-3xl text-white mb-8">Sua Pontuação: <span id="finalScore" class="text-[#00ffff] neon-text font-bold">0</span></p>
+            <button class="btn-neon" style="color: #ff0055; border-color: #ff0055;" onmouseover="this.style.boxShadow='0 0 25px rgba(255, 0, 85, 0.8)'" onmouseout="this.style.boxShadow='0 0 15px rgba(255, 0, 85, 0.5)'" onclick="startGame()">JOGAR NOVAMENTE</button>
+        </div>
+
     </div>
 
-    <div id="municao-map">
-        <div class="municao-item">1/<-: <span class="municao-label por_que">Por que</span> (Pergunta/Pronome)</div>
-        <div class="municao-item">2: <span class="municao-label porque">Porque</span> (Resposta/Explicação)</div>
-        <div class="municao-item">3: <span class="municao-label por_que_acento">Por quê</span> (Final de Frase)</div>
-        <div class="municao-item">4/->: <span class="municao-label o_porque">O porquê</span> (Substantivo/Motivo)</div>
-    </div>
+    <script>
+        // Setup Canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
 
-    <script src="porquê_blast.js"></script>
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Game Data & Config
+        const phraseBank = [
+            { text: "___ você não foi?", answer: "por que" },
+            { text: "Não fui ___ choveu.", answer: "porque" },
+            { text: "Você não comeu, ___?", answer: "por quê" },
+            { text: "Não entendi o ___ disso.", answer: "porquê" },
+            { text: "___ o céu é azul?", answer: "por que" },
+            { text: "Chorou ___ se machucou.", answer: "porque" },
+            { text: "Eles riram de ___?", answer: "por quê" },
+            { text: "Queria saber o ___ de tanta confusão.", answer: "porquê" },
+            { text: "Estudo ___ quero aprender.", answer: "porque" },
+            { text: "Estou sujo, ___ o caminho que passei era sujo.", answer: "porque" }
+        ];
+
+        const ammoTypes = [
+            { text: "por que", color: "#00ffff" }, // 1 - Cyan
+            { text: "porque", color: "#ff00ff" },  // 2 - Magenta
+            { text: "por quê", color: "#ffff00" }, // 3 - Yellow
+            { text: "porquê", color: "#00ff00" }   // 4 - Lime
+        ];
+
+        let gameState = 'START'; // START, PLAYING, GAMEOVER
+        let score = 0;
+        let lives = 5;
+        let currentAmmoIndex = 0;
+        let animationId;
+        let frameCount = 0;
+
+        // Entities arrays
+        let enemies = [];
+        let bullets = [];
+        let particles = [];
+        let floatingTexts = [];
+
+        // Mouse Tracker
+        const mouse = { x: width / 2, y: height / 2 };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // Input Setup
+        window.addEventListener('mousedown', (e) => {
+            // Check if clicking on UI buttons
+            if (e.target.closest('button')) return; 
+            if (gameState === 'PLAYING') player.shoot();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (gameState !== 'PLAYING') return;
+            switch(e.key) {
+                case '1': selectAmmo(0); break;
+                case '2': selectAmmo(1); break;
+                case '3': selectAmmo(2); break;
+                case '4': selectAmmo(3); break;
+            }
+        });
+
+        // UI Functions
+        function selectAmmo(index) {
+            currentAmmoIndex = index;
+            document.querySelectorAll('.ammo-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('active');
+                    btn.style.backgroundColor = ammoTypes[index].color;
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.backgroundColor = '#111';
+                }
+            });
+        }
+
+        function updateHUD() {
+            document.getElementById('scoreUI').innerText = score;
+            document.getElementById('livesUI').innerText = '❤️'.repeat(lives > 0 ? lives : 0);
+        }
+
+        // Classes
+        class Player {
+            constructor() {
+                this.x = width / 2;
+                this.y = height - 50; // Base at bottom
+                this.baseWidth = 60;
+                this.baseHeight = 30;
+                this.angle = 0;
+            }
+
+            update() {
+                // Smooth horizontal follow
+                this.x += (mouse.x - this.x) * 0.1;
+                
+                // Keep inside screen
+                this.x = Math.max(this.baseWidth/2, Math.min(width - this.baseWidth/2, this.x));
+
+                // Calculate turret angle pointing to mouse
+                this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+            }
+
+            draw() {
+                const color = ammoTypes[currentAmmoIndex].color;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Glow effect
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = color;
+
+                // Draw Base
+                ctx.fillStyle = "#1a1a2e";
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-this.baseWidth/2, this.baseHeight);
+                ctx.lineTo(-this.baseWidth/2 + 10, 0);
+                ctx.lineTo(this.baseWidth/2 - 10, 0);
+                ctx.lineTo(this.baseWidth/2, this.baseHeight);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw Turret aiming
+                ctx.rotate(this.angle);
+                ctx.fillStyle = color;
+                ctx.fillRect(0, -5, 40, 10);
+                
+                // Center node
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.fillStyle = "#050510";
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            shoot() {
+                const ammo = ammoTypes[currentAmmoIndex];
+                // Spawn bullet at end of turret
+                const bx = this.x + Math.cos(this.angle) * 40;
+                const by = this.y + Math.sin(this.angle) * 40;
+                bullets.push(new Bullet(bx, by, this.angle, ammo));
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, angle, ammoData) {
+                this.x = x;
+                this.y = y;
+                this.vx = Math.cos(angle) * 15;
+                this.vy = Math.sin(angle) * 15;
+                this.text = ammoData.text;
+                this.color = ammoData.color;
+                this.width = 80;
+                this.height = 25;
+                this.active = true;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Out of bounds
+                if (this.x < -100 || this.x > width + 100 || this.y < -100 || this.y > height + 100) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Align bullet rotation
+                let angle = Math.atan2(this.vy, this.vx);
+                ctx.rotate(angle);
+
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = "rgba(0,0,0,0.8)";
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+
+                // Capsule shape
+                ctx.beginPath();
+                ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 12);
+                ctx.fill();
+                ctx.stroke();
+
+                // Text
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = this.color;
+                ctx.font = "bold 14px Rajdhani";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(this.text, 0, 0);
+
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                const phrase = phraseBank[Math.floor(Math.random() * phraseBank.length)];
+                this.text = phrase.text;
+                this.answer = phrase.answer;
+                this.width = Math.max(250, this.text.length * 12); // Dynamic width
+                this.height = 50;
+                this.x = Math.random() * (width - this.width - 40) + 20 + this.width/2;
+                this.y = -50;
+                this.vy = 0.8 + Math.random() * 0.4; // Fall speed
+                this.color = "#ff3333";
+                this.active = true;
+            }
+
+            update() {
+                this.y += this.vy;
+                
+                // Reached bottom
+                if (this.y > height) {
+                    this.active = false;
+                    loseLife();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = "rgba(20, 0, 0, 0.8)";
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.rect(-this.width/2, -this.height/2, this.width, this.height);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 20px Rajdhani";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(this.text, 0, 0);
+
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.color = color;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.015;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.life = 1.0;
+                this.vy = -2;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.life -= 0.02;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.font = "bold 24px Orbitron";
+                ctx.textAlign = "center";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        // Starfield Background
+        const stars = Array.from({length: 150}, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 2,
+            speed: Math.random() * 0.5 + 0.1
+        }));
+
+        function drawBackground() {
+            ctx.fillStyle = '#050510';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                star.y += star.speed;
+                if(star.y > height) {
+                    star.y = 0;
+                    star.x = Math.random() * width;
+                }
+                ctx.globalAlpha = star.speed;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function createExplosion(x, y, color, count=20) {
+            for(let i=0; i<count; i++){
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Logic Helpers
+        function loseLife() {
+            lives--;
+            updateHUD();
+            // Screen shake or flash could go here
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+
+        function checkCollisions() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                let hit = false;
+
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    let e = enemies[j];
+
+                    // Simple AABB / Distance check
+                    if (b.x > e.x - e.width/2 && b.x < e.x + e.width/2 &&
+                        b.y > e.y - e.height/2 && b.y < e.y + e.height/2) {
+                        
+                        hit = true;
+
+                        if (b.text === e.answer) {
+                            // Acertou!
+                            score += 10;
+                            updateHUD();
+                            createExplosion(e.x, e.y, b.color, 30);
+                            floatingTexts.push(new FloatingText(e.x, e.y, "+10", "#00ffff"));
+                            e.active = false;
+                        } else {
+                            // Errou! (Bate e reflete)
+                            b.vx *= -1;
+                            b.vy *= -1;
+                            createExplosion(b.x, b.y, "#ffffff", 5);
+                            floatingTexts.push(new FloatingText(b.x, b.y, "Erro!", "#ff0000"));
+                            b.active = false; // Destroy bullet, enemy continues
+                        }
+                        break; 
+                    }
+                }
+                if(hit && !b.active) {
+                    // Remove bullet if it hit and was deactivated
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+
+        const player = new Player();
+
+        function gameLoop() {
+            if (gameState !== 'PLAYING') return;
+
+            // Clear & Draw BG
+            drawBackground();
+
+            // Spawn Enemies
+            frameCount++;
+            if (frameCount % 120 === 0) { // Spawn rate
+                enemies.push(new Enemy());
+            }
+
+            // Update & Draw Player
+            player.update();
+            player.draw();
+
+            // Update & Draw Bullets
+            bullets = bullets.filter(b => b.active);
+            bullets.forEach(b => { b.update(); b.draw(); });
+
+            // Update & Draw Enemies
+            enemies = enemies.filter(e => e.active);
+            enemies.forEach(e => { e.update(); e.draw(); });
+
+            // Collisions
+            checkCollisions();
+
+            // Update & Draw Particles
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+
+            // Update & Draw Floating Text
+            floatingTexts = floatingTexts.filter(ft => ft.life > 0);
+            floatingTexts.forEach(ft => { ft.update(); ft.draw(); });
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Game State Management
+        function startGame() {
+            gameState = 'PLAYING';
+            score = 0;
+            lives = 3;
+            enemies = [];
+            bullets = [];
+            particles = [];
+            floatingTexts = [];
+            frameCount = 0;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('ammo-panel').classList.remove('hidden');
+            
+            selectAmmo(0);
+            updateHUD();
+            
+            if(animationId) cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState = 'GAMEOVER';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('ammo-panel').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').innerText = score;
+        }
+
+        // Initial Draw Setup
+        selectAmmo(0); // initialize active button styling
+        drawBackground(); // draw once before start
+
+    </script>
 </body>
 </html>
