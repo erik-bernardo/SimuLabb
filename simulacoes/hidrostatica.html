@@ -1,339 +1,142 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Hidrostática - Empuxo (SVG Boat)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            width: 100%;
-            max-width: 1200px;
-            margin: 20px;
-            background: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        /* --- Coluna de Simulação Visual --- */
-        .visualizer {
-            flex: 2; /* Ocupa 2/3 da largura */
-            min-width: 400px;
-            height: 600px;
-            background: #cceeff; /* Céu */
-            position: relative;
-            overflow: hidden; /* Esconde o que sai do quadro */
-        }
-        .water {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50%; /* A linha da água está na metade */
-            background: #004080; /* Água escura */
-            opacity: 0.9;
-        }
-        .boat-container {
-            position: absolute;
-            width: 150px; /* Largura VISUAL do barco (para o SVG) */
-            height: 150px; /* Altura VISUAL do barco (para o SVG) */
-            left: 50%;
-            /* 'bottom' será controlado pelo JS */
-            bottom: 50%; /* Começa na linha da água */
-            transform: translateX(-50%);
-            transition: bottom 0.5s ease;
-            z-index: 10; /* Garante que o barco fica acima da água */
-        }
-        
-        /* Estilos para o SVG do barco */
-        .boat-svg {
-            width: 100%;
-            height: 100%;
-            /* viewBox define as coordenadas internas do SVG, importante para escalabilidade */
-            /* Se o barco não estiver centralizado, ajuste os valores do viewBox e/ou das formas */
-        }
-        .boat-svg .casco {
-            fill: #FFFFFF; /* Branco */
-            stroke: #333; /* Contorno */
-            stroke-width: 2;
-        }
-        .boat-svg .mastro {
-            fill: #333; /* Preto */
-        }
-        .boat-svg .vela1 {
-            fill: #FF8C00; /* Laranja */
-            stroke: #333;
-            stroke-width: 1;
-        }
-        .boat-svg .vela2 {
-            fill: #FFD700; /* Amarelo */
-            stroke: #333;
-            stroke-width: 1;
-        }
-
-        .bottom-floor {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 20px;
-            background: #6b4a2f; /* Fundo do "aquário" */
-        }
-
-        /* --- Coluna de Controles e Resultados --- */
-        .simulator {
-            flex: 1; /* Ocupa 1/3 da largura */
-            min-width: 300px;
-            padding: 20px;
-            background: #f9f9f9;
-        }
-        .controls h3 {
-            margin-top: 0;
-            color: #004080;
-        }
-        .control-group {
-            margin-bottom: 20px;
-        }
-        .control-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .control-group input[type="range"] {
-            width: 100%;
-        }
-        .control-group span {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.1em;
-            color: #d9534f;
-        }
-        
-        #results {
-            margin-top: 20px;
-            border-top: 2px solid #eee;
-            padding-top: 20px;
-        }
-        #results h3 {
-            color: #007bff;
-        }
-        #results p {
-            background-color: #f0f0f0;
-            padding: 10px;
-            border-radius: 4px;
-            font-family: "Courier New", Courier, monospace;
-            line-height: 1.6;
-            word-wrap: break-word;
-            font-size: 0.95em;
-        }
-        #results p strong {
-            color: #d9534f;
-        }
-        #results p i {
-            color: #555;
-            font-size: 0.9em;
-        }
-        .status-float { color: #28a745; font-weight: bold; }
-        .status-sink { color: #dc3545; font-weight: bold; }
-
-    </style>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimuLab — Hidrostática</title>
+<style>
+:root{--orange:#ff690b;--ink:#14233d;--muted:#718096;--line:#e2e8f0;--blue:#1679d3;--water:#64c7ef;--bg:#f6f9fc}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#fff}button,input,select{font:inherit}
+header{height:58px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px;padding:0 18px;background:#fff;position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:8px;font-weight:900;font-size:17px}.logo{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--orange);color:white}.crumb{padding-left:12px;border-left:1px solid var(--line);font-size:13px;color:var(--muted)}.header-right{margin-left:auto;font-size:11px;color:var(--muted)}
+.app{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:calc(100vh - 58px)}
+aside{border-right:1px solid var(--line);padding:17px;overflow:auto;max-height:calc(100vh - 58px);background:#fff}.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:900;color:#8490a3;margin:3px 0 12px}.panel{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:12px;background:#fbfcfe}.panel h3{font-size:13px;margin:0 0 12px}.field{margin:12px 0}.field-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:7px}.value{font-variant-numeric:tabular-nums;color:var(--orange);font-weight:900}.field input[type=range]{width:100%;accent-color:var(--orange)}.field input[type=number],.field select{width:100%;border:1px solid #dce3ec;border-radius:8px;padding:8px;background:white;color:var(--ink)}.hint{font-size:11px;color:var(--muted);line-height:1.5}.presets{display:grid;grid-template-columns:1fr 1fr;gap:7px}.preset{border:1px solid var(--line);border-radius:9px;background:white;text-align:left;padding:9px;color:var(--ink);font-size:11px;font-weight:800}.preset:hover,.preset.active{border-color:var(--orange);background:#fff4ec}.preset span{display:block;font-size:19px;margin-bottom:4px}.btn{border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink);padding:8px 10px;font-size:11px;font-weight:800;cursor:pointer}.btn.hot{background:var(--orange);border-color:var(--orange);color:white}.btn-row{display:flex;gap:7px;flex-wrap:wrap}.btn-row .btn{flex:1}
+main{min-width:0;display:flex;flex-direction:column;min-height:calc(100vh - 58px)}.workspace-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}.workspace-head h1{font-size:15px;margin:0}.workspace-head p{font-size:11px;color:var(--muted);margin:4px 0 0}.workspace-head .btn-row{margin-left:auto}
+.visuals{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:13px;padding:14px;flex:1;min-height:500px}.scene{position:relative;min-height:470px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:linear-gradient(#f7fcff,#eaf8ff 55%,#d9f3ff);isolation:isolate}.scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.scene-label{position:absolute;left:13px;top:12px;background:#ffffffdc;border:1px solid #ffffff;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;z-index:2}.status{position:absolute;right:12px;top:12px;padding:8px 10px;border-radius:9px;background:#fff;border:1px solid var(--line);font-size:11px;font-weight:900;z-index:2}.status.good{color:#087f5b}.status.bad{color:#c2410c}
+.metrics{display:flex;flex-direction:column;gap:10px}.metric{border:1px solid var(--line);border-radius:12px;padding:12px;background:white}.metric small{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px}.metric strong{display:block;font-size:21px;margin-top:6px;font-variant-numeric:tabular-nums}.metric p{font-size:11px;color:var(--muted);margin:5px 0 0;line-height:1.45}.metric.accent{background:#fff6ef;border-color:#ffdbc5}.metric.accent strong{color:#db5908}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;padding:0 14px 14px}.info-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:white}.info-card h2{font-size:13px;margin:0 0 10px}.equation{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;background:#f6f9fc;border-radius:9px;padding:11px;color:#263a56}.bar{height:9px;background:#e9eef5;border-radius:10px;overflow:hidden;margin-top:9px}.bar span{height:100%;display:block;background:var(--blue);width:0%;transition:width .2s}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-top:9px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}.footer{font-size:10px;color:#8894a7;padding:0 16px 13px}
+@media(max-width:1000px){.app{grid-template-columns:285px minmax(0,1fr)}.visuals{grid-template-columns:1fr}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.scene{min-height:450px}}
+@media(max-width:700px){.app{grid-template-columns:1fr}aside{max-height:none;border-right:0;border-bottom:1px solid var(--line)}.visuals{padding:10px}.bottom-grid{grid-template-columns:1fr;padding:0 10px 10px}.scene{min-height:420px}.crumb{display:none}.header-right{display:none}.workspace-head{flex-wrap:wrap}.workspace-head .btn-row{margin-left:0;width:100%}}
+</style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <div class="visualizer" id="visualizer">
-            <div class="water" id="water"></div>
-            <div class="bottom-floor"></div>
-            <div class="boat-container" id="boat">
-                <svg class="boat-svg" viewBox="0 -20 100 100">
-                    <path class="casco" d="M10 70 Q20 85 50 85 Q80 85 90 70 L85 65 Q75 55 50 55 Q25 55 15 65 Z" />
-                    <rect class="mastro" x="48" y="20" width="4" height="40" />
-                    <polygon class="vela1" points="50,25 75,60 50,60" />
-                    <polygon class="vela2" points="50,25 25,60 50,60" />
-                </svg>
-            </div>
-        </div>
+<div class="app">
+<aside>
+<div class="section-title">Experimento</div>
+<div class="panel">
+<h3>Presets rápidos</h3>
+<div class="presets">
+<button class="preset" data-preset="wood"><span>🪵</span>Barco de madeira</button>
+<button class="preset active" data-preset="steel"><span>⚓</span>Barco de aço</button>
+<button class="preset" data-preset="heavy"><span>🧱</span>Barco sobrecarregado</button>
+<button class="preset" data-preset="foam"><span>🛟</span>Flutuador leve</button>
+</div>
+</div>
+<div class="section-title">Parâmetros do barco</div>
+<div class="panel">
+<h3>Barco e carga</h3>
+<div class="field"><div class="field-head"><label for="mass">Massa total</label><span class="value" id="massVal">100 kg</span></div><input id="mass" type="range" min="20" max="800" step="10" value="120"><p class="hint">Massa do barco + carga transportada.</p></div>
+<div class="field"><div class="field-head"><label for="volume">Volume máximo deslocável</label><span class="value" id="volumeVal">0,8 m³</span></div><input id="volume" type="range" min="0.1" max="2.5" step="0.05" value="0.8"><p class="hint">Volume de água deslocado quando o barco está no limite de submersão.</p></div>
+<div class="field"><div class="field-head"><label for="density">Densidade do líquido</label><span class="value" id="densityVal">1.000 kg/m³</span></div><input id="density" type="range" min="700" max="1400" step="10" value="1000"><p class="hint">Água doce ≈ 1000 kg/m³. Aumente para simular líquidos mais densos. A gravidade fica fixa em 9,81 m/s² (Terra).</p></div>
+<div class="btn-row"><button class="btn" id="reset">Restaurar</button><button class="btn hot" id="addLoad">+ Adicionar carga (50 kg)</button></div>
+</div>
+<div class="section-title">Condições do líquido</div>
+<div class="panel">
+<h3>Meio de flutuação</h3>
+<div class="field"><div class="field-head"><label for="liquid">Líquido predefinido</label></div><select id="liquid"><option value="1000">Água doce · 1000 kg/m³</option><option value="1025">Água do mar · 1025 kg/m³</option><option value="800">Óleo leve · 800 kg/m³</option><option value="13600">Mercúrio · 13600 kg/m³</option></select></div>
+<p class="hint">Escolher um líquido ajusta a densidade. O controle de densidade acima também permite experimentar valores personalizados.</p>
+</div>
+</aside>
+<main>
+<div class="workspace-head"><div><h1>Flutuação: o barco vai boiar ou afundar?</h1><p>Altere a massa e o líquido; ao ultrapassar o limite, o barco afunda. Gravidade terrestre fixa: 9,81 m/s².</p></div><div class="btn-row"><button class="btn" id="pause">Ⅱ Pausar animação</button><button class="btn hot" id="showForces">Mostrar forças</button></div></div>
+<div class="visuals">
+<div class="scene" id="scene"><div class="scene-label">SIMULAÇÃO EM TEMPO REAL</div><div class="status good" id="status">● BOIANDO</div><canvas id="waterCanvas" aria-label="Animação de um barco flutuando na água" width="390" height="598"></canvas></div>
+<div class="metrics">
+<div class="metric accent"><small>Estado do barco</small><strong id="stateMetric">Boiando</strong><p id="stateDesc">O empuxo pode equilibrar o peso do barco.</p></div>
+<div class="metric"><small>Empuxo máximo</small><strong id="buoyancyMetric">7.848 N</strong><p>Força máxima que a água pode exercer neste modelo.</p></div>
+<div class="metric"><small>Peso do barco</small><strong id="weightMetric">981 N</strong><p>P = m × g</p></div>
+<div class="metric"><small>Volume deslocado</small><strong id="displacedMetric">0,1 m³</strong><p id="fractionDesc">12,5% do volume máximo.</p><div class="bar"><span id="submersionBar" style="width: 12.5%;"></span></div></div>
+<div class="metric"><small>Margem de carga</small><strong id="marginMetric">700 kg</strong><p>Massa adicional teórica antes do limite de flutuação.</p></div>
+</div>
+</div>
+<div class="bottom-grid">
+<div class="info-card"><h2>Como o cálculo é feito</h2><div class="equation" id="calculation">Empuxo máximo: Eₘₐₓ = ρ × g × V
+Eₘₐₓ = 1.000 × 9,81 × 0,8
+Eₘₐₓ = 7.848 N
 
-        <div class="simulator">
-            <div class="controls">
-                <h3>Controles da Simulação</h3>
-                
-                <div class="control-group">
-                    <label for="mass-slider">Massa do Barco: 
-                        <span id="mass-value">5000</span> kg</label>
-                    <input type="range" id="mass-slider" min="1000" max="30000" value="5000" step="100">
-                </div>
-                
-                <div class="control-group">
-                    <label for="density-slider">Densidade do Líquido: 
-                        <span id="density-value">1000</span> kg/m³</label>
-                    <input type="range" id="density-slider" min="800" max="13600" value="1000" step="10">
-                    <i>(Água Doce: 1000, Água Salgada: ~1025, Mercúrio: 13600)</i>
-                </div>
-                
-                <p><i>Nota: Para a física, o barco é um bloco de 
-                   <strong id="boat-dims">--</strong> m. A imagem é ilustrativa.</i></p>
-            </div>
+Peso: P = m × g
+P = 100 × 9,81 = 981 N
 
-            <div id="results">
-                </div>
-        </div>
+Volume necessário: V = m ÷ ρ
+V = 100 ÷ 1.000 = 0,1 m³
 
-    </div>
+Conclusão: o barco consegue deslocar água suficiente para flutuar.</div></div>
+<div class="info-card"><h2>Forças atuantes</h2><div class="equation" id="forcesText">↓ Peso: P = 981 N
+↑ Empuxo máximo: Eₘₐₓ = 7.848 N
+No equilíbrio: E = P.</div><div class="legend"><span><i class="dot" style="background:#e85c41"></i>Peso</span><span><i class="dot" style="background:#1679d3"></i>Empuxo</span><span><i class="dot" style="background:#64c7ef"></i>Líquido</span></div></div>
+</div>
+<div class="footer">Modelo didático simplificado: considera um casco estanque e volume máximo deslocável. A estabilidade real também depende da geometria, distribuição da carga e centro de massa.</div>
+</main>
+</div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const canvas=$('waterCanvas'),ctx=canvas.getContext('2d');
+let paused=false,showForces=true,last=0,bob=0;
+const initial={mass:120,volume:.8,density:1000};
+const GRAVITY=9.81;
+const fmt=(n,d=2)=>Number(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:d});
+function values(){return{m:+$('mass').value,V:+$('volume').value,rho:+$('density').value,g:GRAVITY}}
+function compute(){let {m,V,rho,g}=values();let capacity=rho*V,maxMass=rho*V,weight=m*g,maxBuoyancy=rho*g*V,required=m/rho,displaced=Math.min(required,V),fraction=Math.min(1,required/V),floating=m<=maxMass;return{m,V,rho,g,capacity,maxMass,weight,maxBuoyancy,required,displaced,fraction,floating}}
+function update(){let c=compute();$('massVal').textContent=fmt(c.m,0)+' kg';$('volumeVal').textContent=fmt(c.V,2)+' m³';$('densityVal').textContent=fmt(c.rho,0)+' kg/m³';$('stateMetric').textContent=c.floating?'Boiando':'Afundando';$('stateDesc').textContent=c.floating?'O empuxo pode equilibrar o peso do barco.':'O peso excede o empuxo máximo disponível.';$('status').textContent=c.floating?'● BOIANDO':'● AFUNDANDO';$('status').className='status '+(c.floating?'good':'bad');$('buoyancyMetric').textContent=fmt(c.maxBuoyancy,0)+' N';$('weightMetric').textContent=fmt(c.weight,0)+' N';$('displacedMetric').textContent=fmt(c.displaced,3)+' m³';$('fractionDesc').textContent=fmt(c.fraction*100,1)+'% do volume máximo.';$('submersionBar').style.width=Math.min(100,c.fraction*100)+'%';$('marginMetric').textContent=(c.maxMass>=c.m?fmt(c.maxMass-c.m,0)+' kg':'−'+fmt(c.m-c.maxMass,0)+' kg');$('calculation').textContent=`Empuxo máximo: Eₘₐₓ = ρ × g × V\nEₘₐₓ = ${fmt(c.rho,0)} × ${fmt(c.g,2)} × ${fmt(c.V,2)}\nEₘₐₓ = ${fmt(c.maxBuoyancy,2)} N\n\nPeso: P = m × g\nP = ${fmt(c.m,1)} × ${fmt(c.g,2)} = ${fmt(c.weight,2)} N\n\nVolume necessário: V = m ÷ ρ\nV = ${fmt(c.m,1)} ÷ ${fmt(c.rho,0)} = ${fmt(c.required,3)} m³\n\nConclusão: ${c.floating?'o barco consegue deslocar água suficiente para flutuar.':'o volume máximo não gera empuxo suficiente; o barco afunda.'}`;$('forcesText').textContent=`↓ Peso: P = ${fmt(c.weight,1)} N\n↑ Empuxo máximo: Eₘₐₓ = ${fmt(c.maxBuoyancy,1)} N\n${c.floating?'No equilíbrio: E = P.':'Como P > Eₘₐₓ, a resultante aponta para baixo.'}`;draw()}
+function resize(){let r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);ctx.setTransform(d,0,0,d,0,0);draw()}
+function draw(){let r=canvas.getBoundingClientRect(),w=r.width,h=r.height;if(!w||!h)return;ctx.clearRect(0,0,w,h);let c=compute(),waterY=h*.61,waterH=h-waterY;
+let sky=ctx.createLinearGradient(0,0,0,waterY);sky.addColorStop(0,'#f7fcff');sky.addColorStop(1,'#d8f3ff');ctx.fillStyle=sky;ctx.fillRect(0,0,w,waterY);
+let water=ctx.createLinearGradient(0,waterY,0,h);water.addColorStop(0,'#79d2f1');water.addColorStop(1,'#1689c4');ctx.fillStyle=water;ctx.fillRect(0,waterY,w,waterH);
+ctx.strokeStyle='#eafaff';ctx.lineWidth=2;ctx.beginPath();for(let x=0;x<w+10;x+=10){let y=waterY+Math.sin(x*.035+bob)*3; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke();
+for(let i=0;i<7;i++){let x=(w*.1+i*w*.15+(bob*8)%w)%w,y=waterY+18+i%3*25;ctx.strokeStyle='#ffffff50';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+28,y);ctx.stroke()}
+const boatW=Math.min(w*.48,300),boatH=Math.max(40,boatW*.22),cx=w*.5,submersion=c.fraction,overload=Math.max(0,(c.m-c.maxMass)/Math.max(c.maxMass,1)),sinkDepth=c.floating?0:Math.min(h*.85, h*(.18+overload*.65)),baseY=waterY+boatH*.12+(submersion*.22*boatH)+sinkDepth;let hullTop=baseY-boatH*.48,hullBottom=baseY+boatH*.65;
+ctx.save();ctx.translate(cx,0);ctx.rotate(Math.sin(bob*.7)*.012);
+ctx.fillStyle='#7b4a2b';ctx.strokeStyle='#58331f';ctx.lineWidth=2;ctx.beginPath();
+ctx.moveTo(-boatW*.5,hullTop);ctx.lineTo(boatW*.5,hullTop);ctx.lineTo(boatW*.32,hullBottom);ctx.lineTo(0,hullBottom+boatH*.22);ctx.lineTo(-boatW*.32,hullBottom);ctx.closePath();
+ctx.fill();ctx.stroke();ctx.fillStyle='#a96b3b';ctx.fillRect(-boatW*.37,hullTop-boatH*.13,boatW*.74,boatH*.15);
+ctx.fillStyle='#f0d9a7';ctx.fillRect(-boatW*.24,hullTop-boatH*.48,boatW*.48,boatH*.34);ctx.strokeStyle='#9a7a48';ctx.strokeRect(-boatW*.24,hullTop-boatH*.48,boatW*.48,boatH*.34);
+ctx.fillStyle='#7b4a2b';ctx.fillRect(-boatW*.28,hullTop-boatH*.53,boatW*.56,boatH*.07);
+ctx.restore();
+// Quando a massa ultrapassa a capacidade, o casco afunda abaixo da superfície.
+// Uma camada azul sobre a parte submersa cria o efeito visual de estar dentro do mar.
+if(!c.floating){
+  ctx.save();
+  ctx.beginPath();ctx.rect(0,waterY,w,h);ctx.clip();
+  const submerged=ctx.createLinearGradient(0,waterY,0,h);
+  submerged.addColorStop(0,'rgba(20,137,196,.30)');
+  submerged.addColorStop(1,'rgba(5,75,130,.72)');
+  ctx.fillStyle=submerged;ctx.fillRect(0,waterY,w,h-waterY);
+  // Bolhas subindo ao redor do barco afundando
+  for(let i=0;i<8;i++){
+    const bx=cx+Math.sin(bob*1.4+i*1.7)*(boatW*.42)+((i%3)-1)*12;
+    const by=waterY+((bob*24+i*31)%(Math.max(40,h-waterY)));
+    ctx.beginPath();ctx.arc(bx,by,2+(i%3),0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,.65)';ctx.lineWidth=1.3;ctx.stroke();
+  }
+  ctx.restore();
+}
+ctx.strokeStyle='#ffffffc9';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx-boatW*.58,waterY);ctx.lineTo(cx+boatW*.58,waterY);ctx.stroke();
+if(showForces){let arrowX=cx+boatW*.62,scale=Math.min(90,boatH*1.8),weightLen=scale*.72,buoyLen=scale*c.fraction*.85;
+drawArrow(arrowX,hullTop-3,arrowX,hullTop+weightLen,'#e85c41','P');if(c.floating)drawArrow(arrowX+25,waterY+Math.max(15,boatH*.2),arrowX+25,waterY-Math.max(15,buoyLen),'#1679d3','E');else drawArrow(arrowX+25,waterY+10,arrowX+25,waterY+10+scale*.6,'#1679d3','Eₘₐₓ')}
+ctx.fillStyle='#17435c';ctx.font='12px Segoe UI,Arial';ctx.textAlign='left';ctx.fillText('Água',14,h-17);
+}
+function drawArrow(x1,y1,x2,y2,color,label){ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();let a=Math.atan2(y2-y1,x2-x1),head=8;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-head*Math.cos(a-.45),y2-head*Math.sin(a-.45));ctx.lineTo(x2-head*Math.cos(a+.45),y2-head*Math.sin(a+.45));ctx.closePath();ctx.fill();ctx.font='bold 12px Segoe UI,Arial';ctx.fillText(label,x2+7,y2+4)}
+function animate(t){if(!paused&&last){bob+=(t-last)*.0018}last=t;draw();requestAnimationFrame(animate)}
+document.querySelectorAll('input[type=range]').forEach(el=>el.addEventListener('input',update));
+$('liquid').addEventListener('change',()=>{$('density').value=$('liquid').value;update()});
+$('liquid').addEventListener('change',()=>{update()});
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-preset]').forEach(x=>x.classList.toggle('active',x===b));let p=b.dataset.preset;let preset=p==='wood'?{mass:120,volume:.8,density:1000}:p==='steel'?{mass:360,volume:.8,density:1000}:p==='heavy'?{mass:780,volume:.8,density:1000}:{mass:35,volume:.5,density:1000};Object.entries(preset).forEach(([k,v])=>{$(k).value=v});$('liquid').value=String(preset.density);update()}));
+$('addLoad').onclick=()=>{$('mass').value=Math.min(800,+$('mass').value+50);update()};
+$('reset').onclick=()=>{Object.entries(initial).forEach(([k,v])=>{$(k).value=v});$('liquid').value='1000';document.querySelectorAll('[data-preset]').forEach(x=>x.classList.toggle('active',x.dataset.preset==='wood'));paused=false;$('pause').textContent='Ⅱ Pausar animação';update()};
+$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'▶ Retomar animação':'Ⅱ Pausar animação'};
+$('showForces').onclick=()=>{showForces=!showForces;$('showForces').textContent=showForces?'Ocultar forças':'Mostrar forças';draw()};
+if('ResizeObserver'in window)new ResizeObserver(resize).observe($('scene'));else window.addEventListener('resize',resize);
+update();resize();requestAnimationFrame(animate);
+})();
+</script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // --- CONSTANTES DA SIMULAÇÃO ---
-            const g = 9.81; // Aceleração da gravidade (m/s²)
-            
-            // Dimensões do "bloco" (barco) para a FÍSICA
-            const L_BARCO = 5.0; // Comprimento (m)
-            const W_BARCO = 3.0; // Largura (m)
-            const H_TOTAL_BARCO = 2.0; // Altura total (m)
-            
-            const AREA_BASE = L_BARCO * W_BARCO;
-            const V_TOTAL_BARCO = AREA_BASE * H_TOTAL_BARCO;
-            
-            // --- Elementos do DOM ---
-            const massSlider = document.getElementById('mass-slider');
-            const densitySlider = document.getElementById('density-slider');
-            const massValue = document.getElementById('mass-value');
-            const densityValue = document.getElementById('density-value');
-            
-            const resultsDiv = document.getElementById('results');
-            const boatContainer = document.getElementById('boat');
-            const visualizer = document.getElementById('visualizer');
-            const water = document.getElementById('water');
-            
-            // Seta as dimensões na UI
-            document.getElementById('boat-dims').innerText = `${L_BARCO}x${W_BARCO}x${H_TOTAL_BARCO}`;
-
-            // --- FUNÇÃO PRINCIPAL ---
-            function updateSimulation() {
-                // 1. Obter valores dos sliders
-                const m_boat = parseFloat(massSlider.value);
-                const d_fluid = parseFloat(densitySlider.value);
-                
-                // Atualizar labels
-                massValue.innerText = m_boat;
-                densityValue.innerText = d_fluid;
-                
-                // 2. Cálculos de Física (com etapas)
-                let output = '<h3>Etapas do Cálculo (Princípio de Arquimedes)</h3>';
-                
-                // --- Peso do Barco ---
-                const p_boat = m_boat * g;
-                output += `<p><strong>1. Peso do Barco (P):</strong><br>
-                           Fórmula: P = massa * gravidade (g)<br>
-                           Cálculo: P = ${m_boat} kg * ${g} m/s²<br>
-                           <strong>P = ${p_boat.toFixed(2)} N</strong></p>`;
-                           
-                // --- Empuxo Máximo Possível ---
-                const e_max = d_fluid * V_TOTAL_BARCO * g;
-                output += `<p><strong>2. Empuxo Máximo (E<sub>max</sub>):</strong><br>
-                           <i>(Força se o barco estivesse 100% submerso)</i><br>
-                           Fórmula: E<sub>max</sub> = d<sub>fluido</sub> * V<sub>total</sub> * g<br>
-                           Cálculo: E<sub>max</sub> = ${d_fluid} * ${V_TOTAL_BARCO} * ${g}<br>
-                           <strong>E<sub>max</sub> = ${e_max.toFixed(2)} N</strong></p>`;
-                
-                let h_submerso; // Altura submersa (calado)
-                let status;
-
-                // 3. Condição: Flutua ou Afunda?
-                if (p_boat > e_max) {
-                    // --- AFUNDA ---
-                    status = `<span class="status-sink">AFUNDA</span>`;
-                    output += `<p><strong>3. Condição:</strong><br>
-                               Peso (${p_boat.toFixed(2)} N) > Empuxo Máximo (${e_max.toFixed(2)} N)<br>
-                               <strong>Status: ${status}</strong><br>
-                               <i>A densidade média do barco é maior que a do líquido.</i></p>`;
-                    
-                    h_submerso = H_TOTAL_BARCO; // Está 100% submerso
-                    updateBoatVisual(h_submerso, true);
-
-                } else {
-                    // --- FLUTUA ---
-                    status = `<span class="status-float">FLUTUA</span>`;
-                    const e_necessario = p_boat; // Para flutuar, E = P
-                    
-                    output += `<p><strong>3. Condição:</strong><br>
-                               Peso (${p_boat.toFixed(2)} N) &le; Empuxo Máximo (${e_max.toFixed(2)} N)<br>
-                               <strong>Status: ${status}</strong><br>
-                               <i>O barco afundará até que o Empuxo se iguale ao Peso.</i></p>`;
-                    
-                    // 4. Calcular Calado (Altura Submersa)
-                    // E = d_fluido * V_submerso * g
-                    // P = E  =>  p_boat = d_fluido * V_submerso * g
-                    const v_submerso = p_boat / (d_fluid * g);
-                    
-                    // V_submerso = Area_base * h_submerso
-                    h_submerso = v_submerso / AREA_BASE;
-                    
-                    output += `<p><strong>4. Cálculo do Calado (h<sub>submerso</sub>):</strong><br>
-                               Volume necessário: V<sub>sub</sub> = P / (d<sub>fluido</sub> * g)<br>
-                               Cálculo V<sub>sub</sub>: ${p_boat.toFixed(2)} / (${d_fluid} * ${g}) = ${v_submerso.toFixed(2)} m³<br>
-                               Altura submersa: h<sub>sub</sub> = V<sub>sub</sub> / Área<sub>base</sub><br>
-                               Cálculo h<sub>sub</sub>: ${v_submerso.toFixed(2)} / ${AREA_BASE} m²<br>
-                               <strong>Calado (h<sub>sub</sub>): ${h_submerso.toFixed(2)} m</strong><br>
-                               <i>(Altura total do barco: ${H_TOTAL_BARCO} m)</i></p>`;
-                    
-                    updateBoatVisual(h_submerso, false);
-                }
-                
-                resultsDiv.innerHTML = output;
-            }
-
-            // --- FUNÇÃO DE ATUALIZAÇÃO VISUAL ---
-            function updateBoatVisual(calado, afundou) {
-                // Altura da área de água dentro do visualizador (em pixels)
-                // Usamos offsetHeight porque pode variar com o redimensionamento
-                const waterVisualHeightPx = water.offsetHeight; 
-                
-                // Altura visual total do elemento SVG do barco (em pixels)
-                const boatVisualHeightPx = boatContainer.offsetHeight; 
-                
-                if (afundou) {
-                    // O barco afundou completamente. Posicione-o no fundo do "aquário".
-                    // A "bottom-floor" tem 20px de altura, então o barco fica 20px acima do fundo.
-                    boatContainer.style.bottom = `20px`; 
-                } else {
-                    // O barco está flutuando.
-                    
-                    // Calcula a proporção da altura do barco que está submersa, 
-                    // em relação à altura total FÍSICA do barco.
-                    const percentSubmerged = (calado / H_TOTAL_BARCO);
-                    
-                    // Calcula quantos pixels da imagem VISUAL do barco devem estar submersos.
-                    const submergedVisualPx = percentSubmerged * boatVisualHeightPx;
-                    
-                    // A linha d'água está na altura `waterVisualHeightPx` (medido de baixo para cima).
-                    // Para que 'submergedVisualPx' do barco esteja abaixo dessa linha,
-                    // o 'bottom' do barco deve ser `waterVisualHeightPx - submergedVisualPx`.
-                    boatContainer.style.bottom = `${waterVisualHeightPx - submergedVisualPx}px`;
-                }
-            }
-
-            // --- Event Listeners ---
-            massSlider.addEventListener('input', updateSimulation);
-            densitySlider.addEventListener('input', updateSimulation);
-
-            // --- Inicialização ---
-            updateSimulation(); 
-        });
-    </script>
-
-</body>
-</html>
+</body></html>
