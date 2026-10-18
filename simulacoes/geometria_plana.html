@@ -1,115 +1,162 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEOPLAT - Simulador Interativo de Geometria Plana</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style/geometria.css"> 
-</head>
-<body tabindex="0">
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SimuLab — Geometria Livre</title>
+<style>
+:root{--orange:#ff690b;--ink:#14233d;--muted:#6c788d;--line:#e2e7ef;--blue:#2369df;--bg:#f7f9fc}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:"Nunito Sans",system-ui,Arial;color:var(--ink)}body{overflow:hidden;background:white}button,input,select{font:inherit}button{cursor:pointer}
+header{height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);position:relative;z-index:3;background:white}
+.logo{font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px}.mark{display:grid;place-items:center;background:var(--orange);color:white;width:31px;height:31px;border-radius:9px}.crumb{border-left:1px solid var(--line);padding-left:13px;color:var(--muted);font-size:13px}.actions{margin-left:auto;display:flex;gap:7px}
+.btn{background:white;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:800;color:var(--ink)}.btn:hover{background:#fff5ed;border-color:#ffbd92}.btn.hot{background:var(--orange);border-color:var(--orange);color:white}
+.layout{height:calc(100% - 56px);display:grid;grid-template-columns:300px minmax(0,1fr)}
+aside{overflow:auto;border-right:1px solid var(--line);padding:17px 14px;background:#fff}.section{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.9px;color:#8a95a7;margin:5px 5px 10px}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:19px}.preset{min-height:60px;display:flex;align-items:center;gap:9px;text-align:left;padding:8px;border:1px solid #e8ecf2;border-radius:10px;background:white;color:var(--ink)}.preset.active,.preset:hover{border-color:var(--orange);background:#fff5ed}.ico{width:36px;height:36px;flex-shrink:0;background:#edf3ff;color:var(--blue);border-radius:8px;display:grid;place-items:center;font-size:22px}.preset b{font-size:12px;display:block}.preset small{font-size:10px;color:var(--muted);display:block;margin-top:3px}
+.control{border:1px solid #e9edf3;background:#fafbfd;border-radius:11px;padding:11px;margin:9px 0}.controlhead{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;margin-bottom:9px}.num{color:var(--orange)}input[type=range]{width:100%;accent-color:var(--orange)}.pair{display:grid;grid-template-columns:1fr 68px;align-items:center;gap:7px}.pair input[type=number]{width:100%;padding:6px;border:1px solid var(--line);border-radius:6px}.control select{width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:white}
+.checks{display:flex;gap:15px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px}.checks input{accent-color:var(--orange)}
+.stage{position:relative;min-width:0;min-height:0;background:white}canvas{width:100%;height:100%;display:block;touch-action:none}
+.tools{position:absolute;left:12px;top:12px;display:flex;gap:4px;background:#ffffffed;padding:5px;border:1px solid var(--line);border-radius:10px}.tool{border:0;background:transparent;width:36px;height:36px;border-radius:7px;color:#526078;font-size:18px}.tool.active,.tool:hover{background:#fff0e5;color:#d95100}
+.stats{position:absolute;right:14px;top:14px;width:225px;padding:13px;background:#ffffffed;backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;box-shadow:0 5px 20px #14233d0b}.stats h2{font-size:13px;margin:0 0 8px}.stat{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #eef1f5;padding:7px 0;font-size:11px}.stat:last-child{border:0}.stat span{color:var(--muted)}.stat strong{font-variant-numeric:tabular-nums}
+.bottom{position:absolute;bottom:13px;left:13px;display:flex;gap:7px;flex-wrap:wrap;max-width:70%}.hint{font-size:11px;color:var(--muted);padding:8px 10px;border:1px solid var(--line);background:#ffffffed;border-radius:8px}.zoom{position:absolute;right:14px;bottom:14px;display:grid;gap:5px}.zoom button{height:36px;width:36px;border:1px solid var(--line);background:white;border-radius:9px;font-size:19px;color:#536078}
+.process{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.process h3{font-size:12px;margin:0 0 8px}.formula{font-size:12px;line-height:1.55;background:#fff5ed;border:1px solid #ffe0cc;border-radius:9px;padding:10px;color:#76350d;overflow-wrap:anywhere}.formula .step{display:block;margin-top:5px;color:#9a4b1a}.object-list{display:grid;gap:6px;margin-top:8px}.object-row{display:flex;align-items:center;gap:7px;padding:7px;border:1px solid var(--line);border-radius:8px;font-size:11px}.object-row button{margin-left:auto;border:0;background:transparent;color:#9a5360;font-weight:900}.object-row.selected{border-color:var(--orange);background:#fff6ef}
+.toast{position:absolute;bottom:62px;left:50%;transform:translateX(-50%);padding:9px 12px;border-radius:8px;background:#14233d;color:white;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none}.toast.show{opacity:1}
+@media(max-width:850px){body{overflow:auto}.layout{height:auto;min-height:calc(100% - 56px);grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}.presets{grid-template-columns:repeat(4,minmax(0,1fr))}.preset{flex-direction:column;justify-content:center;text-align:center;gap:4px;padding:5px}.preset small{display:none}.ico{width:30px;height:28px}.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.stage{height:70vh;min-height:470px}.stats{top:58px;width:190px}.crumb{display:none}}
+@media(max-width:480px){.presets{grid-template-columns:repeat(2,1fr)}.controls-grid{grid-template-columns:1fr}.stats{width:160px;padding:9px}.stat{font-size:10px}.actions .optional{display:none}}
 
-    <header class="top-bar">
-        <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="logo-link"><i class="fas fa-drafting-compass"></i> GEOPLAT</a>
-        <span class="page-title">Simulador Interativo de Geometria Plana</span>
-    </header>
+/* Painéis organizados por botões */
+.layout{grid-template-columns:340px minmax(0,1fr)}aside{padding:0;display:flex;flex-direction:column;min-height:0}.dock{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:10px;border-bottom:1px solid var(--line);background:#fbfcfe}.dock-btn{border:1px solid transparent;background:transparent;border-radius:9px;padding:8px 3px;font-size:11px;font-weight:800;color:#66738a}.dock-btn span{display:block;font-size:19px;margin-bottom:3px}.dock-btn.active{background:#fff0e5;border-color:#ffd6bd;color:#c84c00}.side-panel{display:none;padding:15px;overflow:auto;flex:1;min-height:0}.side-panel.active{display:block}.presets{grid-template-columns:1fr 1fr}.preset{min-height:66px}.tool-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}.help{font-size:11px;line-height:1.55;color:var(--muted)}.side-footer{padding:10px 14px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted)}.side-footer label{display:flex;align-items:center;gap:4px}.side-footer input{accent-color:var(--orange)}.empty-state{border:1px dashed #cfd7e3;border-radius:10px;padding:15px;color:var(--muted);font-size:12px;line-height:1.5}.param-group{border:1px solid var(--line);border-radius:10px;padding:11px;margin:10px 0}.param-group h3{font-size:12px;margin:0 0 10px}.param-field{display:grid;grid-template-columns:1fr 94px;align-items:center;gap:9px;margin:9px 0;font-size:12px}.param-field input,.param-field select{min-width:0;width:100%;padding:7px;border:1px solid var(--line);border-radius:7px;background:white}.param-field input[type=range]{padding:0}.param-field .value{font-weight:800;color:var(--orange);text-align:right}.blackboard{position:absolute;left:20%;right:20%;bottom:0;max-height:0;overflow:hidden;z-index:5;background:#183c34;color:#f5f1d5;border:1px solid #31584d;border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -8px 28px #14233d22;transition:max-height .25s ease;display:flex;flex-direction:column}.blackboard.open{max-height:52%;min-height:220px}.board-head{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#21483e;border-bottom:1px solid #42685b;cursor:grab}.board-head strong{font-size:12px;letter-spacing:.4px}.board-head button{margin-left:auto;border:1px solid #658478;background:#2a5548;color:white;border-radius:7px;padding:5px 8px}.board-body{padding:14px;overflow:auto;font-family:Georgia,serif;font-size:14px;line-height:1.8;white-space:pre-wrap}.board-open{position:absolute;bottom:13px;left:50%;transform:translateX(-50%);border:1px solid #31584d;background:#183c34;color:#f5f1d5;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:800;z-index:4}.board-open.hidden{display:none}.cursor-crosshair{cursor:crosshair!important}.stage canvas{cursor:crosshair}.tools{z-index:3}.stats{z-index:2}.object-row button{font-size:10px;padding:3px 5px}.angle-note{font-size:11px;color:var(--muted);line-height:1.5}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.side-panel{max-height:55vh}.side-footer{position:relative}.stage{height:70vh}.blackboard{left:3%;right:3%}}
+</style></head><body>
 
-    <div class="main-container-simplified">
-        
-        <div id="tool-header">
-            
-            <div class="tool-group tool-modes">
-                <button class="tool-button active-mode" id="mode-select-none" onclick="activateDrawingMode('none')">
-                    <i class="fas fa-arrows-alt"></i> Mover/Pan
-                </button>
-                <button class="tool-button" id="mode-select-polygon" onclick="activateDrawingMode('polygon')">
-                    <i class="fas fa-shapes"></i> Polígono Regular
-                </button>
-                <button class="tool-button" id="mode-select-polyline" onclick="activateDrawingMode('polyline')">
-                    <i class="fas fa-pencil-alt"></i> Desenho Livre
-                </button>
-                <button class="tool-button action-button" id="finishPolylineButton" style="display: none; background-color: #2ecc71;" onclick="finalizePolyline()">
-                    <i class="fas fa-check"></i> Finalizar Forma
-                </button>
-            </div>
-            
-            <div class="tool-group tool-settings">
-                <label for="grid-snap-select" style="font-size: 0.9em; margin-right: 5px;">Grade (Snap):</label>
-                <select id="grid-snap-select" class="dataInput tool-input" style="width: 80px;" onchange="updateGridSnap()">
-                    <option value="1">1 u</option>
-                    <option value="0.5">0.5 u</option>
-                    <option value="0.1">0.1 u</option>
-                    <option value="0">Livre (0)</option>
-                </select>
-
-                <select id="polygon-sides" class="dataInput tool-input" style="width: 100px;">
-                    <option value="4">Lados: 4</option>
-                    <option value="3">Lados: 3</option>
-                    <option value="5">Lados: 5</option>
-                    <option value="6">Lados: 6</option>
-                    <option value="8">Lados: 8</option>
-                    <option value="10">Lados: 10</option>
-                </select>
-                
-                <button class="tool-button action-button" style="background-color: #3498db;" onclick="showCalculationSteps()">
-                    <i class="fas fa-calculator"></i> Mostrar Cálculo
-                </button>
-
-                <button class="tool-button action-button" style="background-color: #e74c3c;" onclick="clearCanvas()">
-                    <i class="fas fa-trash"></i> Limpar Tudo
-                </button>
-            </div>
-
-            <div class="tool-group tool-results">
-                <div class="result-display">
-                    <i class="fas fa-ruler-combined"></i> Modo: <span id="mode-indicator">Normal</span>
-                </div>
-                <div class="result-display area-result">
-                    Área: <span id="res-area-drawn">0</span> u²
-                </div>
-                <div class="result-display perimeter-result">
-                    Perímetro: <span id="res-perimeter-drawn">0</span> u 
-                </div>
-            </div>
-
-        </div> <div class="main-content">
-            <canvas id="geometryCanvas"></canvas>
-            
-            <div id="mini-calculator">
-                <h4>Cálculo Rápido: Círculo (Raio r)</h4>
-                <div class="calc-input">
-                    <label for="circulo-raio">Raio (r)</label>
-                    <input type="number" id="circulo-raio" class="dataInput" value="5">
-                </div>
-                <div class="calc-result">
-                    A: <span id="res-area">0</span> u² | C: <span id="res-perimetro">0</span> u
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="calculation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('calculation-modal')">&times;</span>
-            <h3>Passos do Cálculo da Forma Selecionada</h3>
-            <div id="calculation-details">
-                </div>
-        </div>
-    </div>
-
-    <div id="label-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('label-modal')">&times;</span>
-            <h3>Definir Tamanho dos Lados (Rotular)</h3>
-            <p style="font-size: 0.9em; color: #555;">Os valores customizados sobrescrevem o comprimento calculado pelas coordenadas dos pontos. **Clique com o botão direito** na forma para abrir este modal.</p>
-            <div id="label-inputs">
-                </div>
-            <button class="tool-button action-button" onclick="saveSideLabels()">
-                <i class="fas fa-save"></i> Salvar Lados
-            </button>
-        </div>
-    </div>
-
-    <script src="scripts/geometria.js"></script>
-</body>
-</html>
+<div class="layout"><aside>
+<div class="dock">
+<button class="dock-btn active" data-panel="presetsPanel"><span>◇</span>Objetos</button>
+<button class="dock-btn" data-panel="paramsPanel"><span>⚙</span>Parâmetros</button>
+<button class="dock-btn" data-panel="objectsPanel"><span>☷</span>Lista</button>
+</div>
+<section class="side-panel active" id="presetsPanel">
+<div class="section">Adicionar ao plano</div>
+<div class="presets" id="presets">
+<button class="preset active" data-shape="triangle"><span class="ico">△</span><span><b>Triângulo</b><small>Regular, isósceles ou escaleno</small></span></button>
+<button class="preset" data-shape="rectangle"><span class="ico">▱</span><span><b>Retângulo</b><small>Base e altura</small></span></button>
+<button class="preset" data-shape="square"><span class="ico">□</span><span><b>Quadrado</b><small>Lado</small></span></button>
+<button class="preset" data-shape="circle"><span class="ico">◯</span><span><b>Círculo</b><small>Raio</small></span></button>
+<button class="preset" data-shape="segment"><span class="ico">╱</span><span><b>Segmento</b><small>Dois pontos</small></span></button>
+<button class="preset" data-shape="point"><span class="ico">•</span><span><b>Ponto</b><small>Ponto livre</small></span></button>
+<button class="preset" data-shape="parallelogram"><span class="ico">▱</span><span><b>Paralelogramo</b><small>Base e altura</small></span></button>
+<button class="preset" data-shape="trapezoid"><span class="ico">⏢</span><span><b>Trapézio</b><small>B1, B2 e altura</small></span></button>
+<button class="preset" data-shape="pentagon"><span class="ico">⬠</span><span><b>Pentágono</b><small>5 lados</small></span></button>
+<button class="preset" data-shape="hexagon"><span class="ico">⬡</span><span><b>Hexágono</b><small>6 lados</small></span></button>
+</div>
+<div class="section">Ferramentas</div>
+<div class="tool-options"><button class="btn hot" id="select">↖ Selecionar / arrastar</button><button class="btn" id="lineTool">╱ Criar segmento</button></div>
+<p class="help">Selecione uma figura para editar seus parâmetros. Para ajustar um segmento, arraste uma de suas extremidades.</p>
+</section>
+<section class="side-panel" id="paramsPanel">
+<div class="section">Parâmetros do objeto</div>
+<div id="parameterEditor"><div class="param-group"><h3>Triângulo #1</h3><div class="param-field"><label>Tipo de triângulo</label><select data-param="triKind"><option value="regular">Regular (equilátero)</option><option value="isosceles" selected="">Isósceles</option><option value="scalene">Escaleno</option></select></div><div class="param-field"><label>Base (b)</label><input type="number" data-param="base" value="6" min="0.5" max="30" step="0.5"></div><div class="param-field"><label>Lados iguais (s)</label><input type="number" data-param="side" value="5" min="0.5" max="30" step="0.5"></div><div class="param-field"><label>Altura (h)</label><input type="number" data-param="h" value="4" min="0.5" max="30" step="0.5"></div><div class="param-field"><label>Ângulo da base (°)</label><input type="number" data-param="angle" value="53.13" min="0.1" max="179" step="1"></div><div class="param-group"><h3>Posição no plano</h3><div class="param-field"><label>Centro X</label><input type="number" data-param="x" value="-4" min="-100" max="100" step="0.5"></div><div class="param-field"><label>Centro Y</label><input type="number" data-param="y" value="2" min="-100" max="100" step="0.5"></div></div></div><button class="btn" id="deleteSelected" style="width:100%">Remover este objeto</button></div>
+</section>
+<section class="side-panel" id="objectsPanel">
+<div class="section">Objetos criados</div><div class="object-list" id="objectList"><div class="object-row selected"><span style="width: 9px; height: 9px; border-radius: 50%; background: rgb(35, 105, 223);"></span><span>Triângulo #1</span><button>Selecionar</button><button title="Remover objeto">×</button></div></div>
+<div class="control"><button class="btn" id="clearSidebar" style="width:100%">Limpar todos os objetos</button></div>
+</section>
+<div class="side-footer"><label><input id="labels" type="checkbox" checked=""> Rótulos</label><label><input id="grid" type="checkbox" checked=""> Grade</label><button class="btn" id="fit">Centralizar plano</button></div>
+</aside><main class="stage"><canvas id="plane" width="683" height="901" style="cursor: crosshair;"></canvas>
+<div class="tools"><button class="tool active" id="moveTool" title="Selecionar e mover">↖</button><button class="tool" id="segmentTool" title="Criar segmento">╱</button><button class="tool" id="toggleGrid" title="Alternar grade">▦</button></div>
+<div class="stats"><h2 id="statsTitle">Plano cartesiano</h2><div class="stat"><span>Unidade</span><strong>u</strong></div><div class="stat"><span>Objetos</span><strong id="objectCount">1</strong></div><div class="stat"><span>Selecionado</span><strong id="selectedName">Triângulo #1</strong></div><div class="stat"><span>Coordenadas</span><strong id="selectedCoords">centro (-4, 2)</strong></div><div class="stat"><span>Área</span><strong id="selectedArea">12 u²</strong></div><div class="stat"><span>Perímetro / comprimento</span><strong id="selectedPerimeter">16 u</strong></div></div>
+<button class="board-open" id="openBoard">▤ Mostrar processo do cálculo</button><section class="blackboard" id="blackboard"><div class="board-head" id="boardHead"><strong>QUADRO DE CÁLCULOS · SIMULAB</strong><button id="closeBoard">Recolher</button></div><div class="board-body" id="boardBody">Triângulo isosceles
+Base b = 6 u
+Lados ≈ 6, 5, 5 u
+Altura h = 4 u
+Área: A = (b × h) ÷ 2 = (6 × 4) ÷ 2 = 12 u²
+Perímetro: P = soma dos lados ≈ 16 u</div></section><div class="bottom"><span class="hint">Plano de ±100 unidades • arraste os objetos para movê-los.</span><span class="hint" id="coords">Escala dinâmica</span></div><div class="zoom"><span id="zoomValue">1×</span><button id="zin" aria-label="Aumentar zoom">+</button><button id="zout" aria-label="Diminuir zoom">−</button></div><div class="toast" id="toast"></div></main></div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),canvas=$('plane'),ctx=canvas.getContext('2d');
+const colors=['#2369df','#ff690b','#15966a','#8b5cf6','#d94679','#0891b2'];
+const names={triangle:'Triângulo',rectangle:'Retângulo',square:'Quadrado',circle:'Círculo',segment:'Segmento',point:'Ponto',parallelogram:'Paralelogramo',trapezoid:'Trapézio',pentagon:'Pentágono',hexagon:'Hexágono'};
+let objects=[],selected=null,nextId=1,mode='select',pendingSegment=null,zoom=1,originX=0,originY=0,drag=null;
+const fmt=n=>Number(n.toFixed(2)).toLocaleString('pt-BR',{maximumFractionDigits:2});
+function createShape(type,x=0,y=0){
+const base={id:nextId++,type,x,y,color:colors[(nextId-2)%colors.length]};
+let o={...base};
+if(type==='circle')o.r=4;
+else if(type==='triangle'){o.triKind='isosceles';o.base=6;o.side=5;o.h=Math.sqrt(Math.max(.01,o.side*o.side-o.base*o.base/4));o.angle=Math.acos(Math.max(-1,Math.min(1,o.base/(2*o.side))))*180/Math.PI}
+else if(type==='point'){}
+else if(type==='segment'){o.x2=x+5;o.y2=y+3}
+else if(type==='rectangle'){o.w=7;o.h=4}
+else if(type==='square'){o.w=5;o.h=5}
+else if(type==='parallelogram'){o.w=7;o.h=4;o.skew=1.5}
+else if(type==='trapezoid'){o.w=7;o.h=4;o.topW=4}
+else if(type==='pentagon'||type==='hexagon'){o.r=3}
+objects.push(o);selected=o.id;renderList();draw();return o;
+}
+function pointsFor(o){if(o.type==='triangle'){let b=o.base||6,h=o.h||4;return [[o.x-b/2,o.y-h/3],[o.x+b/2,o.y-h/3],[o.x,o.y+2*h/3]]}if(o.points)return o.points.map(p=>[p[0]+o.x,p[1]+o.y]);if(o.type==='rectangle'||o.type==='square')return [[o.x-o.w/2,o.y-o.h/2],[o.x+o.w/2,o.y-o.h/2],[o.x+o.w/2,o.y+o.h/2],[o.x-o.w/2,o.y+o.h/2]];if(o.type==='parallelogram')return [[o.x-o.w/2-o.skew/2,o.y-o.h/2],[o.x+o.w/2-o.skew/2,o.y-o.h/2],[o.x+o.w/2+o.skew/2,o.y+o.h/2],[o.x-o.w/2+o.skew/2,o.y+o.h/2]];if(o.type==='trapezoid')return [[o.x-o.w/2,o.y+o.h/2],[o.x+o.w/2,o.y+o.h/2],[o.x+o.topW/2,o.y-o.h/2],[o.x-o.topW/2,o.y-o.h/2]];if(o.type==='triangle')return [[o.x-(o.base||6)/2,o.y-(o.h||4)/3],[o.x+(o.base||6)/2,o.y-(o.h||4)/3],[o.x,o.y+2*(o.h||4)/3]];if(o.type==='pentagon'||o.type==='hexagon'){let n=o.type==='pentagon'?5:6;return Array.from({length:n},(_,i)=>[o.x+Math.cos(-Math.PI/2+i*2*Math.PI/n)*o.r,o.y+Math.sin(-Math.PI/2+i*2*Math.PI/n)*o.r])}return []}
+function measure(o){const u='u';if(o.type==='point')return{area:null,per:null,formula:`Ponto ${o.id}: coordenadas (${fmt(o.x)}, ${fmt(o.y)}).`,coords:`(${fmt(o.x)}, ${fmt(o.y)})`};if(o.type==='circle')return{area:Math.PI*o.r*o.r,per:2*Math.PI*o.r,formula:`Área do círculo\nA = π × r²\nA = π × ${fmt(o.r)}²\nA ≈ ${fmt(Math.PI*o.r*o.r)} ${u}²\n\nCircunferência\nC = 2 × π × r\nC = 2 × π × ${fmt(o.r)} ≈ ${fmt(2*Math.PI*o.r)} ${u}`,coords:`centro (${fmt(o.x)}, ${fmt(o.y)})`};
+if(o.type==='segment'){let len=Math.hypot(o.x2-o.x,o.y2-o.y);return{area:null,per:len,formula:`Comprimento do segmento\n d = √[(x₂ − x₁)² + (y₂ − y₁)²]\n d = √[(${fmt(o.x2)} − ${fmt(o.x)})² + (${fmt(o.y2)} − ${fmt(o.y)})²]\n d ≈ ${fmt(len)} ${u}`,coords:`A(${fmt(o.x)},${fmt(o.y)}) → B(${fmt(o.x2)},${fmt(o.y2)})`}}
+const pts=pointsFor(o);let per=0;for(let i=0;i<pts.length;i++){let q=pts[i],r=pts[(i+1)%pts.length];per+=Math.hypot(r[0]-q[0],r[1]-q[1])}let area=0;for(let i=0;i<pts.length;i++){let q=pts[i],r=pts[(i+1)%pts.length];area+=q[0]*r[1]-r[0]*q[1]}area=Math.abs(area)/2;
+let formula='';
+if(o.type==='triangle'){let p=pointsFor(o),sides=p.map((q,i)=>Math.hypot(p[(i+1)%3][0]-q[0],p[(i+1)%3][1]-q[1]));let h=o.h;formula=`Triângulo ${o.triKind}\nBase b = ${fmt(o.base)} u\nLados ≈ ${sides.map(fmt).join(', ')} u\nAltura h = ${fmt(h)} u\nÁrea: A = (b × h) ÷ 2 = (${fmt(o.base)} × ${fmt(h)}) ÷ 2 = ${fmt(area)} u²\nPerímetro: P = soma dos lados ≈ ${fmt(per)} u`; } else if(o.type==='trapezoid')formula=`Trapézio\nBase maior B1 = ${fmt(o.w)} u\nBase menor B2 = ${fmt(o.topW)} u\nAltura h = ${fmt(o.h)} u\nÁrea: A = ((B1 + B2) × h) ÷ 2\nA = ((${fmt(o.w)} + ${fmt(o.topW)}) × ${fmt(o.h)}) ÷ 2 = ${fmt(area)} u²\nPerímetro = soma dos lados ≈ ${fmt(per)} u`; else if(o.type==='rectangle'||o.type==='square')formula=`Área\nA = base × altura\nA = ${fmt(o.w)} × ${fmt(o.h)} = ${fmt(area)} ${u}²\n\nPerímetro\nP = 2 × (base + altura)\nP = 2 × (${fmt(o.w)} + ${fmt(o.h)}) = ${fmt(per)} ${u}`;
+else if(o.type==='triangle')formula=`Triângulo equilátero\nÁrea: A = (√3 ÷ 4) × lado²\nA = (√3 ÷ 4) × 6² ≈ ${fmt(area)} ${u}²\n\nPerímetro: P = 3 × lado ≈ ${fmt(per)} ${u}`;
+else formula=`Área pelo método do polígono (fórmula do cadarço)\nA = ½ × |Σ(xᵢyᵢ₊₁ − yᵢxᵢ₊₁)|\nA ≈ ${fmt(area)} ${u}²\n\nPerímetro = soma dos lados\nP ≈ ${fmt(per)} ${u}`;
+return{area,per,formula,coords:`centro (${fmt(o.x)}, ${fmt(o.y)})`}}
+function worldToScreen(x,y){const r=canvas.getBoundingClientRect(),unit=Math.min(r.width,r.height)*zoom/40;return{x:r.width/2+originX+x*unit,y:r.height/2+originY-y*unit,unit}}
+function screenToWorld(sx,sy){const r=canvas.getBoundingClientRect(),unit=Math.min(r.width,r.height)*zoom/40;return{x:(sx-r.width/2-originX)/unit,y:-(sy-r.height/2-originY)/unit}}
+function pathPoly(pts){ctx.beginPath();pts.forEach((p,i)=>{let q=worldToScreen(p[0],p[1]);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.closePath()}
+function drawObject(o){const isSel=o.id===selected;ctx.strokeStyle=o.color;ctx.fillStyle=o.color+'20';ctx.lineWidth=isSel?3:2;
+if(o.type==='point'){let p=worldToScreen(o.x,o.y);ctx.beginPath();ctx.arc(p.x,p.y,isSel?6:4,0,Math.PI*2);ctx.fillStyle=o.color;ctx.fill();if($('labels').checked){ctx.fillStyle=o.color;ctx.font='bold 12px system-ui';ctx.fillText('P'+o.id,p.x+8,p.y-8)}return}
+if(o.type==='circle'){let p=worldToScreen(o.x,o.y),r=o.r*p.unit;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+r,p.y);ctx.strokeStyle='#2369df';ctx.lineWidth=1.5;ctx.stroke();if($('labels').checked){ctx.fillStyle=o.color;ctx.font='bold 12px system-ui';ctx.fillText('C'+o.id,p.x+6,p.y-8);ctx.fillText('r='+fmt(o.r),p.x+r/2,p.y-7)}return}
+if(o.type==='segment'){let a=worldToScreen(o.x,o.y),b=worldToScreen(o.x2,o.y2);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();[a,b].forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle=o.color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke()});if($('labels').checked){ctx.fillStyle=o.color;ctx.font='bold 12px system-ui';ctx.fillText('A'+o.id,a.x+6,a.y-6);ctx.fillText('B'+o.id,b.x+6,b.y-6)}return}
+let pts=pointsFor(o);pathPoly(pts);ctx.fill();ctx.stroke();if($('labels').checked)pts.forEach((q,i)=>{let p=worldToScreen(q[0],q[1]);ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=o.color;ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle=o.color;ctx.font='bold 11px system-ui';ctx.fillText(String.fromCharCode(65+i)+o.id,p.x+5,p.y-5)})}
+function draw(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=Math.max(1,Math.round(r.width*d));canvas.height=Math.max(1,Math.round(r.height*d));ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.fillStyle='#fff';ctx.fillRect(0,0,r.width,r.height);let unit=Math.min(r.width,r.height)*zoom/40,ox=r.width/2+originX,oy=r.height/2+originY;
+if($('grid').checked){let step=unit;for(let i=-100;i<=100;i++){let x=ox+i*step,y=oy-i*step;if(x>=0&&x<=r.width){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,r.height);ctx.strokeStyle=i%10===0?'#c4cbd5':'#edf0f4';ctx.lineWidth=i%10===0?1:.7;ctx.stroke()}if(y>=0&&y<=r.height){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(r.width,y);ctx.strokeStyle=i%10===0?'#c4cbd5':'#edf0f4';ctx.lineWidth=i%10===0?1:.7;ctx.stroke()}}}
+ctx.strokeStyle='#5d6879';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(r.width,oy);ctx.moveTo(ox,0);ctx.lineTo(ox,r.height);ctx.stroke();ctx.fillStyle='#657287';ctx.font='11px system-ui';ctx.textAlign='center';
+let startX=Math.ceil((-ox)/unit),endX=Math.floor((r.width-ox)/unit),startY=Math.ceil((oy-r.height)/unit),endY=Math.floor(oy/unit);
+for(let i=startX;i<=endX;i++){if(i%5===0&&i!==0)ctx.fillText(i,ox+i*unit,oy+13)}ctx.textAlign='right';for(let i=startY;i<=endY;i++){if(i%5===0&&i!==0)ctx.fillText(i,ox-6,oy-i*unit+4)}
+objects.forEach(drawObject);if($('objectCount'))$('objectCount').textContent=objects.length;if($('zoomValue'))$('zoomValue').textContent=fmt(zoom)+'×';updateSelection()}
+function updateSelection(){let o=objects.find(q=>q.id===selected);if($('selectedName'))$('selectedName').textContent=o?names[o.type]+' #'+o.id:'Nenhum';if(!o){if($('selectedCoords'))$('selectedCoords').textContent='—';if($('selectedArea'))$('selectedArea').textContent='—';if($('selectedPerimeter'))$('selectedPerimeter').textContent='—';$('boardBody').textContent='Selecione uma figura para acompanhar o desenvolvimento do cálculo.';$('parameterEditor').innerHTML='<div class="empty-state">Selecione um objeto no plano ou na lista para editar suas dimensões.</div>';return}let m=measure(o),u='u';if($('selectedCoords'))$('selectedCoords').textContent=m.coords;if($('selectedArea'))$('selectedArea').textContent=m.area==null?'—':fmt(m.area)+' '+u+'²';if($('selectedPerimeter'))$('selectedPerimeter').textContent=m.per==null?'—':fmt(m.per)+' '+u;$('boardBody').textContent=m.formula;renderParams(o)}
+function renderParams(o){
+const box=$('parameterEditor');let fields='';
+const field=(label,key,val,min=0.1,max=30,step=.1)=>`<div class="param-field"><label>${label}</label><input type="number" data-param="${key}" value="${Number(val.toFixed(2))}" min="${min}" max="${max}" step="${step}"></div>`;
+const range=(label,key,val,min,max,step=.1)=>`<div class="param-field"><label>${label}</label><div><input type="range" data-param="${key}" value="${val}" min="${min}" max="${max}" step="${step}"><div class="value">${fmt(val)} u</div></div></div>`;
+if(o.type==='triangle'){
+fields+=`<div class="param-field"><label>Tipo de triângulo</label><select data-param="triKind"><option value="regular" ${o.triKind==='regular'?'selected':''}>Regular (equilátero)</option><option value="isosceles" ${o.triKind==='isosceles'?'selected':''}>Isósceles</option><option value="scalene" ${o.triKind==='scalene'?'selected':''}>Escaleno</option></select></div>`;
+fields+=field('Base (b)','base',o.base,.5,30,.5);
+if(o.triKind==='regular')fields+=`<div class="angle-note">No triângulo regular, os três lados são iguais e cada ângulo mede 60°.</div>`;
+else {fields+=field(o.triKind==='isosceles'?'Lados iguais (s)':'Lado esquerdo (s₁)','side',o.side,.5,30,.5);if(o.triKind==='scalene')fields+=field('Lado direito (s₂)','side2',o.side2||4,.5,30,.5);fields+=field('Altura (h)','h',o.h,.5,30,.5);fields+=field('Ângulo da base (°)','angle',o.angle||53,.1,179,1)}
+}
+else if(o.type==='trapezoid'){fields+=field('Base maior (B1)','w',o.w,.5,30,.5)+field('Base menor (B2)','topW',o.topW,.5,30,.5)+field('Altura (h)','h',o.h,.5,30,.5)}
+else if(o.type==='rectangle'||o.type==='square'||o.type==='parallelogram'){fields+=field('Base','w',o.w,.5,30,.5)+field('Altura','h',o.h,.5,30,.5);if(o.type==='parallelogram')fields+=field('Deslocamento lateral','skew',o.skew,-10,10,.5)}
+else if(o.type==='circle')fields+=field('Raio (r)','r',o.r,.2,30,.2);
+else if(o.type==='segment')fields+=field('Ponto inicial X','x',o.x,-100,100,.5)+field('Ponto inicial Y','y',o.y,-100,100,.5)+field('Ponto final X','x2',o.x2,-100,100,.5)+field('Ponto final Y','y2',o.y2,-100,100,.5);
+else fields+=field('Coordenada X','x',o.x,-100,100,.5)+field('Coordenada Y','y',o.y,-100,100,.5);
+fields+=`<div class="param-group"><h3>Posição no plano</h3>${field('Centro X','x',o.x,-100,100,.5)}${field('Centro Y','y',o.y,-100,100,.5)}</div>`;
+box.innerHTML=`<div class="param-group"><h3>${names[o.type]} #${o.id}</h3>${fields}</div><button class="btn" id="deleteSelected" style="width:100%">Remover este objeto</button>`;
+box.querySelectorAll('[data-param]').forEach(el=>{el.addEventListener('input',()=>{let key=el.dataset.param,v=el.value;if(el.tagName==='SELECT')o[key]=v;else o[key]=Number(v);if(o.type==='triangle'){if(o.triKind==='regular'){o.side=o.base;o.h=Math.sqrt(3)/2*o.base;o.angle=60;o.side2=o.base}else if(o.triKind==='isosceles'){o.side=o.side||5;o.h=Math.sqrt(Math.max(.01,o.side*o.side-o.base*o.base/4));o.angle=Math.acos(Math.max(-1,Math.min(1,o.base/(2*o.side))))*180/Math.PI}else{let s=o.side||5,s2=o.side2||4;o.h=Math.sqrt(Math.max(.01,s*s-o.base*o.base/4));o.angle=Math.acos(Math.max(-1,Math.min(1,o.base/(2*s))))*180/Math.PI}}
+renderList();draw();if(el.type==='range'){let val=el.parentElement.querySelector('.value');if(val)val.textContent=fmt(o[key])+' u'}})});
+$('deleteSelected').onclick=()=>{objects=objects.filter(q=>q.id!==o.id);selected=objects.at(-1)?.id??null;renderList();draw()};
+}
+function renderList(){$('objectList').innerHTML='';objects.forEach(o=>{let row=document.createElement('div');row.className='object-row'+(o.id===selected?' selected':'');let dot=document.createElement('span');dot.style.cssText=`width:9px;height:9px;border-radius:50%;background:${o.color}`;let label=document.createElement('span');label.textContent=names[o.type]+' #'+o.id;let sel=document.createElement('button');sel.textContent='Selecionar';sel.onclick=()=>{selected=o.id;renderList();draw()};let del=document.createElement('button');del.textContent='×';del.title='Remover objeto';del.onclick=()=>{objects=objects.filter(q=>q.id!==o.id);if(selected===o.id)selected=objects.at(-1)?.id??null;renderList();draw()};row.append(dot,label,sel,del);$('objectList').append(row)})}
+function hit(sx,sy){for(let i=objects.length-1;i>=0;i--){let o=objects[i];if(o.type==='point'){let p=worldToScreen(o.x,o.y);if(Math.hypot(p.x-sx,p.y-sy)<12)return{o,part:'body'}}if(o.type==='circle'){let p=worldToScreen(o.x,o.y);if(Math.abs(Math.hypot(p.x-sx,p.y-sy)-o.r*p.unit)<10||Math.hypot(p.x-sx,p.y-sy)<o.r*p.unit)return{o,part:'body'}}if(o.type==='segment'){let a=worldToScreen(o.x,o.y),b=worldToScreen(o.x2,o.y2);if(Math.hypot(sx-a.x,sy-a.y)<12)return{o,part:'a'};if(Math.hypot(sx-b.x,sy-b.y)<12)return{o,part:'b'};if(distanceSegment(sx,sy,a.x,a.y,b.x,b.y)<9)return{o,part:'body'}}else if(!['point','circle'].includes(o.type)){let pts=pointsFor(o).map(p=>worldToScreen(p[0],p[1]));if(pointInPolygon(sx,sy,pts))return{o,part:'body'};for(let j=0;j<pts.length;j++){if(distanceSegment(sx,sy,pts[j].x,pts[j].y,pts[(j+1)%pts.length].x,pts[(j+1)%pts.length].y)<8)return{o,part:'body'}}}}return null}
+function distanceSegment(px,py,x1,y1,x2,y2){let dx=x2-x1,dy=y2-y1,t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(px-(x1+t*dx),py-(y1+t*dy))}
+function pointInPolygon(x,y,p){let inside=false;for(let i=0,j=p.length-1;i<p.length;j=i++){if(((p[i].y>y)!==(p[j].y>y))&&(x<(p[j].x-p[i].x)*(y-p[i].y)/(p[j].y-p[i].y)+p[i].x))inside=!inside}return inside}
+function addAt(type,x,y){let o=createShape(type,x,y);renderList();updateSelection();return o}
+function canvasPos(e){let r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function setMode(m){mode=m;pendingSegment=null;$('select').classList.toggle('hot',m==='select');$('lineTool').classList.toggle('hot',m==='segment');$('moveTool').classList.toggle('active',m==='select');$('segmentTool').classList.toggle('active',m==='segment');canvas.style.cursor=m==='select'?'grab':'crosshair'}
+document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{let r=canvas.getBoundingClientRect();let p=screenToWorld(r.width*.45,r.height*.52);addAt(b.dataset.shape,p.x,p.y)}));
+$('select').onclick=$('moveTool').onclick=()=>setMode('select');$('lineTool').onclick=$('segmentTool').onclick=()=>setMode('segment');
+canvas.addEventListener('pointerdown',e=>{const p=canvasPos(e),w=screenToWorld(p.x,p.y);if(mode==='segment'){if(!pendingSegment){pendingSegment=w;toast('Agora clique no ponto final do segmento')}else{let o={id:nextId++,type:'segment',x:pendingSegment.x,y:pendingSegment.y,x2:w.x,y2:w.y,color:colors[(nextId-2)%colors.length]};objects.push(o);selected=o.id;pendingSegment=null;renderList();draw();setMode('select')}return}
+let found=hit(p.x,p.y);if(found){selected=found.o.id;drag={id:found.o.id,part:found.part,start:w,orig:JSON.parse(JSON.stringify(found.o))};canvas.setPointerCapture(e.pointerId);renderList();draw()}else{selected=null;renderList();draw()}});
+canvas.addEventListener('pointermove',e=>{let p=canvasPos(e),w=screenToWorld(p.x,p.y);if(drag){let o=objects.find(q=>q.id===drag.id),dx=w.x-drag.start.x,dy=w.y-drag.start.y;if(o){if(o.type==='segment'&&drag.part==='b'){o.x2=drag.orig.x2+dx;o.y2=drag.orig.y2+dy}else if(o.type==='segment'&&drag.part==='a'){o.x=drag.orig.x+dx;o.y=drag.orig.y+dy}else{o.x=drag.orig.x+dx;o.y=drag.orig.y+dy;if(o.type==='segment'){o.x2=drag.orig.x2+dx;o.y2=drag.orig.y2+dy}}draw()}}else if(mode==='select'){canvas.style.cursor=hit(p.x,p.y)?'grab':'crosshair'}});
+canvas.addEventListener('pointerup',()=>{drag=null});canvas.addEventListener('pointercancel',()=>drag=null);
+$('labels').onchange=draw;$('grid').onchange=draw;$('toggleGrid').onclick=()=>{$('grid').checked=!$('grid').checked;draw()};
+$('zin').onclick=()=>{zoom=Math.min(2.5,zoom+.1);draw()};$('zout').onclick=()=>{zoom=Math.max(.4,zoom-.1);draw()};
+$('center').onclick=$('fit').onclick=()=>{zoom=1;originX=originY=0;draw()};
+const clearAll=()=>{objects=[];selected=null;pendingSegment=null;nextId=1;renderList();draw();toast('Plano limpo')};$('clear').onclick=clearAll;$('clearSidebar').onclick=clearAll;
+$('export').onclick=()=>{let a=document.createElement('a');a.download='simulab-geometria.png';a.href=canvas.toDataURL('image/png');a.click()};
+function toast(s){let t=$('toast');t.textContent=s;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),1500)}
+document.querySelectorAll('.dock-btn').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.dock-btn').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.side-panel').forEach(panel=>panel.classList.toggle('active',panel.id===btn.dataset.panel));});
+$('openBoard').onclick=()=>{$('blackboard').classList.add('open');$('openBoard').classList.add('hidden')};
+$('closeBoard').onclick=()=>{$('blackboard').classList.remove('open');$('openBoard').classList.remove('hidden')};
+let boardDrag=null;$('boardHead').addEventListener('pointerdown',e=>{boardDrag={x:e.clientX,y:e.clientY,left:$('blackboard').offsetLeft};$('boardHead').setPointerCapture(e.pointerId)});$('boardHead').addEventListener('pointermove',e=>{if(boardDrag&&e.buttons){let dx=e.clientX-boardDrag.x;$('blackboard').style.left=`${Math.max(0,Math.min(window.innerWidth-200,boardDrag.left+dx))}px`;$('blackboard').style.right='auto';$('blackboard').style.width='min(620px,90vw)'}});$('boardHead').addEventListener('pointerup',()=>boardDrag=null);
+if('ResizeObserver'in window)new ResizeObserver(draw).observe(canvas);else window.addEventListener('resize',draw);
+createShape('triangle',-4,2);renderList();draw();})();
+</script></body></html>
