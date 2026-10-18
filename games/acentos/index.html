@@ -1,504 +1,680 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acento Speed - Versão Final</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
+    <title>Chuva de Palavras: Verbos vs Adjetivos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --cor-fundo-ceu: #87ceeb;
-            --cor-pista-lateral: #6a5acd;
-            --cor-pista-central: #9370db;
-            --cor-card-borda: #000000;
-            --cor-card-fundo: #ffffff;
-            --cor-texto: #ecf0f1;
-            --cor-erro: #ff5252; 
-            --cor-acerto: #42f47f; 
-            --cor-ui-bg: rgba(0, 0, 0, 0.85);
-            --cor-sombra: #000000;
-        }
-
         body {
-            background-color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Press Start 2P', cursive;
-            color: var(--cor-texto);
-            font-size: 10px;
-            overflow: hidden; 
-        }
-
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 500px;
-            border: 8px solid var(--cor-card-borda); 
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
             overflow: hidden;
-            background-color: var(--cor-fundo-ceu); 
+            background: #70c5ce;
         }
-
-        #game-canvas {
+        .font-game {
+            font-family: 'Fredoka One', cursive;
+        }
+        canvas {
             display: block;
+            touch-action: none;
         }
-
-        .hidden { display: none !important; }
-
-        /* UI Superior */
-        #game-ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            box-sizing: border-box;
-            pointer-events: none; 
-            z-index: 5;
-            text-shadow: 2px 2px var(--cor-sombra);
-            color: #000; 
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
-
-        .info-box { font-size: 1.2em; }
-
-        /* Caixa de Dica Educacional (Flutuante) */
-        #educational-tip-box {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            background-color: var(--cor-ui-bg);
-            border: 4px solid var(--cor-erro);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        #tip-text {
-            color: white;
-            line-height: 1.6;
-            margin: 0;
-            font-size: 0.8em;
-        }
-
-        /* Telas de Overlay */
-        #feedback-box, #game-over-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 10;
-        }
-
-        button {
-            font-family: 'Press Start 2P', cursive;
-            padding: 15px 25px;
-            font-size: 1em;
-            background-color: var(--cor-acerto);
-            border: none;
-            cursor: pointer;
-            margin-top: 20px;
-            border-bottom: 5px solid #27ae60;
-        }
-
-        button:hover { background-color: #5ef799; }
-
-        .shake { animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
-            40%, 60% { transform: translate3d(8px, 0, 0); }
+        .glow-orange {
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
         }
     </style>
 </head>
-<body>
+<body class="h-screen w-screen flex flex-col justify-between items-center relative overflow-hidden text-slate-800">
 
-<div id="game-container">
-    <canvas id="game-canvas" width="800" height="500"></canvas>
-    
-    <div id="game-ui">
-        <div class="info-box">PONTOS: <span id="score-value">0</span></div>
-        <div class="info-box">VIDAS: <span id="life-value">❤️❤️❤️</span></div>
+    <!-- Interface Superior / HUD -->
+    <header class="w-full max-w-5xl px-6 pt-4 z-10 flex justify-between items-center pointer-events-none">
+        <!-- Jogador 1 HUD -->
+        <div class="bg-blue-600/90 border-4 border-white/80 backdrop-blur-md rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4 glow-blue min-w-[180px] md:min-w-[220px] text-white shadow-xl">
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-sky-400 flex items-center justify-center text-xl md:text-2xl font-game border-2 border-white shadow">
+                P1
+            </div>
+            <div>
+                <div class="text-[10px] md:text-xs uppercase tracking-wider text-sky-200 font-extrabold">Verbos (A / D)</div>
+                <div class="text-xl md:text-2xl font-game text-yellow-300" id="p1-score">0 pts</div>
+                <div class="flex gap-1 mt-0.5" id="p1-lives">
+                    <!-- Vidas renderizadas via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Placar Central / Tempo -->
+        <div class="text-center bg-white/90 border-4 border-emerald-400 px-4 md:px-6 py-2 rounded-2xl backdrop-blur-md shadow-xl">
+            <span class="text-[10px] md:text-xs uppercase text-slate-500 font-black tracking-widest block">Tempo</span>
+            <span class="text-2xl md:text-3xl font-game text-emerald-600" id="game-timer">60s</span>
+        </div>
+
+        <!-- Jogador 2 HUD -->
+        <div class="bg-orange-600/90 border-4 border-white/80 backdrop-blur-md rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4 glow-orange min-w-[180px] md:min-w-[220px] text-right justify-end text-white shadow-xl">
+            <div>
+                <div class="text-[10px] md:text-xs uppercase tracking-wider text-orange-200 font-extrabold">Adjetivos (← / →)</div>
+                <div class="text-xl md:text-2xl font-game text-yellow-300" id="p2-score">0 pts</div>
+                <div class="flex gap-1 mt-0.5 justify-end" id="p2-lives">
+                    <!-- Vidas renderizadas via JS -->
+                </div>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-amber-400 flex items-center justify-center text-xl md:text-2xl font-game border-2 border-white shadow">
+                P2
+            </div>
+        </div>
+    </header>
+
+    <!-- Canvas principal do jogo -->
+    <main class="absolute inset-0 z-0">
+        <canvas id="gameCanvas" class="w-full h-full"></canvas>
+    </main>
+
+    <!-- Modal: Menu Inicial -->
+    <div id="start-screen" class="absolute inset-0 z-20 bg-sky-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-2xl w-full bg-white border-8 border-yellow-300 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+
+            <h1 class="text-3xl md:text-5xl font-game text-sky-600 mb-1 drop-shadow-md">
+                Chuva de Palavras
+            </h1>
+            <p class="text-lg md:text-xl font-game text-emerald-600 mb-6">Verbos vs Adjetivos</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-left">
+                <!-- P1 Info -->
+                <div class="bg-sky-50 border-2 border-sky-300 p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-sky-500 text-white font-game px-2 py-0.5 rounded text-sm shadow">P1</span>
+                        <h3 class="font-black text-sky-700">Coletor de VERBOS</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3 font-semibold">Pegue ações: <i class="text-sky-600">Correr, Cantar, Voar, Sorrir...</i></p>
+                    <div class="text-xs font-black text-slate-500 flex items-center gap-1">
+                        Controles: 
+                        <span class="bg-white px-2 py-1 rounded border border-slate-300 shadow-sm text-slate-800">A</span>
+                        <span class="bg-white px-2 py-1 rounded border border-slate-300 shadow-sm text-slate-800">D</span>
+                    </div>
+                </div>
+
+                <!-- P2 Info -->
+                <div class="bg-orange-50 border-2 border-orange-300 p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-orange-500 text-white font-game px-2 py-0.5 rounded text-sm shadow">P2</span>
+                        <h3 class="font-black text-orange-700">Coletor de ADJETIVOS</h3>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3 font-semibold">Pegue qualidades: <i class="text-orange-600">Bonito, Rápido, Feliz, Doce...</i></p>
+                    <div class="text-xs font-black text-slate-500 flex items-center gap-1">
+                        Controles: 
+                        <span class="bg-white px-2 py-1 rounded border border-slate-300 shadow-sm text-slate-800">←</span>
+                        <span class="bg-white px-2 py-1 rounded border border-slate-300 shadow-sm text-slate-800">→</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regras resumidas -->
+            <div class="bg-emerald-50 p-3 rounded-2xl mb-6 text-xs text-emerald-800 font-bold flex justify-around border border-emerald-200">
+                <span>✅ Palavra Certa: <b>+10 pts</b></span>
+                <span>❌ Palavra Errada: <b>-5 pts & -1 Vida</b></span>
+                <span>🍃 Caída na grama: <b>Sem Punição</b></span>
+            </div>
+
+            <button id="start-btn" class="w-full py-4 bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 text-white font-game text-2xl rounded-2xl shadow-lg transform transition active:scale-95 border-b-4 border-green-700">
+                INICIAR PARTIDA!
+            </button>
+        </div>
     </div>
 
-    <div id="educational-tip-box">
-        <p id="tip-text"></p>
+    <!-- Modal: Game Over -->
+    <div id="game-over-screen" class="hidden absolute inset-0 z-30 bg-sky-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-md w-full bg-white border-8 border-yellow-400 rounded-3xl p-8 shadow-2xl relative">
+            <h2 class="text-4xl font-game text-sky-600 mb-2">Fim de Jogo!</h2>
+            <p id="winner-text" class="text-2xl font-game text-amber-500 mb-6 drop-shadow"></p>
+
+            <div class="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div class="flex justify-between items-center text-sky-700 font-black">
+                    <span>P1 (Verbos):</span>
+                    <span id="final-p1-score" class="text-2xl font-game text-sky-600">0</span>
+                </div>
+                <div class="flex justify-between items-center text-orange-700 font-black">
+                    <span>P2 (Adjetivos):</span>
+                    <span id="final-p2-score" class="text-2xl font-game text-orange-600">0</span>
+                </div>
+            </div>
+
+            <button id="restart-btn" class="w-full py-4 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-game text-xl rounded-2xl shadow-lg transform transition active:scale-95 border-b-4 border-blue-700">
+                Jogar Novamente
+            </button>
+        </div>
     </div>
 
-    <div id="feedback-box">
-        <h2 id="message-text">ACENTO SPEED</h2>
-        <p id="rule-tip" style="width: 80%; line-height: 1.5;"></p>
-        <button id="start-button">PRESSIONE ENTER</button>
-    </div>
-    
-    <div id="game-over-screen" class="hidden">
-        <h1>FIM DE JOGO</h1>
-        <p>Pontuação Final:</p>
-        <span id="final-score" style="font-size: 3em; color: var(--cor-acerto);">0</span>
-        <button id="restart-button">JOGAR NOVAMENTE</button>
-    </div>
-</div>
+    <!-- Lógica em JavaScript -->
+    <script>
+        // --- BANCO DE DADOS DE PALAVRAS ---
+        const VERBOS = [
+            "Correr", "Cantar", "Dançar", "Voar", "Sorrir", "Comer", "Dormir", "Falar", 
+            "Pular", "Estudar", "Jogar", "Pensar", "Ecrever", "Saltar", "Nadar", "Viajar", 
+            "Sonhar", "Aprender", "Desenhar", "Escutar", "Olhar", "Proteger", "Viver", "Explorar"
+        ];
 
-<script>
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
-const gameContainer = document.getElementById('game-container'); 
-const scoreValue = document.getElementById('score-value');
-const lifeValue = document.getElementById('life-value');
-const gameOverScreen = document.getElementById('game-over-screen');
-const finalScore = document.getElementById('final-score');
-const restartButton = document.getElementById('restart-button');
-const feedbackBox = document.getElementById('feedback-box');
-const messageText = document.getElementById('message-text');
-const ruleTip = document.getElementById('rule-tip');
-const educationalTipBox = document.getElementById('educational-tip-box');
-const tipText = document.getElementById('tip-text');
+        const ADJETIVOS = [
+            "Bonito", "Rápido", "Feliz", "Inteligente", "Calmo", "Grande", "Azul", "Doce", 
+            "Forte", "Alegre", "Brilhante", "Sábio", "Gentil", "Corajoso", "Pequeno", "Mágico", 
+            "Veloz", "Criativo", "Elegante", "Esperto", "Paciente", "Nobre", "Dourado", "Luminoso"
+        ];
 
-// --- CONSTANTES ---
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 500;
-const NUM_LANES = 3; 
-const PLAYER_LANE_Y = GAME_HEIGHT * 0.85; 
-const PLAYER_SIZE = 50; 
-const CARD_WIDTH = 160;
-const CARD_HEIGHT = 75;
-const LANE_X_POSITIONS = [160, 400, 640]; 
+        // --- CANVAS & ENGINE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-const BASE_SPEED = 0.15; 
-const MAX_SPEED = 0.3; 
-const SPEED_INCREMENT = 0.000005; 
-const TIP_DURATION = 3500;
+        let animationFrameId;
+        let isRunning = false;
+        let lastTime = 0;
+        let spawnTimer = 0;
+        let spawnInterval = 1400;
+        let gameTimeLeft = 60;
+        let secondCounter = 0;
 
-// --- BANCO DE PALAVRAS ---
-const WORD_BANK = [
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-    // PROPAROXÍTONAS (Sempre acentuadas)
-    ["Pássaro", "Passaro", "Passaró", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Último", "Ultimo", "Ultimó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Público", "Publico", "Publicó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Dúvida", "Duvida", "Duvidá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Lógica", "Logica", "Logicá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Próximo", "Proximo", "Proximó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Matemática", "Matematica", "Matematicá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Música", "Musica", "Musicá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Física", "Fisica", "Fisicá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Árvore", "Arvore", "Arvorê", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Exército", "Exercito", "Exercitó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Sábado", "Sabado", "Sabadó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Página", "Pagina", "Paginá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Gramática", "Gramatica", "Gramaticá", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Trânsito", "Transito", "Transitó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Século", "Seculo", "Seculó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Fôlego", "Folego", "Folegó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Ângulo", "Angulo", "Anguló", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Líquido", "Liquido", "Liquidó", "Regra: Todas as proparoxítonas são acentuadas."],
-    ["Vítima", "Vitima", "Vitimá", "Regra: Todas as proparoxítonas são acentuadas."],
+        // Teclado
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.code] = true);
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-    // OXÍTONAS (Terminadas em A, E, O, EM, ENS)
-    ["Crachá", "Cracha", "Crachà", "Regra: Oxítonas terminadas em A são acentuadas."],
-    ["Marajá", "Maraja", "Marajà", "Regra: Oxítonas terminadas em A são acentuadas."],
-    ["Pajé", "Paje", "Pajê", "Regra: Oxítonas terminadas em E são acentuadas."],
-    ["Jacaré", "Jacare", "Jacarê", "Regra: Oxítonas terminadas em E são acentuadas."],
-    ["Dendê", "Dende", "Dendé", "Regra: Oxítonas terminadas em E são acentuadas."],
-    ["Paletó", "Paleto", "Paletô", "Regra: Oxítonas terminadas em O são acentuadas."],
-    ["Jiló", "Jilo", "Jilô", "Regra: Oxítonas terminadas em O são acentuadas."],
-    ["Dominó", "Domino", "Dominô", "Regra: Oxítonas terminadas em O são acentuadas."],
-    ["Alguém", "Alguem", "Alguêm", "Regra: Oxítonas terminadas em EM são acentuadas."],
-    ["Refém", "Refem", "Refêm", "Regra: Oxítonas terminadas em EM são acentuadas."],
-    ["Armazém", "Armazem", "Armazêm", "Regra: Oxítonas terminadas em EM são acentuadas."],
-    ["Contém", "Contem", "Contêm", "Regra: Oxítonas terminadas em EM são acentuadas."],
-    ["Vatapa", "Vatapa", "Vatápá", "Regra: Oxítonas terminadas em A são acentuadas."],
-    ["Guaraná", "Guarana", "Guaranà", "Regra: Oxítonas terminadas em A são acentuadas."],
-    ["Picolé", "Picole", "Picolê", "Regra: Oxítonas terminadas em E são acentuadas."],
-    ["Vovó", "Vovo", "Vovô", "Regra: Oxítonas terminadas em O (aberto) são acentuadas."],
-    ["Vovô", "Vovo", "Vovó", "Regra: Oxítonas terminadas em O (fechado) são acentuadas."],
-    ["Mocotó", "Mocoto", "Mocotô", "Regra: Oxítonas terminadas em O são acentuadas."],
-    ["Ninguém", "Ninguem", "Ninguêm", "Regra: Oxítonas terminadas em EM são acentuadas."],
-    ["Manténs", "Mantens", "Mántens", "Regra: Oxítonas terminadas em ENS são acentuadas."],
-
-    // PAROXÍTONAS (L, R, N, X, PS, I, IS, US, UM, UNS, ÃO, ÃO, DITONGO)
-    ["Açúcar", "Acucar", "Açucár", "Regra: Paroxítonas terminadas em R são acentuadas."],
-    ["Caráter", "Carater", "Caratér", "Regra: Paroxítonas terminadas em R são acentuadas."],
-    ["Repórter", "Reporter", "Reportér", "Regra: Paroxítonas terminadas em R são acentuadas."],
-    ["Útil", "Util", "Utíl", "Regra: Paroxítonas terminadas em L são acentuadas."],
-    ["Difícil", "Dificil", "Dificíl", "Regra: Paroxítonas terminadas em L são acentuadas."],
-    ["Amável", "Amavel", "Amavél", "Regra: Paroxítonas terminadas em L são acentuadas."],
-    ["Imóvel", "Imovel", "Imovél", "Regra: Paroxítonas terminadas em L são acentuadas."],
-    ["Hífen", "Hifen", "Hifén", "Regra: Paroxítonas terminadas em N são acentuadas."],
-    ["Pólen", "Polen", "Polén", "Regra: Paroxítonas terminadas em N são acentuadas."],
-    ["Tórax", "Torax", "Toráx", "Regra: Paroxítonas terminadas em X são acentuadas."],
-    ["Fênix", "Fenix", "Feníx", "Regra: Paroxítonas terminadas em X são acentuadas."],
-    ["Bíceps", "Biceps", "Bicéps", "Regra: Paroxítonas terminadas em PS são acentuadas."],
-    ["Lápis", "Lapis", "Lapís", "Regra: Paroxítonas terminadas em IS são acentuadas."],
-    ["Grátis", "Gratis", "Gratís", "Regra: Paroxítonas terminadas em IS são acentuadas."],
-    ["Íris", "Iris", "Irís", "Regra: Paroxítonas terminadas em IS são acentuadas."],
-    ["Vírus", "Virus", "Virús", "Regra: Paroxítonas terminadas em US são acentuadas."],
-    ["Vênus", "Venus", "Venús", "Regra: Paroxítonas terminadas em US são acentuadas."],
-    ["Álbum", "Album", "Albúm", "Regra: Paroxítonas terminadas em UM são acentuadas."],
-    ["Fórum", "Forum", "Forúm", "Regra: Paroxítonas terminadas em UM são acentuadas."],
-    ["Órfão", "Orfao", "Orfão", "Regra: Paroxítonas terminadas em ÃO são acentuadas."],
-    ["Órgão", "Orgao", "Orgão", "Regra: Paroxítonas terminadas em ÃO são acentuadas."],
-    ["Sótão", "Sotao", "Sotão", "Regra: Paroxítonas terminadas em ÃO são acentuadas."],
-    ["Ímã", "Ima", "Imã", "Regra: Paroxítonas terminadas em Ã são acentuadas."],
-    ["Série", "Serie", "Serié", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-    ["Glória", "Gloria", "Gloriá", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-    ["Rádio", "Radio", "Radió", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-    ["Régua", "Regua", "Reguá", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-    ["Dúzia", "Duzia", "Duziá", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-    ["Fértil", "Fertil", "Fertíl", "Regra: Paroxítonas terminadas em L são acentuadas."],
-    ["Vôlei", "Volei", "Voleí", "Regra: Paroxítonas terminadas em ditongo são acentuadas."],
-
-    // HIATOS (I e U tônicos)
-    ["País", "Pais", "País", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Baú", "Bau", "Báu", "Regra: Acentua-se o U tônico em hiato sozinho na sílaba."],
-    ["Saída", "Saida", "Saidá", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Viúva", "Viuva", "Viuvá", "Regra: Acentua-se o U tônico em hiato sozinho na sílaba."],
-    ["Jaú", "Jau", "Jáú", "Regra: Acentua-se o U tônico em hiato sozinho na sílaba."],
-    ["Ruído", "Ruido", "Ruidó", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Egoísta", "Egoista", "Egoistá", "Regra: Acentua-se o I tônico seguido de S em hiato."],
-    ["Raízes", "Raizes", "Raizés", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Heroína", "Heroina", "Heroiná", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Paraíba", "Paraiba", "Paraibá", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Guaíba", "Guaiba", "Guaibá", "Regra: Acentua-se o I tônico em hiato sozinho na sílaba."],
-    ["Luís", "Luis", "Lúis", "Regra: Acentua-se o I tônico seguido de S em hiato."],
-    ["Baliza", "Baliza", "Balizá", "Dica: Baliza não tem acento (I não é hiato tônico sozinho)."],
-    ["Rainha", "Rainha", "Raínha", "Dica: Hiato seguido de NH não é acentuado."],
-    ["Bainha", "Bainha", "Baínha", "Dica: Hiato seguido de NH não é acentuado."],
-
-    // MONOSSÍLABOS TÔNICOS (A, E, O)
-    ["Pá", "Pa", "Pà", "Regra: Monossílabos tônicos terminados em A são acentuados."],
-    ["Pé", "Pe", "Pê", "Regra: Monossílabos tônicos terminados em E são acentuados."],
-    ["Pó", "Po", "Pô", "Regra: Monossílabos tônicos terminados em O são acentuados."],
-    ["Já", "Ja", "Jà", "Regra: Monossílabos tônicos terminados em A são acentuados."],
-    ["Fé", "Fe", "Fê", "Regra: Monossílabos tônicos terminados em E são acentuados."],
-    ["Nós", "Nos", "Nôs", "Regra: Monossílabos tônicos terminados em O(s) são acentuados."],
-    ["Vós", "Vos", "Vôs", "Regra: Monossílabos tônicos terminados em O(s) são acentuados."],
-    ["Mês", "Mes", "Més", "Regra: Monossílabos tônicos terminados em E(s) são acentuados."],
-    ["Três", "Tres", "Trés", "Regra: Monossílabos tônicos terminados em E(s) são acentuados."],
-    ["Lá", "La", "Là", "Regra: Monossílabos tônicos terminados em A são acentuados."],
-    ["Cá", "Ca", "Cà", "Regra: Monossílabos tônicos terminados em A são acentuados."],
-    ["Dê", "De", "Dé", "Regra: Monossílabos tônicos terminados em E são acentuados (verbo)."],
-    ["Crê", "Cre", "Cré", "Regra: Monossílabos tônicos terminados em E são acentuados."],
-    ["Lê", "Le", "Lé", "Regra: Monossílabos tônicos terminados em E são acentuados."],
-    ["Só", "So", "Sô", "Regra: Monossílabos tônicos terminados em O são acentuados."],
-];
-
-let gameState = 'waiting'; 
-let score = 0;
-let lives = 3;
-let speed = BASE_SPEED;
-let playerTargetLane = 1; 
-let playerCurrentX = LANE_X_POSITIONS[1]; 
-let cards = []; 
-let lastTime = 0;
-let tipTimer = 0;
-let comboCount = 0;
-let hitFlashTimer = 0;
-
-// --- LÓGICA ---
-
-function showFloatingFeedback(rule, correctWord) {
-    tipText.innerHTML = `<span style="color: #ff5252;">ERRO!</span> A correta era <span style="color: #42f47f;">${correctWord}</span>.<br>${rule}`;
-    educationalTipBox.style.opacity = '1';
-    tipTimer = TIP_DURATION;
-}
-
-function generateCards() {
-    const wordEntry = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];
-    const correctLane = Math.floor(Math.random() * NUM_LANES);
-    let wordsInSet = [];
-    let wrongOptions = [wordEntry[1], wordEntry[2]];
-
-    for(let i = 0; i < NUM_LANES; i++) {
-        if (i === correctLane) wordsInSet.push(wordEntry[0]);
-        else wordsInSet.push(wrongOptions.pop());
-    }
-
-    for(let i = 0; i < NUM_LANES; i++) {
-        cards.push({
-            x: LANE_X_POSITIONS[i],
-            y: -100,
-            words: wordsInSet,
-            correctLane: correctLane,
-            laneIndex: i,
-            ruleTip: wordEntry[3],
-            passed: false
-        });
-    }
-}
-
-function updateGame(deltaTime) {
-    if (gameState !== 'running') return;
-
-    speed = Math.min(MAX_SPEED, speed + SPEED_INCREMENT * deltaTime);
-    
-    // Movimentação do jogador
-    const targetX = LANE_X_POSITIONS[playerTargetLane];
-    playerCurrentX += (targetX - playerCurrentX) * 0.2;
-
-    // Feedback flutuante
-    if (tipTimer > 0) {
-        tipTimer -= deltaTime;
-        if (tipTimer <= 0) educationalTipBox.style.opacity = '0';
-    }
-
-    // Flash de impacto
-    if (hitFlashTimer !== 0) {
-        hitFlashTimer = hitFlashTimer > 0 ? hitFlashTimer - deltaTime : Math.min(0, hitFlashTimer + deltaTime);
-    }
-
-    // Atualizar Cards
-    for (let i = cards.length - 1; i >= 0; i--) {
-        const card = cards[i];
-        card.y += speed * deltaTime;
-
-        // Detecção de Colisão / Passagem
-        if (card.y > GAME_HEIGHT * 0.75 && !card.passed) {
-            card.passed = true;
-            
-            if (card.laneIndex === card.correctLane) {
-                if (playerTargetLane === card.correctLane) {
-                    // ACERTO
-                    score += 10 + (comboCount * 2);
-                    comboCount++;
-                    scoreValue.textContent = score;
-                    hitFlashTimer = 150;
-                } else {
-                    // ERRO (Não pegou a certa)
-                    lives--;
-                    comboCount = 0;
-                    hitFlashTimer = -300;
-                    showFloatingFeedback(card.ruleTip, card.words[card.correctLane]);
-                    triggerShake();
-                }
-            } else if (playerTargetLane === card.laneIndex) {
-                // ERRO (Pegou a errada)
-                lives--;
-                comboCount = 0;
-                hitFlashTimer = -300;
-                showFloatingFeedback(card.ruleTip, card.words[card.correctLane]);
-                triggerShake();
+        // --- NUVENS NO CENÁRIO ---
+        class Cloud {
+            constructor() {
+                this.reset(true);
             }
+            reset(randomX = false) {
+                this.x = randomX ? Math.random() * canvas.width : -150;
+                this.y = Math.random() * (canvas.height * 0.35);
+                this.speed = 0.3 + Math.random() * 0.5;
+                this.scale = 0.6 + Math.random() * 0.6;
+            }
+            update() {
+                this.x += this.speed;
+                if (this.x > canvas.width + 150) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 25 * this.scale, 0, Math.PI * 2);
+                ctx.arc(this.x + 20 * this.scale, this.y - 10 * this.scale, 30 * this.scale, 0, Math.PI * 2);
+                ctx.arc(this.x + 45 * this.scale, this.y, 22 * this.scale, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        const clouds = [new Cloud(), new Cloud(), new Cloud(), new Cloud(), new Cloud()];
 
-            updateLivesDisplay();
-            if (lives <= 0) gameOver();
+        // --- FLORES NA GRAMA ---
+        let flowers = [];
+        function generateFlowers() {
+            flowers = [];
+            const flowerColors = ['#f43f5e', '#ec4899', '#a855f7', '#eab308', '#ffffff'];
+            for (let i = 0; i < 25; i++) {
+                flowers.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height - 15 - Math.random() * 45,
+                    color: flowerColors[Math.floor(Math.random() * flowerColors.length)],
+                    radius: 3 + Math.random() * 3
+                });
+            }
         }
 
-        if (card.y > GAME_HEIGHT) cards.splice(i, 1);
-    }
+        // --- JOGADORES (Pessoinhas estilo cartoon) ---
+        class Player {
+            constructor(id, name, shirtColor, hatColor, type, keysDef) {
+                this.id = id;
+                this.name = name;
+                this.shirtColor = shirtColor;
+                this.hatColor = hatColor;
+                this.type = type;
+                this.keysDef = keysDef;
+                this.width = 64;
+                this.height = 70;
+                this.x = id === 1 ? canvas.width * 0.3 - this.width / 2 : canvas.width * 0.7 - this.width / 2;
+                this.y = canvas.height - 110;
+                this.speed = 8;
+                this.score = 0;
+                this.lives = 3;
+                this.facingRight = id === 2;
+                this.walkCycle = 0;
+                this.isMoving = false;
+                this.shakeTimer = 0;
+            }
 
-    if (cards.length === 0 || cards[cards.length-1].y > 300) generateCards();
-}
+            reset() {
+                this.x = this.id === 1 ? canvas.width * 0.3 - this.width / 2 : canvas.width * 0.7 - this.width / 2;
+                this.score = 0;
+                this.lives = 3;
+                this.shakeTimer = 0;
+            }
 
-function triggerShake() {
-    gameContainer.classList.add('shake');
-    setTimeout(() => gameContainer.classList.remove('shake'), 200);
-}
+            update() {
+                this.isMoving = false;
+                this.y = canvas.height - 115;
 
-function updateLivesDisplay() {
-    lifeValue.textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
-}
+                if (keys[this.keysDef.left] && this.x > 10) {
+                    this.x -= this.speed;
+                    this.facingRight = false;
+                    this.isMoving = true;
+                }
+                if (keys[this.keysDef.right] && this.x < canvas.width - this.width - 10) {
+                    this.x += this.speed;
+                    this.facingRight = true;
+                    this.isMoving = true;
+                }
 
-// --- DESENHO ---
+                if (this.isMoving) {
+                    this.walkCycle += 0.25;
+                    // Poeira ao andar
+                    if (Math.random() < 0.3) {
+                        particles.push(new DustParticle(this.x + this.width / 2, this.y + this.height - 5));
+                    }
+                } else {
+                    this.walkCycle = 0;
+                }
 
-function draw() {
-    ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+                if (this.shakeTimer > 0) this.shakeTimer--;
+            }
 
-    // Estradas
-    ctx.fillStyle = '#6a5acd'; ctx.fillRect(0, 0, 800, 500); // Fundo
-    LANE_X_POSITIONS.forEach(x => {
-        ctx.fillStyle = '#9370db';
-        ctx.fillRect(x - 80, 0, 160, 500);
-    });
+            draw() {
+                ctx.save();
 
-    // Cards
-    cards.forEach(card => {
-        ctx.fillStyle = 'white';
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 4;
-        ctx.fillRect(card.x - 75, card.y, 150, 60);
-        ctx.strokeRect(card.x - 75, card.y, 150, 60);
-        
-        ctx.fillStyle = 'black';
-        ctx.font = "12px 'Press Start 2P'";
-        ctx.textAlign = 'center';
-        ctx.fillText(card.words[card.laneIndex], card.x, card.y + 35);
-    });
+                let drawX = this.x;
+                let drawY = this.y;
 
-    // Jogador (Sombra/Bola)
-    ctx.fillStyle = 'black';
-    ctx.beginPath();
-    ctx.arc(playerCurrentX, PLAYER_LANE_Y, 20, 0, Math.PI * 2);
-    ctx.fill();
+                // Efeito Tremer se errou palavra
+                if (this.shakeTimer > 0) {
+                    drawX += (Math.random() - 0.5) * 8;
+                }
 
-    // Flash de Acerto/Erro
-    if (hitFlashTimer > 0) {
-        ctx.fillStyle = 'rgba(66, 244, 127, 0.3)';
-        ctx.fillRect(0,0,800,500);
-    } else if (hitFlashTimer < 0) {
-        ctx.fillStyle = 'rgba(255, 82, 82, 0.3)';
-        ctx.fillRect(0,0,800,500);
-    }
-}
+                const centerX = drawX + this.width / 2;
+                const bobbing = Math.sin(this.walkCycle) * 3;
 
-function gameLoop(currentTime) {
-    const deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-    updateGame(deltaTime);
-    draw();
-    if (gameState === 'running') requestAnimationFrame(gameLoop);
-}
+                // Cesto do Jogador (Região de Captura)
+                const basketX = centerX + (this.facingRight ? 12 : -32);
+                const basketY = drawY + 12 + bobbing;
 
-// --- CONTROLES E INIT ---
+                // Desenhar o Cestinho/Balde
+                ctx.fillStyle = this.hatColor;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(basketX, basketY, 36, 22, [0, 0, 8, 8]);
+                ctx.fill();
+                ctx.stroke();
 
-function startGame() {
-    gameState = 'running';
-    score = 0; lives = 3; speed = BASE_SPEED;
-    cards = []; comboCount = 0;
-    updateLivesDisplay();
-    scoreValue.textContent = '0';
-    feedbackBox.classList.add('hidden');
-    gameOverScreen.classList.add('hidden');
-    lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
-}
+                // Rótulo no Cesto
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '900 10px Nunito';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.type[0], basketX + 18, basketY + 15);
 
-function gameOver() {
-    gameState = 'gameover';
-    finalScore.textContent = score;
-    gameOverScreen.classList.remove('hidden');
-}
+                // --- PESSOINHA ---
+                // Pernas
+                ctx.fillStyle = '#334155';
+                const legOffset = Math.sin(this.walkCycle) * 6;
+                ctx.fillRect(centerX - 10, drawY + 48 + legOffset, 7, 16);
+                ctx.fillRect(centerX + 3, drawY + 48 - legOffset, 7, 16);
 
-window.addEventListener('keydown', (e) => {
-    if (gameState === 'waiting' && e.key === 'Enter') startGame();
-    if (gameState === 'running') {
-        if (e.key === 'ArrowLeft') playerTargetLane = Math.max(0, playerTargetLane - 1);
-        if (e.key === 'ArrowRight') playerTargetLane = Math.min(2, playerTargetLane + 1);
-    }
-});
+                // Sapatos
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(centerX - 12, drawY + 60 + legOffset, 10, 6);
+                ctx.fillRect(centerX + 3, drawY + 60 - legOffset, 10, 6);
 
-restartButton.addEventListener('click', startGame);
+                // Corpo / Camisa
+                ctx.fillStyle = this.shirtColor;
+                ctx.beginPath();
+                ctx.roundRect(centerX - 14, drawY + 24 + bobbing, 28, 26, 8);
+                ctx.fill();
 
-// Inicialização
-ruleTip.textContent = "Colete apenas as palavras com a acentuação CORRETA. Use as SETAS para mover. Feedback de erro não pausa o jogo!";
-</script>
+                // Cabeça
+                ctx.fillStyle = '#fde047'; // tom de pele amigável / cartoon
+                ctx.beginPath();
+                ctx.arc(centerX, drawY + 16 + bobbing, 14, 0, Math.PI * 2);
+                ctx.fill();
 
+                // Olhos
+                ctx.fillStyle = '#0f172a';
+                const eyeOffset = this.facingRight ? 3 : -3;
+                ctx.beginPath();
+                ctx.arc(centerX + eyeOffset + 2, drawY + 14 + bobbing, 2.5, 0, Math.PI * 2);
+                ctx.arc(centerX + eyeOffset - 4, drawY + 14 + bobbing, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sorriso
+                ctx.beginPath();
+                ctx.arc(centerX + eyeOffset - 1, drawY + 18 + bobbing, 4, 0, Math.PI);
+                ctx.stroke();
+
+                // Boné / Chapéu
+                ctx.fillStyle = this.hatColor;
+                ctx.beginPath();
+                ctx.arc(centerX, drawY + 12 + bobbing, 15, Math.PI, Math.PI * 2);
+                ctx.fill();
+
+                // Aba do boné
+                ctx.beginPath();
+                const visorX = this.facingRight ? centerX : centerX - 20;
+                ctx.roundRect(visorX, drawY + 10 + bobbing, 20, 4, 2);
+                ctx.fill();
+
+                ctx.restore();
+
+                // Guardar área de captura exata para colisões
+                this.captureBox = {
+                    x: basketX,
+                    y: basketY,
+                    w: 36,
+                    h: 22
+                };
+            }
+        }
+
+        // --- PALAVRAS ---
+        class Word {
+            constructor() {
+                this.type = Math.random() < 0.5 ? 'VERBO' : 'ADJETIVO';
+                const list = this.type === 'VERBO' ? VERBOS : ADJETIVOS;
+                this.text = list[Math.floor(Math.random() * list.length)];
+
+                this.x = Math.random() * (canvas.width - 160) + 30;
+                this.y = -40;
+                this.speed = 1.8 + Math.random() * 1.2;
+
+                ctx.font = '900 18px Nunito';
+                this.width = ctx.measureText(this.text).width + 28;
+                this.height = 36;
+                this.alpha = 1;
+                this.isFading = false;
+            }
+
+            update() {
+                this.y += this.speed;
+
+                // Ao encostar na grama suavemente desvanece
+                if (this.y > canvas.height - 80) {
+                    this.isFading = true;
+                    this.alpha -= 0.05;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+
+                // Nuvem/Placa de madeira estilizada para a palavra
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = this.type === 'VERBO' ? '#0284c7' : '#ea580c';
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 18);
+                ctx.fill();
+                ctx.stroke();
+
+                // Texto
+                ctx.fillStyle = '#1e293b';
+                ctx.font = '900 17px Nunito';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.text, this.x + this.width / 2, this.y + this.height / 2 + 1);
+
+                ctx.restore();
+            }
+        }
+
+        // --- PARTÍCULAS ---
+        class Particle {
+            constructor(x, y, color, speed = 6) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.radius = Math.random() * 4 + 2;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class DustParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = -Math.random() * 1.5;
+                this.radius = Math.random() * 3 + 1.5;
+                this.alpha = 0.6;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.03;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = '#a16207';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Criar Jogadores
+        const player1 = new Player(1, 'P1', '#0284c7', '#0369a1', 'VERBO', { left: 'KeyA', right: 'KeyD' });
+        const player2 = new Player(2, 'P2', '#ea580c', '#c2410c', 'ADJETIVO', { left: 'ArrowLeft', right: 'ArrowRight' });
+
+        let words = [];
+        let particles = [];
+
+        function createExplosion(x, y, color, count = 18) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // --- HUD ---
+        function updateHUD() {
+            document.getElementById('p1-score').innerText = player1.score + ' pts';
+            document.getElementById('p2-score').innerText = player2.score + ' pts';
+            document.getElementById('game-timer').innerText = gameTimeLeft + 's';
+
+            let p1Hearts = '';
+            for (let i = 0; i < 3; i++) p1Hearts += i < player1.lives ? '❤️' : '🖤';
+            document.getElementById('p1-lives').innerText = p1Hearts;
+
+            let p2Hearts = '';
+            for (let i = 0; i < 3; i++) p2Hearts += i < player2.lives ? '❤️' : '🖤';
+            document.getElementById('p2-lives').innerText = p2Hearts;
+        }
+
+        function checkCollisions(word, index) {
+            const players = [player1, player2];
+
+            for (let p of players) {
+                const box = p.captureBox;
+                if (!box) continue;
+
+                // Colisão do balde com a palavra
+                if (
+                    word.x < box.x + box.w &&
+                    word.x + word.width > box.x &&
+                    word.y < box.y + box.h &&
+                    word.y + word.height > box.y
+                ) {
+                    if (word.type === p.type) {
+                        // Certo!
+                        p.score += 10;
+                        createExplosion(word.x + word.width / 2, word.y + word.height / 2, '#22c55e');
+                    } else {
+                        // Errado!
+                        p.score = Math.max(0, p.score - 5);
+                        p.lives -= 1;
+                        p.shakeTimer = 15;
+                        createExplosion(word.x + word.width / 2, word.y + word.height / 2, '#ef4444');
+                    }
+                    words.splice(index, 1);
+                    updateHUD();
+                    checkGameOver();
+                    return true;
+                }
+            }
+
+            // Se desvaneceu na grama
+            if (word.alpha <= 0) {
+                words.splice(index, 1);
+                return true;
+            }
+
+            return false;
+        }
+
+        function checkGameOver() {
+            if (player1.lives <= 0 || player2.lives <= 0 || gameTimeLeft <= 0) {
+                isRunning = false;
+
+                let winnerText = '';
+                if (player1.score > player2.score) {
+                    winnerText = "🏆 Jogador 1 (Verbos) Venceu!";
+                } else if (player2.score > player1.score) {
+                    winnerText = "🏆 Jogador 2 (Adjetivos) Venceu!";
+                } else {
+                    winnerText = "🤝 Empate Incrível!";
+                }
+
+                document.getElementById('winner-text').innerText = winnerText;
+                document.getElementById('final-p1-score').innerText = player1.score + " pts";
+                document.getElementById('final-p2-score').innerText = player2.score + " pts";
+
+                document.getElementById('game-over-screen').classList.remove('hidden');
+            }
+        }
+
+        // --- LOOP PRINCIPAL ---
+        function gameLoop(timestamp) {
+            if (!isRunning) return;
+
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // 1. Desenhar Fundo (Céu Ensolarado)
+            ctx.fillStyle = '#70c5ce';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Sol
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 90, 90, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Nuvens
+            clouds.forEach(c => { c.update(); c.draw(); });
+
+            // Gramado Lindo
+            const grassTop = canvas.height - 85;
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(0, grassTop, canvas.width, 85);
+
+            // Camada superior escura da grama
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(0, grassTop, canvas.width, 12);
+
+            // Flores
+            flowers.forEach(f => {
+                ctx.fillStyle = f.color;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 2. Cronômetro do Jogo
+            secondCounter += deltaTime;
+            if (secondCounter >= 1000) {
+                gameTimeLeft--;
+                secondCounter = 0;
+                updateHUD();
+                checkGameOver();
+            }
+
+            // 3. Gerar Palavras
+            spawnTimer += deltaTime;
+            if (spawnTimer > spawnInterval) {
+                words.push(new Word());
+                spawnTimer = 0;
+            }
+
+            // 4. Jogadores
+            player1.update();
+            player1.draw();
+
+            player2.update();
+            player2.draw();
+
+            // 5. Palavras
+            for (let i = words.length - 1; i >= 0; i--) {
+                words[i].update();
+                words[i].draw();
+                checkCollisions(words[i], i);
+            }
+
+            // 6. Partículas
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) particles.splice(i, 1);
+            }
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            generateFlowers();
+            player1.reset();
+            player2.reset();
+            words = [];
+            particles = [];
+            gameTimeLeft = 60;
+            secondCounter = 0;
+            spawnTimer = 0;
+
+            updateHUD();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+
+            isRunning = true;
+            lastTime = performance.now();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+    </script>
 </body>
 </html>
