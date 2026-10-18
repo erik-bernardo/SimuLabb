@@ -1,76 +1,1316 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cobras e Escadas do Conhecimento</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mestres da Língua — A Jornada da Norma Culta</title>
+        <style>
+            :root {
+                --bg: #f4f2ec;
+                --paper: #fffdf8;
+                --ink: #202a36;
+                --muted: #68717b;
+                --orange: #f47721;
+                --orange2: #d95a0b;
+                --blue: #3f6d9d;
+                --green: #3e8a65;
+                --red: #c74b4b;
+                --gold: #e6b84b;
+                --line: #e7dfd2;
+                --shadow: 0 12px 30px #26334412
+            }
 
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>🐍 Escadas e Cobras do Conhecimento 🪜</h1>
-        <button id="dark-mode-toggle"><i class="fas fa-moon"></i> Modo Escuro</button>
-    </header>
+            * {
+                box-sizing: border-box
+            }
 
-    <main>
-        <div id="game-container">
-            <aside id="game-controls">
-                
-                <div id="game-setup">
-                    <h2>Configuração do Jogo</h2>
-                    <label for="num-players">Número de Jogadores (1-4):</label>
-                    <select id="num-players" min="1" max="4" value="2">
-                        <option value="1">1 Jogador</option>
-                        <option value="2" selected>2 Jogadores</option>
-                        <option value="3">3 Jogadores</option>
-                        <option value="4">4 Jogadores</option>
-                    </select>
-                    <button id="setup-button" class="action-button">Iniciar Jogo</button>
+            body {
+                margin: 0;
+                background: radial-gradient(circle at 10% 0%,#fff7e5 0,transparent 35%),var(--bg);
+                color: var(--ink);
+                font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif
+            }
+
+            button,input,select {
+                font: inherit
+            }
+
+            button {
+                cursor: pointer;
+                border: 0;
+                border-radius: 12px;
+                padding: 11px 15px;
+                font-weight: 750;
+                transition: .15s
+            }
+
+            button:hover {
+                transform: translateY(-1px);
+                filter: brightness(.98)
+            }
+
+            button:disabled {
+                opacity: .45;
+                cursor: not-allowed;
+                transform: none
+            }
+
+            .primary {
+                background: var(--orange);
+                color: #fff;
+                box-shadow: 0 5px 0 #c9520c
+            }
+
+            .secondary {
+                background: #edf0f3;
+                color: var(--ink)
+            }
+
+            .success {
+                background: var(--green);
+                color: #fff
+            }
+
+            .danger {
+                background: #fff0ee;
+                color: var(--red)
+            }
+
+            header {
+                padding: 24px clamp(16px,4vw,54px);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 18px;
+                border-bottom: 1px solid #e8e0d4;
+                background: #fffaf2cc
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 13px
+            }
+
+            .logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 15px;
+                background: linear-gradient(135deg,#ff9a3e,#e75b12);
+                display: grid;
+                place-items: center;
+                color: white;
+                font-size: 26px;
+                box-shadow: 0 6px 0 #c95115
+            }
+
+            .brand h1 {
+                font-size: clamp(20px,3vw,30px);
+                margin: 0;
+                letter-spacing: -.8px
+            }
+
+            .brand p {
+                margin: 3px 0 0;
+                color: var(--muted);
+                font-size: 13px
+            }
+
+            .pill {
+                padding: 8px 12px;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 800;
+                background: #fff
+            }
+
+            main {
+                max-width: 1400px;
+                margin: auto;
+                padding: 24px clamp(12px,3vw,36px) 50px
+            }
+
+            .setup {
+                max-width: 760px;
+                margin: 24px auto;
+                background: var(--paper);
+                padding: clamp(20px,4vw,36px);
+                border: 1px solid var(--line);
+                border-radius: 24px;
+                box-shadow: var(--shadow)
+            }
+
+            .kicker {
+                color: var(--orange2);
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                font-size: 11px
+            }
+
+            .setup h2 {
+                font-size: clamp(28px,4vw,42px);
+                line-height: 1.05;
+                margin: 9px 0 12px;
+                letter-spacing: -1.2px
+            }
+
+            .intro {
+                color: var(--muted);
+                line-height: 1.65;
+                margin: 0 0 24px
+            }
+
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px
+            }
+
+            .field label {
+                display: block;
+                font-weight: 800;
+                font-size: 13px;
+                margin: 0 0 7px
+            }
+
+            .field input,.field select {
+                width: 100%;
+                border: 1px solid #dcd7cd;
+                background: white;
+                border-radius: 11px;
+                padding: 12px;
+                color: var(--ink);
+                outline-color: var(--orange)
+            }
+
+            .players-inputs {
+                display: grid;
+                gap: 10px;
+                margin: 16px 0
+            }
+
+            .player-input {
+                display: flex;
+                gap: 10px;
+                align-items: center
+            }
+
+            .player-input input {
+                flex: 1
+            }
+
+            .player-dot {
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                flex: 0 0 auto
+            }
+
+            .hint {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.5
+            }
+
+            .setup-actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-top: 20px;
+                flex-wrap: wrap
+            }
+
+            .game {
+                display: none
+            }
+
+            .game-top {
+                display: grid;
+                grid-template-columns: minmax(0,1fr) 290px;
+                gap: 18px;
+                align-items: start
+            }
+
+            .board-card,.side-card {
+                background: var(--paper);
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                box-shadow: var(--shadow)
+            }
+
+            .board-card {
+                padding: 16px
+            }
+
+            .board-head {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                align-items: center;
+                margin: 0 0 13px;
+                flex-wrap: wrap
+            }
+
+            .board-head h2 {
+                font-size: 18px;
+                margin: 0
+            }
+
+            .board-head small {
+                color: var(--muted)
+            }
+
+            .board {
+                display: grid;
+                grid-template-columns: repeat(10,minmax(0,1fr));
+                gap: 5px;
+                aspect-ratio: 1/1;
+                max-height: 850px
+            }
+
+            .cell {
+                min-width: 0;
+                position: relative;
+                border-radius: 8px;
+                background: #f3ead9;
+                border: 1px solid #e6d9c2;
+                padding: 5px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                overflow: hidden
+            }
+
+            .cell:nth-child(4n+1) {
+                background: #fce7cc
+            }
+
+            .cell:nth-child(4n+2) {
+                background: #e6f0e8
+            }
+
+            .cell:nth-child(4n+3) {
+                background: #e7eef7
+            }
+
+            .cell-number {
+                font-size: clamp(8px,1.1vw,13px);
+                font-weight: 900;
+                color: #6e6558
+            }
+
+            .cell-icon {
+                font-size: clamp(12px,2vw,24px);
+                text-align: center;
+                line-height: 1
+            }
+
+            .tokens {
+                display: flex;
+                gap: 2px;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center
+            }
+
+            .token {
+                width: clamp(11px,1.45vw,20px);
+                height: clamp(11px,1.45vw,20px);
+                border: 2px solid #fff;
+                border-radius: 50%;
+                box-shadow: 0 1px 3px #0003
+            }
+
+            .cell.finish {
+                background: #ffe28a;
+                border-color: #d5a51e
+            }
+
+            .cell.special {
+                outline: 2px solid #fff;
+                outline-offset: -3px
+            }
+
+            .cell-label {
+                font-size: clamp(6px,.8vw,9px);
+                text-align: center;
+                color: #65584a;
+                font-weight: 800
+            }
+
+            .legend {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 12px;
+                color: var(--muted);
+                font-size: 12px
+            }
+
+            .legend span {
+                display: flex;
+                align-items: center;
+                gap: 5px
+            }
+
+            .sidebar {
+                display: grid;
+                gap: 14px
+            }
+
+            .side-card {
+                padding: 17px
+            }
+
+            .side-card h3 {
+                font-size: 15px;
+                margin: 0 0 12px
+            }
+
+            .turn-banner {
+                background: #fff0df;
+                border: 1px solid #ffd4a8;
+                border-radius: 14px;
+                padding: 13px;
+                margin-bottom: 12px
+            }
+
+            .turn-banner strong {
+                display: block;
+                font-size: 18px
+            }
+
+            .turn-banner small {
+                color: var(--muted)
+            }
+
+            .dice-area {
+                display: flex;
+                align-items: center;
+                gap: 14px
+            }
+
+            .die {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                background: white;
+                border: 2px solid #ead9c3;
+                display: grid;
+                place-items: center;
+                font-size: 36px;
+                box-shadow: 0 4px 0 #e1d3c1;
+                flex-shrink: 0
+            }
+
+            .dice-controls {
+                display: grid;
+                gap: 8px;
+                flex: 1
+            }
+
+            .status-line {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.5;
+                margin: 12px 0 0
+            }
+
+            .player-list {
+                display: grid;
+                gap: 8px
+            }
+
+            .player-row {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                padding: 9px;
+                border: 1px solid var(--line);
+                border-radius: 11px;
+                background: #fff
+            }
+
+            .player-row.active {
+                border-color: var(--orange);
+                background: #fff6eb
+            }
+
+            .player-row .name {
+                font-weight: 800;
+                font-size: 13px;
+                flex: 1;
+                overflow: hidden;
+                text-overflow: ellipsis
+            }
+
+            .player-row small {
+                color: var(--muted);
+                font-size: 11px
+            }
+
+            .mini-token {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                flex-shrink: 0
+            }
+
+            .log {
+                max-height: 145px;
+                overflow: auto;
+                display: grid;
+                gap: 7px;
+                font-size: 12px;
+                color: var(--muted)
+            }
+
+            .log div {
+                border-left: 3px solid #ead7c3;
+                padding-left: 9px;
+                line-height: 1.4
+            }
+
+            .modal-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: #18202bcc;
+                z-index: 10;
+                align-items: center;
+                justify-content: center;
+                padding: 16px
+            }
+
+            .modal {
+                background: var(--paper);
+                width: min(600px,100%);
+                max-height: 90vh;
+                overflow: auto;
+                border-radius: 24px;
+                padding: clamp(20px,4vw,32px);
+                box-shadow: 0 24px 80px #0004
+            }
+
+            .modal-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px
+            }
+
+            .modal-top .kicker {
+                margin: 0
+            }
+
+            .modal h2 {
+                font-size: clamp(24px,4vw,32px);
+                line-height: 1.15;
+                margin: 12px 0
+            }
+
+            .question-meta {
+                display: flex;
+                gap: 7px;
+                flex-wrap: wrap
+            }
+
+            .tag {
+                font-size: 11px;
+                font-weight: 900;
+                border-radius: 999px;
+                padding: 6px 9px;
+                background: #eaf0f7;
+                color: #375c83
+            }
+
+            .question {
+                font-size: 18px;
+                line-height: 1.5;
+                font-weight: 800;
+                margin: 20px 0
+            }
+
+            .answers {
+                display: grid;
+                gap: 9px
+            }
+
+            .answer {
+                width: 100%;
+                text-align: left;
+                background: #fff;
+                border: 1px solid #ddd6ca;
+                color: var(--ink);
+                padding: 13px;
+                border-radius: 12px;
+                line-height: 1.4
+            }
+
+            .answer:hover {
+                border-color: var(--orange);
+                background: #fff8ef
+            }
+
+            .answer.correct {
+                border-color: var(--green);
+                background: #e9f7ef
+            }
+
+            .answer.wrong {
+                border-color: var(--red);
+                background: #fff0ef
+            }
+
+            .feedback {
+                display: none;
+                margin-top: 14px;
+                padding: 13px;
+                border-radius: 12px;
+                line-height: 1.5;
+                font-size: 13px
+            }
+
+            .feedback.good {
+                background: #e9f7ef;
+                color: #236342
+            }
+
+            .feedback.bad {
+                background: #fff0ef;
+                color: #9b3535
+            }
+
+            .modal-footer {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+                align-items: center;
+                margin-top: 18px;
+                flex-wrap: wrap
+            }
+
+            .win-banner {
+                display: none;
+                margin: 0 0 18px;
+                padding: 16px 20px;
+                border-radius: 17px;
+                background: #fff0c2;
+                border: 1px solid #e8c65d;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px
+            }
+
+            .win-banner h2 {
+                margin: 0;
+                font-size: 22px
+            }
+
+            .win-banner p {
+                margin: 4px 0 0;
+                color: #6d5a25;
+                font-size: 13px
+            }
+
+            @media(max-width: 950px) {
+                .game-top {
+                    grid-template-columns:1fr
+                }
+
+                .sidebar {
+                    grid-template-columns: repeat(2,minmax(0,1fr))
+                }
+
+                .board {
+                    gap: 3px
+                }
+
+                .cell {
+                    padding: 3px
+                }
+            }
+
+            @media(max-width: 560px) {
+                header {
+                    align-items:flex-start
+                }
+
+                .pill {
+                    display: none
+                }
+
+                .form-row {
+                    grid-template-columns: 1fr
+                }
+
+                .sidebar {
+                    grid-template-columns: 1fr
+                }
+
+                .board-card {
+                    padding: 8px
+                }
+
+                .board {
+                    gap: 2px
+                }
+
+                .cell {
+                    border-radius: 4px;
+                    padding: 2px
+                }
+
+                .cell-label {
+                    display: none
+                }
+
+                .token {
+                    border-width: 1px
+                }
+
+                .board-head small {
+                    display: none
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="brand">
+                <div class="logo">📚</div>
+                <div>
+                    <h1>Mestres da Língua</h1>
+                    <p>A jornada da norma culta</p>
                 </div>
-                
-                <div id="turn-display" class="hidden">
-                    <h2>Vez de: <span id="current-player-name"></span></h2>
-                    
-                    <div id="dice-section">
-                        <button id="roll-dice-button" class="action-button">Lançar Dado</button>
-                        <div id="dice-result" class="hidden">?</div>
+            </div>
+            <div class="pill">🎲 Jogo de tabuleiro · Multiplayer local</div>
+        </header>
+        <main>
+            <section class="setup" id="setup">
+                <div class="kicker">Aprender jogando</div>
+                <h2>
+                    Domine a língua.<br>Chegue ao topo.
+                </h2>
+                <p class="intro">Uma corrida pelo tabuleiro em que cada casa é um desafio de Língua Portuguesa. Acerte questões para avançar, suba pelas escadas do conhecimento e cuidado com as cobras dos deslizes gramaticais!</p>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="playerCount">Número de jogadores</label>
+                        <select id="playerCount">
+                            <option value="2">2 jogadores</option>
+                            <option value="3">3 jogadores</option>
+                            <option value="4">4 jogadores</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="difficulty">Dificuldade das perguntas</label>
+                        <select id="difficulty">
+                            <option value="mixed">Variada</option>
+                            <option value="easy">Iniciante</option>
+                            <option value="medium">Intermediária</option>
+                            <option value="hard">Avançada</option>
+                        </select>
                     </div>
                 </div>
-
-                <div id="score-board" class="hidden">
-                    <h2>Placar</h2>
-                    <ul id="players-list"></ul>
+                <div class="players-inputs" id="playerInputs"></div>
+                <p class="hint">Jogue no mesmo dispositivo: cada participante joga na sua vez. As regras especiais e as perguntas são explicadas durante a partida.</p>
+                <div class="setup-actions">
+                    <span class="hint">🏁 Objetivo: chegar exatamente à casa 100.</span>
+                    <button class="primary" id="startBtn">Começar partida →</button>
                 </div>
-
-            </aside>
-            
-            <div id="board-container">
-                <div id="board-display">
+            </section>
+            <section class="game" id="game">
+                <div class="win-banner" id="winBanner">
+                    <div>
+                        <h2 id="winnerTitle">🏆 Temos um vencedor!</h2>
+                        <p id="winnerText">A jornada terminou.</p>
                     </div>
-                
-                <div id="player-token-1" class="player-token player-1-bg hidden">P1</div>
-                <div id="player-token-2" class="player-token player-2-bg hidden">P2</div>
-                <div id="player-token-3" class="player-token player-3-bg hidden">P3</div>
-                <div id="player-token-4" class="player-token player-4-bg hidden">P4</div>
+                    <button class="primary" id="newGameBtn">Nova partida</button>
+                </div>
+                <div class="game-top">
+                    <section class="board-card">
+                        <div class="board-head">
+                            <h2>🏁 Tabuleiro da Norma Culta</h2>
+                            <small>Avance do 1 ao 100</small>
+                        </div>
+                        <div class="board" id="board" aria-label="Tabuleiro de cem casas"></div>
+                        <div class="legend">
+                            <span>🪜 Escada: avance</span>
+                            <span>🐍 Cobra: recue</span>
+                            <span>❓ Desafio gramatical</span>
+                            <span>⭐ Casa bônus</span>
+                        </div>
+                    </section>
+                    <aside class="sidebar">
+                        <section class="side-card">
+                            <h3>🎲 Sua vez</h3>
+                            <div class="turn-banner" id="turnBanner">
+                                <strong>Prepare-se!</strong>
+                                <small>Configure os jogadores para começar.</small>
+                            </div>
+                            <div class="dice-area">
+                                <div class="die" id="die">⚀</div>
+                                <div class="dice-controls">
+                                    <button class="primary" id="rollBtn" disabled>Jogar dado</button>
+                                    <button class="secondary" id="rulesBtn">Como jogar</button>
+                                </div>
+                            </div>
+                            <p class="status-line" id="statusLine">Cada turno começa com uma rolagem e um desafio.</p>
+                        </section>
+                        <section class="side-card">
+                            <h3>👥 Classificação</h3>
+                            <div class="player-list" id="playerList"></div>
+                        </section>
+                        <section class="side-card">
+                            <h3>📜 Diário da jornada</h3>
+                            <div class="log" id="log">
+                                <div>Aguardando o início da partida…</div>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </section>
+        </main>
+        <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal">
+                <div class="modal-top">
+                    <p class="kicker" id="modalKicker">Desafio gramatical</p>
+                    <span class="tag" id="questionNumber">CASA</span>
+                </div>
+                <h2 id="modalTitle">Hora de testar seus conhecimentos!</h2>
+                <div class="question-meta">
+                    <span class="tag" id="categoryTag">Gramática</span>
+                    <span class="tag" id="difficultyTag">Intermediária</span>
+                </div>
+                <p class="question" id="questionText"></p>
+                <div class="answers" id="answers"></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="modal-footer">
+                    <span class="hint" id="modalHint">Escolha uma alternativa.</span>
+                    <button class="primary" id="continueBtn" style="display:none">Continuar →</button>
+                </div>
             </div>
         </div>
-    </main>
-    
-    <div id="quiz-area" class="hidden">
-        <div id="quiz-card">
-            <p id="theme-text"></p>
-            <p id="question-text"></p>
-            <div id="options-container">
-                </div>
-            <p id="feedback-message" class="hidden"></p>
-            <button id="continue-button" class="action-button hidden">CONTINUAR</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
+        <script>
+            const COLORS = ['#ed6a32', '#397ab8', '#39a879', '#9b67c7'];
+            const ICONS = {
+                1: '⚀',
+                2: '⚁',
+                3: '⚂',
+                4: '⚃',
+                5: '⚄',
+                6: '⚅'
+            };
+            const ladders = {
+                4: 14,
+                9: 31,
+                20: 38,
+                28: 47,
+                40: 59,
+                51: 67,
+                63: 81,
+                71: 91,
+                80: 99
+            };
+            const snakes = {
+                17: 7,
+                54: 34,
+                62: 19,
+                64: 60,
+                87: 24,
+                93: 73,
+                95: 75,
+                98: 79
+            };
+            const bonuses = {
+                12: '⭐',
+                36: '🎯',
+                49: '📘',
+                76: '💡'
+            };
+            const questions = [{
+                c: 'Acentuação',
+                d: 'easy',
+                q: 'Qual palavra está escrita corretamente?',
+                a: ['idéia', 'ideia', 'idéía', 'idéa'],
+                ok: 1,
+                e: '“Ideia” não recebe acento gráfico pelas regras atuais do Acordo Ortográfico.'
+            }, {
+                c: 'Concordância',
+                d: 'easy',
+                q: 'Complete: “Fazem dois anos que não o vejo.” Qual é a forma adequada?',
+                a: ['Faz dois anos que não o vejo.', 'Fazem dois ano que não o vejo.', 'Fazem dois anos que não o vejo.', 'Fazem-se dois anos que não o vejo.'],
+                ok: 0,
+                e: 'Quando indica tempo decorrido, o verbo “fazer” é impessoal e fica no singular.'
+            }, {
+                c: 'Por que / porque',
+                d: 'easy',
+                q: 'Complete: “Não fui à aula ____ estava doente.”',
+                a: ['por que', 'por quê', 'porque', 'porquê'],
+                ok: 2,
+                e: '“Porque” junto e sem acento introduz uma explicação ou causa.'
+            }, {
+                c: 'Ortografia',
+                d: 'easy',
+                q: 'Assinale a palavra escrita corretamente.',
+                a: ['Excessão', 'Exceção', 'Escessão', 'Ecessão'],
+                ok: 1,
+                e: 'A grafia correta é “exceção”.'
+            }, {
+                c: 'Pronomes',
+                d: 'easy',
+                q: 'Qual frase segue a norma-padrão?',
+                a: ['Me empresta seu caderno.', 'Empreste-me seu caderno.', 'Empresta eu seu caderno.', 'Me empreste seu caderno, por favor?'],
+                ok: 1,
+                e: 'Em início de oração formal, a ênclise (“empreste-me”) é a construção tradicional da norma-padrão.'
+            }, {
+                c: 'Concordância',
+                d: 'medium',
+                q: 'Assinale a frase com concordância verbal adequada.',
+                a: ['Houveram muitos problemas.', 'Havia muitas pessoas na sala.', 'Existia muitas pessoas na sala.', 'Fazem muito calor hoje.'],
+                ok: 1,
+                e: '“Haver”, no sentido de existir, é impessoal: “havia muitas pessoas”. “Existir” concorda com o sujeito.'
+            }, {
+                c: 'Regência',
+                d: 'medium',
+                q: 'Na norma-padrão, complete: “Assisti ____ filme ontem.” (no sentido de ver)',
+                a: ['o', 'ao', 'no', 'do'],
+                ok: 1,
+                e: 'Na regência tradicional, “assistir”, no sentido de ver, pede a preposição “a”: assistir ao filme.'
+            }, {
+                c: 'Crase',
+                d: 'medium',
+                q: 'Em qual alternativa o uso da crase está correto?',
+                a: ['Entreguei o livro à ela.', 'Cheguei à pé.', 'Fui à biblioteca.', 'Começou à chover.'],
+                ok: 2,
+                e: '“Ir a” + “a biblioteca” resulta em “à biblioteca”. Não se usa crase antes de pronome pessoal, palavra masculina ou verbo.'
+            }, {
+                c: 'Colocação pronominal',
+                d: 'medium',
+                q: 'Qual frase apresenta próclise favorecida pela norma-padrão?',
+                a: ['Nunca disseram-me isso.', 'Nunca me disseram isso.', 'Disseram nunca-me isso.', 'Nunca disseram isso-me.'],
+                ok: 1,
+                e: 'A palavra negativa “nunca” atrai o pronome: “Nunca me disseram isso”.'
+            }, {
+                c: 'Por que / porque',
+                d: 'medium',
+                q: 'Complete: “Gostaria de saber ____ você faltou.”',
+                a: ['porque', 'por quê', 'porquê', 'por que'],
+                ok: 3,
+                e: 'Em pergunta indireta, usa-se “por que” separado e sem acento.'
+            }, {
+                c: 'Concordância nominal',
+                d: 'medium',
+                q: 'Assinale a alternativa correta.',
+                a: ['Seguem anexo os documentos.', 'Segue anexas as cópias.', 'Seguem anexos os documentos.', 'As cópias segue anexo.'],
+                ok: 2,
+                e: '“Anexos” funciona como adjetivo e concorda com “documentos”: “Seguem anexos os documentos”.'
+            }, {
+                c: 'Pontuação',
+                d: 'medium',
+                q: 'Qual frase pontua corretamente o vocativo?',
+                a: ['Vamos estudar pessoal!', 'Vamos estudar, pessoal!', 'Vamos, estudar pessoal!', 'Vamos estudar pessoal,!'],
+                ok: 1,
+                e: 'O vocativo “pessoal” deve ser separado por vírgula.'
+            }, {
+                c: 'Regência',
+                d: 'hard',
+                q: 'Assinale a frase de acordo com a regência tradicional.',
+                a: ['Prefiro mais café do que chá.', 'Prefiro café a chá.', 'Prefiro antes café que chá.', 'Prefiro café do que chá.'],
+                ok: 1,
+                e: 'O verbo “preferir” é tradicionalmente construído com “preferir uma coisa a outra”, sem “mais”.'
+            }, {
+                c: 'Concordância',
+                d: 'hard',
+                q: 'Assinale a opção correta segundo a norma-padrão.',
+                a: ['É proibido a entrada.', 'É proibida entrada de pessoas.', 'É proibida a entrada.', 'São proibido entradas.'],
+                ok: 2,
+                e: 'Com artigo definido, a expressão concorda com o substantivo: “É proibida a entrada”.'
+            }, {
+                c: 'Crase',
+                d: 'hard',
+                q: 'Em qual frase a crase é obrigatória?',
+                a: ['O relatório foi entregue a uma gerente.', 'O aluno começou a escrever.', 'Referiu-se àquele regulamento.', 'Andou a cavalo.'],
+                ok: 2,
+                e: 'A crase pode ocorrer diante de “aquele(s)”, “aquela(s)” e “aquilo”: “referiu-se àquele regulamento”.'
+            }, {
+                c: 'Pronomes relativos',
+                d: 'hard',
+                q: 'Complete: “Este é o livro ____ autor me referi.”',
+                a: ['que o', 'a que o', 'a cujo', 'cujo'],
+                ok: 2,
+                e: 'O verbo “referir-se” rege a preposição “a”; “cujo” estabelece relação de posse: “a cujo autor me referi”.'
+            }, {
+                c: 'Concordância',
+                d: 'hard',
+                q: 'Qual frase está correta?',
+                a: ['Mais de um candidato faltaram.', 'Mais de um candidato faltou.', 'Mais de um candidato faltastes.', 'Mais de um candidatos faltou.'],
+                ok: 1,
+                e: 'Em regra, a expressão “mais de um” leva o verbo ao singular.'
+            }, {
+                c: 'Pontuação',
+                d: 'hard',
+                q: 'Qual alternativa evita separar sujeito e verbo por vírgula?',
+                a: ['Os estudantes dedicados, passaram.', 'Os estudantes, dedicados passaram.', 'Os estudantes dedicados passaram.', 'Os estudantes, passaram dedicados.'],
+                ok: 2,
+                e: 'Não se separa o sujeito do predicado por vírgula.'
+            }, {
+                c: 'Ortografia',
+                d: 'easy',
+                q: 'Qual forma está correta?',
+                a: ['Beneficiente', 'Beneficente', 'Benefissente', 'Beneficiente'],
+                ok: 1,
+                e: 'A forma correta é “beneficente”.'
+            }, {
+                c: 'Semântica',
+                d: 'medium',
+                q: '“Ratificar” significa:',
+                a: ['Corrigir ou retificar', 'Confirmar', 'Negar', 'Adiar'],
+                ok: 1,
+                e: '“Ratificar” significa confirmar; “retificar” significa corrigir.'
+            }, {
+                c: 'Semântica',
+                d: 'medium',
+                q: 'Qual é o antônimo de “efêmero”?',
+                a: ['Passageiro', 'Breve', 'Duradouro', 'Instantâneo'],
+                ok: 2,
+                e: '“Efêmero” é aquilo que dura pouco; seu antônimo é “duradouro”.'
+            }, {
+                c: 'Verbos',
+                d: 'hard',
+                q: 'Qual forma verbal está adequada?',
+                a: ['Se eu ver o documento, aviso.', 'Se eu vir o documento, aviso.', 'Se eu vê o documento, aviso.', 'Se eu vier o documento, aviso.'],
+                ok: 1,
+                e: 'O futuro do subjuntivo do verbo “ver” é “vir”: “Se eu vir”.'
+            }, {
+                c: 'Verbos',
+                d: 'medium',
+                q: 'Complete: “Quando ele ____ aqui, começaremos.”',
+                a: ['chegar', 'chega', 'chegaria', 'chegou'],
+                ok: 0,
+                e: 'A oração temporal com ideia futura usa o futuro do subjuntivo: “quando ele chegar”.'
+            }, {
+                c: 'Crase',
+                d: 'easy',
+                q: 'Qual frase está correta?',
+                a: ['Vou à escola.', 'Vou à pé.', 'Entreguei à você.', 'Comecei à estudar.'],
+                ok: 0,
+                e: '“À escola” reúne preposição “a” e artigo “a”. Não há crase antes de palavra masculina, pronome pessoal ou verbo.'
+            }];
+            const $ = id => document.getElementById(id);
+            let players = []
+              , current = 0
+              , turnRolled = false
+              , gameOver = false
+              , lastDie = 0
+              , questionPool = []
+              , activeQuestion = null
+              , answered = false
+              , afterQuestion = null
+              , logItems = [];
+            const diffNames = {
+                easy: 'Iniciante',
+                medium: 'Intermediária',
+                hard: 'Avançada'
+            };
+            function buildPlayerInputs() {
+                const n = +$('playerCount').value
+                  , old = [...document.querySelectorAll('.player-name')].map(x => x.value);
+                $('playerInputs').innerHTML = '';
+                for (let i = 0; i < n; i++) {
+                    const row = document.createElement('div');
+                    row.className = 'player-input';
+                    row.innerHTML = `<span class="player-dot" style="background:${COLORS[i]}"></span><input class="player-name" maxlength="18" aria-label="Nome do jogador ${i + 1}" placeholder="Nome do jogador ${i + 1}" value="${escapeHtml(old[i] || ['Jogador 1', 'Jogador 2', 'Jogador 3', 'Jogador 4'][i])}">`;
+                    $('playerInputs').appendChild(row)
+                }
+            }
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[c]))
+            }
+            $('playerCount').addEventListener('change', buildPlayerInputs);
+            buildPlayerInputs();
+            function createBoard() {
+                const board = $('board');
+                board.innerHTML = '';
+                for (let visual = 100; visual >= 1; visual--) {
+                    let rowFromTop = Math.floor((100 - visual) / 10);
+                    let num;
+                    if (rowFromTop % 2 === 0)
+                        num = 100 - rowFromTop * 10 - (visual % 10 === 0 ? 0 : 0);
+                    // calculate row's serpentine order below
+                    const row = Math.floor((visual - 1) / 10)
+                      , colInRow = (visual - 1) % 10;
+                    const actual = row % 2 === 0 ? row * 10 + colInRow + 1 : row * 10 + (10 - colInRow);
+                    const cell = document.createElement('div');
+                    cell.className = 'cell' + (actual === 100 ? ' finish' : '');
+                    cell.dataset.cell = actual;
+                    let icon = '';
+                    if (ladders[actual])
+                        icon = '🪜';
+                    else if (snakes[actual])
+                        icon = '🐍';
+                    else if (bonuses[actual])
+                        icon = bonuses[actual];
+                    else if (actual % 5 === 0)
+                        icon = '❓';
+                    if (ladders[actual] || snakes[actual] || bonuses[actual])
+                        cell.classList.add('special');
+                    cell.innerHTML = `<span class="cell-number">${actual}</span><span class="cell-icon">${icon || (actual === 100 ? '🏆' : '')}</span><div class="tokens"></div><span class="cell-label">${ladders[actual] ? 'SUBA' : snakes[actual] ? 'RECUA' : bonuses[actual] ? 'BÔNUS' : actual === 100 ? 'CHEGADA' : ''}</span>`;
+                    board.appendChild(cell)
+                }
+            }
+            function renderTokens() {
+                document.querySelectorAll('.tokens').forEach(t => t.innerHTML = '');
+                players.forEach( (p, i) => {
+                    const cell = document.querySelector(`.cell[data-cell="${p.pos || 1}"] .tokens`);
+                    if (cell) {
+                        const tok = document.createElement('span');
+                        tok.className = 'token';
+                        tok.style.background = p.color;
+                        tok.title = p.name;
+                        cell.appendChild(tok)
+                    }
+                }
+                )
+            }
+            function renderPlayers() {
+                const sorted = [...players].sort( (a, b) => b.pos - a.pos);
+                $('playerList').innerHTML = sorted.map(p => {
+                    const idx = players.indexOf(p);
+                    return `<div class="player-row ${idx === current && !gameOver ? 'active' : ''}"><span class="mini-token" style="background:${p.color}"></span><span class="name">${escapeHtml(p.name)}</span><small>Casa ${p.pos || 1}</small></div>`
+                }
+                ).join('');
+                if (players[current]) {
+                    $('turnBanner').innerHTML = `<strong style="color:${players[current].color}">${escapeHtml(players[current].name)}</strong><small>Jogador ${current + 1} de ${players.length}</small>`
+                }
+            }
+            function addLog(msg) {
+                logItems.unshift(msg);
+                logItems = logItems.slice(0, 8);
+                $('log').innerHTML = logItems.map(x => `<div>${x}</div>`).join('')
+            }
+            function getPool() {
+                const d = $('difficulty').value;
+                return questions.filter(q => d === 'mixed' || q.d === d)
+            }
+            function pickQuestion() {
+                let pool = questionPool.length ? questionPool : getPool();
+                if (!questionPool.length)
+                    questionPool = [...pool];
+                const idx = Math.floor(Math.random() * questionPool.length);
+                return questionPool.splice(idx, 1)[0]
+            }
+            function startGame() {
+                players = [...document.querySelectorAll('.player-name')].map( (x, i) => ({
+                    name: x.value.trim() || `Jogador ${i + 1}`,
+                    pos: 1,
+                    color: COLORS[i],
+                    points: 0,
+                    correct: 0,
+                    wrong: 0
+                }));
+                current = 0;
+                turnRolled = false;
+                gameOver = false;
+                logItems = [];
+                questionPool = [];
+                $('setup').style.display = 'none';
+                $('game').style.display = 'block';
+                $('winBanner').style.display = 'none';
+                $('rollBtn').disabled = false;
+                $('die').textContent = '⚀';
+                $('statusLine').textContent = 'Role o dado e responda ao desafio para concluir seu movimento.';
+                addLog('A partida começou! Boa sorte a todos.');
+                createBoard();
+                renderTokens();
+                renderPlayers();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                })
+            }
+            function roll() {
+                if (gameOver || turnRolled)
+                    return;
+                lastDie = 1 + Math.floor(Math.random() * 6);
+                turnRolled = true;
+                $('die').textContent = ICONS[lastDie];
+                $('rollBtn').disabled = true;
+                const p = players[current];
+                const target = (p.pos || 1) + lastDie;
+                let proposed = Math.min(100, target);
+                const overshoot = target > 100;
+                $('statusLine').textContent = overshoot ? `Saiu ${lastDie}. Você precisa chegar exatamente à casa 100; vai responder ao desafio mesmo assim.` : `Saiu ${lastDie}. Responda corretamente para avançar.`;
+                activeQuestion = pickQuestion();
+                afterQuestion = () => {
+                    if (overshoot) {
+                        addLog(`${escapeHtml(p.name)} tirou ${lastDie}, mas passou da casa 100 e permanece na ${p.pos}.`);
+                        finishTurn();
+                        return
+                    }
+                    p.pos = proposed;
+                    addLog(`${escapeHtml(p.name)} avançou para a casa ${p.pos}.`);
+                    resolveSpecial(p);
+                    renderTokens();
+                    renderPlayers();
+                    if (p.pos === 100) {
+                        win(p);
+                        return
+                    }
+                    finishTurn()
+                }
+                ;
+                showQuestion(activeQuestion, proposed)
+            }
+            function showQuestion(q, cell) {
+                answered = false;
+                $('modalKicker').textContent = 'Desafio gramatical';
+                $('questionNumber').textContent = `CASA ${cell}`;
+                $('modalTitle').textContent = 'Acerte para avançar!';
+                $('categoryTag').textContent = q.c;
+                $('difficultyTag').textContent = diffNames[q.d];
+                $('questionText').textContent = q.q;
+                $('answers').innerHTML = '';
+                $('feedback').style.display = 'none';
+                $('continueBtn').style.display = 'none';
+                $('modalHint').textContent = 'Uma resposta correta permite concluir o movimento.';
+                const order = q.a.map( (a, i) => ({
+                    a,
+                    i
+                })).sort( () => Math.random() - .5);
+                order.forEach(o => {
+                    const b = document.createElement('button');
+                    b.className = 'answer';
+                    b.textContent = o.a;
+                    b.addEventListener('click', () => answerQuestion(o.i, b, q));
+                    $('answers').appendChild(b)
+                }
+                );
+                $('modalBackdrop').style.display = 'flex'
+            }
+            function answerQuestion(index, btn, q) {
+                if (answered)
+                    return;
+                answered = true;
+                const p = players[current];
+                const buttons = [...$('answers').querySelectorAll('button')];
+                buttons.forEach( (b, i) => {
+                    b.disabled = true;
+                    const orig = q.a.indexOf(b.textContent);
+                    if (orig === q.ok)
+                        b.classList.add('correct')
+                }
+                );
+                const ok = index === q.ok;
+                const fb = $('feedback');
+                fb.style.display = 'block';
+                fb.className = 'feedback ' + (ok ? 'good' : 'bad');
+                if (ok) {
+                    p.correct++;
+                    p.points += 10;
+                    fb.innerHTML = `<strong>Correto! +10 pontos.</strong><br>${q.e}`;
+                    $('modalHint').textContent = 'Movimento liberado!'
+                } else {
+                    p.wrong++;
+                    fb.innerHTML = `<strong>Não foi dessa vez.</strong><br>${q.e}`;
+                    $('modalHint').textContent = 'Você fica na casa atual.'
+                }
+                addLog(`${escapeHtml(p.name)} ${ok ? 'acertou' : 'errou'} uma questão de ${q.c.toLowerCase()}.`);
+                $('continueBtn').style.display = 'inline-block';
+                $('continueBtn').onclick = () => {
+                    $('modalBackdrop').style.display = 'none';
+                    if (ok)
+                        afterQuestion();
+                    else
+                        finishTurn()
+                }
+                ;
+                renderPlayers()
+            }
+            function resolveSpecial(p) {
+                if (ladders[p.pos]) {
+                    const from = p.pos;
+                    p.pos = ladders[from];
+                    p.points += 15;
+                    addLog(`🪜 ${escapeHtml(p.name)} subiu a escada: ${from} → ${p.pos}! +15 pontos.`);
+                    $('statusLine').textContent = `Escada do conhecimento! Você subiu da casa ${from} para ${p.pos}.`
+                } else if (snakes[p.pos]) {
+                    const from = p.pos;
+                    p.pos = snakes[from];
+                    p.points = Math.max(0, p.points - 5);
+                    addLog(`🐍 ${escapeHtml(p.name)} escorregou na casa ${from} e voltou à ${p.pos}.`);
+                    $('statusLine').textContent = `Ops! Um deslize gramatical fez você recuar para a casa ${p.pos}.`
+                } else if (bonuses[p.pos]) {
+                    p.points += 20;
+                    addLog(`${bonuses[p.pos]} ${escapeHtml(p.name)} encontrou uma casa bônus! +20 pontos.`);
+                    $('statusLine').textContent = 'Casa bônus! Você ganhou 20 pontos.'
+                } else if (p.pos % 5 === 0) {
+                    p.points += 5;
+                    addLog(`⭐ ${escapeHtml(p.name)} passou por uma casa de revisão. +5 pontos.`)
+                }
+            }
+            function finishTurn() {
+                if (gameOver)
+                    return;
+                turnRolled = false;
+                current = (current + 1) % players.length;
+                renderPlayers();
+                $('rollBtn').disabled = false;
+                $('statusLine').textContent = `Próxima vez: ${players[current].name}. Role o dado para continuar.`
+            }
+            function win(p) {
+                gameOver = true;
+                $('rollBtn').disabled = true;
+                $('winnerTitle').textContent = `🏆 ${p.name} venceu!`;
+                $('winnerText').textContent = `Chegou à casa 100 com ${p.points} pontos, ${p.correct} acertos e ${p.wrong} erros.`;
+                $('winBanner').style.display = 'flex';
+                $('statusLine').textContent = 'Partida encerrada. Parabéns pela jornada!';
+                addLog(`🏆 ${escapeHtml(p.name)} venceu a partida!`);
+                renderTokens();
+                renderPlayers()
+            }
+            function showRules() {
+                answered = true;
+                $('modalKicker').textContent = 'Regras da partida';
+                $('questionNumber').textContent = 'GUIA';
+                $('modalTitle').textContent = 'Como jogar';
+                $('categoryTag').textContent = 'Turnos';
+                $('difficultyTag').textContent = 'Multiplayer local';
+                $('questionText').textContent = 'Cada pessoa joga na sua vez. Role o dado e responda à questão de Língua Portuguesa. Se acertar, avança o número sorteado; se errar, fica na casa atual.';
+                $('answers').innerHTML = `<div class="answer">🪜 <strong>Escadas:</strong> ao cair na base, suba para a casa indicada e ganhe 15 pontos.</div><div class="answer">🐍 <strong>Cobras:</strong> ao cair na cabeça, volte para a casa indicada e perca 5 pontos (sem pontuação negativa).</div><div class="answer">⭐ <strong>Casas bônus:</strong> algumas casas dão pontos extras.</div><div class="answer">🏁 <strong>Vitória:</strong> é preciso chegar exatamente à casa 100. Se o dado passar do número necessário, você permanece onde está.</div><div class="answer">📚 <strong>Pontuação:</strong> acerto +10; casa bônus +20; escada +15; cobra −5.</div>`;
+                $('feedback').style.display = 'none';
+                $('modalHint').textContent = 'Boa partida!';
+                $('continueBtn').style.display = 'inline-block';
+                $('continueBtn').textContent = 'Entendi';
+                $('continueBtn').onclick = () => {
+                    $('modalBackdrop').style.display = 'none';
+                    $('continueBtn').textContent = 'Continuar →'
+                }
+                ;
+                $('modalBackdrop').style.display = 'flex'
+            }
+            $('startBtn').addEventListener('click', startGame);
+            $('rollBtn').addEventListener('click', roll);
+            $('rulesBtn').addEventListener('click', showRules);
+            $('newGameBtn').addEventListener('click', () => {
+                $('game').style.display = 'none';
+                $('setup').style.display = 'block';
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                })
+            }
+            );
+            createBoard();
+        </script>
+    </body>
 </html>
