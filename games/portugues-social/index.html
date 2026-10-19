@@ -3,61 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inspetor Gramatical</title>
-    <link rel="stylesheet" href="style.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
+    <title>Português Social: O Que Ele Realmente Quis Dizer?</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8; /* Soft slate/blueish background */
+            --text-main: #334155;
+            --text-light: #64748b;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-light: #ffffff;
+            --shadow-dark: #d1d9e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        /* Neumorphic Card Style */
+        .neu-card {
+            background: var(--bg-color);
+            border-radius: 24px;
+            box-shadow: 10px 10px 20px var(--shadow-dark),
+                       -10px -10px 20px var(--shadow-light);
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .neu-button {
+            background: var(--bg-color);
+            color: var(--primary);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px var(--shadow-dark),
+                       -5px -5px 10px var(--shadow-light);
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .neu-button:hover {
+            color: var(--primary-hover);
+            box-shadow: inset 5px 5px 10px var(--shadow-dark),
+                       inset -5px -5px 10px var(--shadow-light);
+        }
+
+        .neu-button.primary-btn {
+            background: var(--primary);
+            color: white;
+            box-shadow: 5px 5px 15px rgba(37, 99, 235, 0.3);
+        }
+        .neu-button.primary-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: inset 5px 5px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HUD (Heads Up Display) */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            border-radius: 16px;
+            background: var(--bg-color);
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hearts { color: var(--danger); font-size: 1.2rem; }
+        .score { color: var(--primary); }
+        .level { color: var(--success); }
+
+        /* Game Area */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .game-area {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .character-section { flex: 1; }
+            .interaction-section { flex: 1.5; }
+        }
+
+        /* CSS Character */
+        .character-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-top: 20px;
+        }
+
+        .character {
+            width: 120px;
+            height: 160px;
+            position: relative;
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .head {
+            width: 80px;
+            height: 80px;
+            background: #ffdbac;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 20px;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .eyes {
+            position: absolute;
+            top: 35px;
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            padding: 0 15px;
+        }
+
+        .eye {
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .mouth {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 10px;
+            border: 2px solid #333;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            transition: all 0.3s;
+        }
+
+        .body {
+            width: 100px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 40px 40px 10px 10px;
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* Expressions */
+        .character.happy .mouth { height: 15px; background: #ef4444; }
+        .character.sad .mouth { border-top: 2px solid #333; border-bottom: none; border-radius: 20px 20px 0 0; top: 50px; bottom: auto; }
+        .character.sad .eye { height: 4px; border-radius: 2px; }
+
+        /* Speech Bubble */
+        .speech-bubble {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            font-size: 1.1rem;
+            line-height: 1.4;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+            display: block;
+            width: 0;
+        }
+
+        @media (min-width: 768px) {
+            .speech-bubble::after {
+                bottom: 30%;
+                left: -15px;
+                transform: translateY(50%);
+                border-width: 15px 15px 15px 0;
+                border-color: transparent white transparent transparent;
+            }
+        }
+
+        /* Options */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 15px 20px;
+            font-size: 1rem;
+            line-height: 1.3;
+            color: var(--text-main);
+            font-weight: normal;
+        }
+
+        /* Feedback Card */
+        .feedback-card {
+            display: none;
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: inset 5px 5px 15px var(--shadow-dark), inset -5px -5px 15px var(--shadow-light);
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .feedback-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feedback-title.correct { color: var(--success); }
+        .feedback-title.wrong { color: var(--danger); }
+
+        .feedback-text {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Confetti effect wrapper */
+        #confetti-wrapper {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px; height: 10px;
+            background-color: var(--success);
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
+        }
+
+    </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="game-header">
-            <div class="score-box">
-                <span>PONTOS:</span>
-                <span id="score-value">0</span>
+    <div class="container">
+        <!-- TELA INICIAL -->
+        <div id="screen-start" class="screen active neu-card">
+            <h1 style="color: var(--primary); margin-bottom: 10px; font-size: 2rem;">Português Social</h1>
+            <h3 style="color: var(--text-light); margin-bottom: 30px; font-weight: normal;">O Que Ele Realmente Quis Dizer?</h3>
+            <p style="margin-bottom: 30px; line-height: 1.6;">
+                Interprete as frases do dia a dia e mostre sua percepção social!<br>
+                Fique atento à regra dos pares: <strong>MAU / MAL</strong> e <strong>BOM / BEM</strong>.
+            </p>
+            <div class="character" style="margin: 0 auto 30px auto;">
+                <div class="head"><div class="eyes"><div class="eye"></div><div class="eye"></div></div><div class="mouth"></div></div>
+                <div class="body"></div>
             </div>
-            <div class="timer-box">
-                <span>TEMPO:</span>
-                <span id="timer-value">60</span>s
+            <button class="neu-button primary-btn" onclick="startGame()">Iniciar Conversa</button>
+        </div>
+
+        <!-- TELA DE JOGO -->
+        <div id="screen-game" class="screen">
+            <div class="hud">
+                <div class="hud-item level">Nível: <span id="level-display">Amigos</span></div>
+                <div class="hud-item score">Empatia: <span id="score-display">0</span> pts</div>
+                <div class="hud-item hearts" id="lives-display">❤️❤️❤️</div>
+            </div>
+
+            <div class="game-area neu-card">
+                <div class="character-section">
+                    <div class="speech-bubble" id="speech-bubble">
+                        "Carregando frase..."
+                    </div>
+                    <div class="character" id="game-character">
+                        <div class="head">
+                            <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+                            <div class="mouth"></div>
+                        </div>
+                        <div class="body"></div>
+                    </div>
+                </div>
+
+                <div class="interaction-section">
+                    <div class="options-container" id="options-container">
+                        <!-- Options will be injected here -->
+                    </div>
+
+                    <div class="feedback-card" id="feedback-card">
+                        <div class="feedback-title" id="feedback-title">Correto!</div>
+                        <div class="feedback-text" id="feedback-text">Explicação vai aqui.</div>
+                        <button class="neu-button primary-btn" onclick="nextQuestion()">Próxima Frase</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="central-area">
-            
-            <div id="npc-image-container">
-                <img id="npc-image" src="npc.png" alt="NPC apresentando um dilema de escolha">
+        <!-- TELA FINAL -->
+        <div id="screen-end" class="screen neu-card">
+            <h1 id="end-title" style="margin-bottom: 20px;">Diagnóstico Concluído</h1>
+            <div class="character" id="end-character" style="margin: 0 auto 20px auto;">
+                <div class="head"><div class="eyes"><div class="eye"></div><div class="eye"></div></div><div class="mouth"></div></div>
+                <div class="body"></div>
             </div>
-
-            <div id="dialog-bubble" class="speech-bubble">
-                <p id="npc-statement">Pressione INICIAR para começar...</p>
-            </div>
+            <p id="end-message" style="font-size: 1.2rem; margin-bottom: 20px; line-height: 1.5;"></p>
+            <p style="font-size: 1.5rem; font-weight: bold; color: var(--primary); margin-bottom: 30px;">
+                Pontuação Final: <span id="final-score"></span>
+            </p>
+            <button class="neu-button primary-btn" onclick="resetGame()">Jogar Novamente</button>
         </div>
-
-        <div id="options-container">
-            <button id="option-a" class="choice-button">Opção A</button>
-            <button id="option-b" class="choice-button">Opção B</button>
-        </div>
-
-        <div id="feedback-area">
-            <p id="feedback-message"></p>
-        </div>
-
-        <div id="overlay" class="game-overlay">
-            <div id="game-start-screen" class="screen-box">
-                <h1>O Inspetor de Intenção</h1>
-                <p>O NPC sempre diz a palavra errada. Escolha a opção que representa o que ele **provavelmente quis dizer** (a intenção gramatical correta).</p>
-                <button id="start-button" class="big-button">INICIAR JOGO</button>
-            </div>
-
-            <div id="game-over-screen" class="screen-box hidden">
-                <h2>Fim de Jogo!</h2>
-                <p>Sua Pontuação Final:</p>
-                <span id="final-score">0</span>
-                <button id="restart-button" class="big-button">JOGAR NOVAMENTE</button>
-            </div>
-        </div>
-
     </div>
 
-    <script src="portugues_social.js"></script>
+    <div id="confetti-wrapper"></div>
+
+    <script>
+        // --- BANCO DE PERGUNTAS ---
+        const questions = [
+            // Nível 1: Amigos
+            {
+                level: "Amigos",
+                phrase: "Nossa, o João está muito mau hoje!",
+                options: [
+                    "A) Ele está passando mal de saúde, talvez com dor de cabeça.",
+                    "B) Ele está sendo maldoso ou ríspido com as pessoas.",
+                    "C) Ele está se sentindo muito bem."
+                ],
+                correctIndex: 1,
+                explanation: "Lembre-se: MAU é o oposto de BOM. Como ele está sendo 'bom/ruim' (personalidade/atitude), o correto é 'mau'. Se fosse saúde, seria 'mal' (oposto de bem)."
+            },
+            {
+                level: "Amigos",
+                phrase: "Você cantou muito mal naquela festa...",
+                options: [
+                    "A) Cantei de um jeito ruim, sem afinação.",
+                    "B) Cantei com maldade no coração.",
+                    "C) Cantei muito bem, foi um elogio irônico."
+                ],
+                correctIndex: 0,
+                explanation: "MAL com 'L' é um advérbio de modo, o oposto de BEM. Você não cantou 'bem', cantou 'mal'."
+            },
+            // Nível 2: Trabalho
+            {
+                level: "Trabalho",
+                phrase: "O chefe está de mau humor hoje, cuidado.",
+                options: [
+                    "A) O chefe está doente, com mal-estar físico.",
+                    "B) O chefe cometeu um erro no projeto.",
+                    "C) O estado de espírito dele não está bom, está irritadiço."
+                ],
+                correctIndex: 2,
+                explanation: "Humor aceita os adjetivos 'bom' ou 'mau'. O oposto de 'bom humor' é 'mau humor' (com U)."
+            },
+            {
+                level: "Trabalho",
+                phrase: "Os relatórios daquela equipe foram mal redigidos.",
+                options: [
+                    "A) Foram redigidos de forma maldosa.",
+                    "B) Foram redigidos de maneira incorreta ou ruim.",
+                    "C) Foram redigidos por pessoas más."
+                ],
+                correctIndex: 1,
+                explanation: "MAL (com L) acompanha o verbo (redigidos) indicando o modo. O oposto seria 'foram BEM redigidos'."
+            },
+            // Nível 3: Redes Sociais
+            {
+                level: "Redes Sociais",
+                phrase: "Mal cheguei no grupo e já vi gente brigando.",
+                options: [
+                    "A) Cheguei sendo uma pessoa ruim no grupo.",
+                    "B) Logo que / Assim que cheguei no grupo.",
+                    "C) Cheguei doente no grupo."
+                ],
+                correctIndex: 1,
+                explanation: "Aqui, MAL atua como conjunção temporal, significando 'logo que' ou 'assim que'."
+            },
+            {
+                level: "Redes Sociais",
+                phrase: "Não leve a mal meu comentário, foi só uma dica.",
+                options: [
+                    "A) Não interprete minha fala de forma negativa (oposto de levar a bem).",
+                    "B) Não me ache um homem mau pela minha dica.",
+                    "C) Não fique doente por causa do meu comentário."
+                ],
+                correctIndex: 0,
+                explanation: "A expressão é 'levar a mal' (com L), que é o exato oposto de 'levar a bem' (interpretar positivamente)."
+            },
+            // Nível 4: O Poder da Crase
+            {
+                level: "Crase",
+                phrase: "Nossa, que quadro lindo! O artista pintou a mão.",
+                options: [
+                    "A) Ele usou as mãos como instrumento de pintura (feito de forma manual).",
+                    "B) A parte do corpo desenhada e pintada na tela foi uma mão.",
+                    "C) Ele sujou a própria mão com tinta sem querer."
+                ],
+                correctIndex: 1,
+                explanation: "Sem crase ('pintar a mão'), a mão é o objeto desenhado. Para dizer que a obra foi feita manualmente (instrumento/modo), usamos crase: 'pintou à mão'."
+            },
+            {
+                level: "Crase",
+                phrase: "Fiquei muito ofendido, fui tentar conversar e ele bateu a porta.",
+                options: [
+                    "A) Ele deu pancadas na porta para chamar alguém.",
+                    "B) Ele fechou a porta com força na minha cara.",
+                    "C) Ele começou a consertar a porta batendo nela."
+                ],
+                correctIndex: 1,
+                explanation: "'Bater a porta' (sem crase) significa fechar com força. Se ele estivesse do lado de fora chamando quem está dentro, seria 'bater à porta' (com crase)."
+            },
+            {
+                level: "Crase",
+                phrase: "O carro estava estragado e começou a cheirar a gasolina.",
+                options: [
+                    "A) O carro adquiriu o odor de combustível.",
+                    "B) O carro encostou o nariz na gasolina para sentir o aroma.",
+                    "C) O carro se transformou em gasolina."
+                ],
+                correctIndex: 0,
+                explanation: "'Cheirar a gasolina' (sem crase) significa exalar/emitir o cheiro do combustível. Se fosse 'cheirar à gasolina' (com crase), significaria inalar usando a gasolina como instrumento (como cheirar com o nariz), o que não faz sentido aqui!"
+            },
+            // Nível 5: Conotação vs Denotação
+            {
+                level: "Expressões",
+                phrase: "Para manter aquele relacionamento, eu tive que engolir muitos sapos.",
+                options: [
+                    "A) Minha dieta incluía comer anfíbios exóticos.",
+                    "B) Eu precisava suportar humilhações e coisas desagradáveis calado.",
+                    "C) Eu era obrigado a cuidar dos animais de estimação estranhos dela."
+                ],
+                correctIndex: 1,
+                explanation: "'Engolir sapos' é uma metáfora em sentido CONOTATIVO (figurado). Significa tolerar ofensas ou contrariedades. O sentido denotativo (literal) seria comer o animal de verdade."
+            },
+            {
+                level: "Expressões",
+                phrase: "O Carlos pisou na bola comigo quando esqueceu o prazo do projeto.",
+                options: [
+                    "A) Ele esmagou minha bola de futebol com o pé.",
+                    "B) Ele escorregou em um equipamento no escritório.",
+                    "C) Ele cometeu um erro, falhou ou me decepcionou."
+                ],
+                correctIndex: 2,
+                explanation: "Em sentido conotativo, 'pisar na bola' significa cometer um erro ou decepcionar alguém. O sentido denotativo e literal seria colocar o peso do pé sobre uma esfera."
+            },
+            {
+                level: "Expressões",
+                phrase: "Mesmo com toda a comoção, ela demonstrou ter um coração de pedra.",
+                options: [
+                    "A) Ela possui uma doença onde o órgão se calcificou e virou rocha.",
+                    "B) Ela carregava uma pedra no formato de coração no bolso.",
+                    "C) Ela foi insensível, fria e não demonstrou sentimentos."
+                ],
+                correctIndex: 2,
+                explanation: "'Coração de pedra' no sentido conotativo representa frieza emocional e falta de empatia. O sentido denotativo seria impossível biologicamente para um humano vivo."
+            }
+        ];
+
+        // --- ESTADO DO JOGO ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let lives = 3;
+        let gameQuestions = [];
+
+        // --- ELEMENTOS DO DOM ---
+        const screens = {
+            start: document.getElementById('screen-start'),
+            game: document.getElementById('screen-game'),
+            end: document.getElementById('screen-end')
+        };
+        const dom = {
+            level: document.getElementById('level-display'),
+            score: document.getElementById('score-display'),
+            lives: document.getElementById('lives-display'),
+            speechBubble: document.getElementById('speech-bubble'),
+            optionsContainer: document.getElementById('options-container'),
+            feedbackCard: document.getElementById('feedback-card'),
+            feedbackTitle: document.getElementById('feedback-title'),
+            feedbackText: document.getElementById('feedback-text'),
+            character: document.getElementById('game-character'),
+            endCharacter: document.getElementById('end-character'),
+            endTitle: document.getElementById('end-title'),
+            endMessage: document.getElementById('end-message'),
+            finalScore: document.getElementById('final-score'),
+            confetti: document.getElementById('confetti-wrapper')
+        };
+
+        // --- FUNÇÕES DE LÓGICA ---
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            // Reiniciar variáveis
+            score = 0;
+            lives = 3;
+            currentQuestionIndex = 0;
+            // Embaralhar perguntas para não ser sempre igual, mantendo certa ordem de nível
+            gameQuestions = [...questions]; 
+            
+            updateHUD();
+            switchScreen('game');
+            loadQuestion();
+        }
+
+        function updateHUD() {
+            dom.score.innerText = score;
+            dom.lives.innerText = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
+            if (gameQuestions[currentQuestionIndex]) {
+                dom.level.innerText = gameQuestions[currentQuestionIndex].level;
+            }
+        }
+
+        function setCharacterExpression(charElement, expression) {
+            charElement.classList.remove('happy', 'sad');
+            if (expression) charElement.classList.add(expression);
+        }
+
+        function loadQuestion() {
+            const q = gameQuestions[currentQuestionIndex];
+            
+            // Resetar UI
+            setCharacterExpression(dom.character, '');
+            dom.feedbackCard.style.display = 'none';
+            dom.optionsContainer.style.display = 'flex';
+            dom.optionsContainer.innerHTML = '';
+            
+            // Atualizar balão
+            dom.speechBubble.innerText = `"${q.phrase}"`;
+
+            // Gerar botões
+            q.options.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'neu-button option-btn';
+                btn.innerText = optText;
+                btn.onclick = () => checkAnswer(index);
+                dom.optionsContainer.appendChild(btn);
+            });
+
+            updateHUD();
+        }
+
+        function createConfetti() {
+            dom.confetti.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('confetti');
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDuration = (Math.random() * 1 + 1) + 's';
+                particle.style.backgroundColor = ['#10b981', '#2563eb', '#f59e0b'][Math.floor(Math.random() * 3)];
+                dom.confetti.appendChild(particle);
+            }
+            setTimeout(() => { dom.confetti.innerHTML = ''; }, 2000);
+        }
+
+        function checkAnswer(selectedIndex) {
+            const q = gameQuestions[currentQuestionIndex];
+            const isCorrect = (selectedIndex === q.correctIndex);
+
+            dom.optionsContainer.style.display = 'none';
+            dom.feedbackCard.style.display = 'block';
+
+            if (isCorrect) {
+                score += 100;
+                setCharacterExpression(dom.character, 'happy');
+                dom.feedbackTitle.innerText = "Isso aí! Você entendeu!";
+                dom.feedbackTitle.className = "feedback-title correct";
+                createConfetti();
+            } else {
+                lives--;
+                setCharacterExpression(dom.character, 'sad');
+                dom.feedbackTitle.innerText = "Ops! Houve um mal-entendido.";
+                dom.feedbackTitle.className = "feedback-title wrong";
+            }
+
+            dom.feedbackText.innerText = q.explanation;
+            updateHUD();
+
+            // Verificar Game Over imediato se as vidas acabaram
+            if (lives <= 0) {
+                // Muda o texto do botão do feedback para ir para o fim
+                const btn = dom.feedbackCard.querySelector('button');
+                btn.innerText = "Ver Resultado";
+            } else {
+                const btn = dom.feedbackCard.querySelector('button');
+                btn.innerText = "Próxima Frase";
+            }
+        }
+
+        function nextQuestion() {
+            if (lives <= 0) {
+                endGame(false);
+                return;
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= gameQuestions.length) {
+                endGame(true);
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function endGame(isVictory) {
+            switchScreen('end');
+            dom.finalScore.innerText = score;
+
+            if (isVictory) {
+                dom.endTitle.innerText = "Excelente Percepção Social!";
+                dom.endTitle.style.color = "var(--success)";
+                dom.endMessage.innerText = "Você interpretou perfeitamente as nuances das palavras. Não deixou ninguém passar vergonha!";
+                setCharacterExpression(dom.endCharacter, 'happy');
+                createConfetti();
+            } else {
+                dom.endTitle.innerText = "Comunicação Falhou";
+                dom.endTitle.style.color = "var(--danger)";
+                dom.endMessage.innerText = "Parece que houve muitos ruídos na comunicação. Que tal revisar a diferença entre Mau/Bom e Mal/Bem e tentar de novo?";
+                setCharacterExpression(dom.endCharacter, 'sad');
+            }
+        }
+
+        function resetGame() {
+            switchScreen('start');
+        }
+
+    </script>
 </body>
 </html>
