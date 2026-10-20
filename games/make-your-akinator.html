@@ -1,783 +1,1474 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMULAB: Akinator de Blocos (Propriedades Centrais)</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
-    <style>
-        /* ----------------------------------- */
-        /* ESTILOS GERAIS E ESTRUTURA */
-        /* ----------------------------------- */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8; color: #333; }
-        .top-bar { background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; z-index: 1000; height: 60px; }
-        .logo-link { text-decoration: none; color: #1E90FF; font-size: 18px; font-weight: bold; padding: 15px 0; }
-        .simulador-container { display: flex; min-height: calc(100vh - 60px); }
-        
-        .painel-variaveis { /* Painel à esquerda (Personagens e Propriedades) */
-            width: 250px; 
-            background-color: #3a3f44;
-            color: white;
-            padding: 10px;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            border-right: 1px solid #555;
-        }
-        
-        .painel-comandos { /* Painel central (Paleta de Blocos) */
-            width: 280px; 
-            background-color: #4a5056; 
-            color: white;
-            padding: 20px 10px;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            border-right: 1px solid #555;
-            overflow-y: auto;
-        }
-        
-        .area-sequencia { /* Workspace de Blocos */
-            flex-grow: 1; 
-            padding: 20px;
-            background-color: #e8e8e8;
-            background-image: radial-gradient(circle, #ccc 1px, transparent 1px);
-            background-size: 20px 20px;
-            overflow: auto; 
-        }
-        
-        .workspace {
-            min-height: 500px;
-            background-color: white;
-            border: 2px dashed #ccc;
-            padding: 15px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0; 
-        }
-
-        .area-jogo { /* Área de Jogo/Akinator */
-            width: 350px; 
-            background-color: #fafafa;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-left: 1px solid #ddd;
-        }
-
-        /* ----------------------------------- */
-        /* ESTILOS DE BLOCOS E PALETA */
-        /* ----------------------------------- */
-        .bloco {
-            cursor: grab;
-            font-weight: bold;
-            font-size: 1em;
-            color: white;
-            min-width: 200px;
-            padding: 8px 12px;
-            margin-bottom: -1px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 10;
-            border: none;
-            clip-path: polygon(0 0, 100% 0, 100% 10px, 90% 10px, 90% 15px, 100% 15px, 100% 100%, 0 100%, 0 15px, 10% 15px, 10% 10px, 0 10px);
-        }
-        .bloco-paleta { margin-bottom: 20px; padding: 5px; background-color: rgba(255, 255, 255, 0.1); border-radius: 4px; }
-        .bloco[data-type="pergunta"] { background-color: #00BCD4; border-color: #0097A7; }
-        .bloco[data-type="palpite"] { background-color: #FF9800; border-color: #FB8C00; }
-        .bloco[data-type="fim"] { background-color: #9E9E9E; border-color: #616161; }
-        .bloco .input-pergunta-texto, .bloco .input-prop, .bloco input[type="number"] { padding: 4px; margin: 0 4px; border: 1px solid #ccc; border-radius: 3px; font-weight: bold; color: #333; text-align: center; }
-        .bloco .input-pergunta-texto { width: 150px; }
-        .bloco .input-prop { width: 100px; }
-        .bloco .input-min-perguntas, .bloco .input-min-semelhanca { width: 40px; }
-        .bloco.dragging { opacity: 0.8; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); position: absolute; z-index: 1000; }
-
-        /* ----------------------------------- */
-        /* ESTILOS DO PAINEL DE VARIÁVEIS */
-        /* ----------------------------------- */
-        .personagem-box { background-color: #6A5ACD; border: 2px solid #5A2DCF; padding: 8px; border-radius: 6px; margin-bottom: 8px; text-align: left; font-size: 0.9em; }
-        .propriedade-tag {
-            background-color: #FFC107;
-            color: #333;
-            padding: 5px 10px;
-            margin: 5px;
-            display: inline-block;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .propriedade-tag:hover { background-color: #ff9800; }
-        
-        /* ----------------------------------- */
-        /* MODAL (NOVO) */
-        /* ----------------------------------- */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none; /* Inicia oculto */
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            width: 400px;
-        }
-        .modal-content label { display: block; margin: 8px 0; font-size: 1.1em; }
-        .modal-content button { margin-top: 15px; }
-
-        /* ----------------------------------- */
-        /* ESTILOS DE JOGO (Mantidos) */
-        /* ----------------------------------- */
-        .palpite-box { background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); min-height: 150px; margin-top: 20px; width: 90%; text-align: center; }
-        .answer-buttons button { padding: 10px 20px; margin: 0 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #btn-sim { background-color: #4CAF50; color: white; }
-        #btn-nao { background-color: #f44336; color: white; }
-        .highlight-current { border: 3px solid yellow !important; box-shadow: 0 0 15px yellow; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKINATOR BUILDER | Genie Maker</title>
+<style>
+:root {
+  --bg:#171a22;
+  --panel:#252a35;
+  --panel2:#2f3542;
+  --border:#414958;
+  --text:#f2f5fa;
+  --muted:#a7b0c0;
+  --cyan:#26d9f5;
+  --orange:#ff9f43;
+  --green:#35d49a;
+  --red:#ff6678;
+  --purple:#9b8cff;
+  --radius:14px;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:14px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input,textarea,select {font:inherit}
+button {cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible {
+  outline:2px solid var(--cyan);outline-offset:2px
+}
+.topbar {
+  min-height:72px;padding:14px 24px;display:flex;align-items:center;
+  justify-content:space-between;gap:18px;background:#20242e;
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10
+}
+.brand {display:flex;align-items:center;gap:12px}
+.brand-icon {
+  display:grid;place-items:center;width:43px;height:43px;border-radius:13px;
+  background:linear-gradient(135deg,#18d6ef,#8875ff);font-size:24px;color:#10131a
+}
+.brand h1 {margin:0;font-size:17px;letter-spacing:1px}
+.brand h1 span {color:var(--cyan)}
+.brand p {margin:2px 0 0;color:var(--muted);font-size:11px}
+.top-actions {display:flex;gap:8px;flex-wrap:wrap}
+button,.btn {
+  border:1px solid var(--border);border-radius:9px;padding:9px 13px;
+  color:var(--text);background:#343b49;transition:.16s ease
+}
+button:hover {filter:brightness(1.13);transform:translateY(-1px)}
+button:disabled {opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary {background:var(--cyan);border-color:var(--cyan);color:#102027;font-weight:800}
+.btn-green {background:var(--green);border-color:var(--green);color:#10271e;font-weight:800}
+.btn-orange {background:var(--orange);border-color:var(--orange);color:#2c1b0c;font-weight:800}
+.btn-danger {color:#ff8795;border-color:#75414d;background:#402b34}
+.btn-small {padding:5px 8px;font-size:12px}
+.layout {
+  display:grid;grid-template-columns:minmax(245px,290px) minmax(340px,1fr) minmax(290px,350px);
+  gap:14px;padding:16px;align-items:start;max-width:1900px;margin:auto
+}
+.panel {
+  background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;min-width:0
+}
+.panel-heading {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:15px;border-bottom:1px solid var(--border);background:#292f3b
+}
+.panel-heading h2 {font-size:13px;letter-spacing:.7px;margin:0;text-transform:uppercase}
+.panel-heading small {color:var(--muted)}
+.panel-body {padding:14px}
+.section {margin-bottom:20px}
+.section:last-child {margin-bottom:0}
+.section-title {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px
+}
+.section-title h3 {font-size:13px;margin:0}
+.count {font-size:11px;background:#414958;padding:3px 7px;border-radius:99px;color:#d9e1ee}
+.full {width:100%}
+.muted {color:var(--muted)}
+.tiny {font-size:11px}
+.divider {height:1px;background:var(--border);margin:15px 0}
+.character-list {display:grid;gap:8px;margin-top:10px}
+.character-card {
+  background:#303744;border:1px solid #414958;border-radius:10px;padding:11px;
+  display:flex;align-items:center;gap:10px
+}
+.avatar {
+  flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;
+  background:#424b5c;border-radius:10px;font-size:22px
+}
+.char-info {min-width:0;flex:1}
+.char-info strong {display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.char-info small {display:block;color:var(--muted);font-size:11px}
+.card-actions {display:flex;gap:4px;flex-wrap:wrap}
+.icon-btn {padding:5px 7px;font-size:12px}
+.tag-list {display:flex;flex-wrap:wrap;gap:7px}
+.tag {
+  display:inline-flex;align-items:center;gap:6px;border:1px solid #4a5261;
+  border-radius:7px;padding:6px 8px;background:#343b49;color:#dfe7f2;font-size:12px
+}
+.tag .tag-count {color:var(--muted);font-size:10px}
+.tag button {border:0;padding:0;background:none;color:var(--muted);font-size:13px}
+.empty {
+  padding:17px 12px;text-align:center;border:1px dashed #4a5261;border-radius:10px;
+  color:var(--muted);font-size:12px
+}
+.center-panel .panel-heading {background:#222832}
+.center-heading {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.start-button {font-size:12px;padding:10px 15px}
+.editor-stats {display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.stat {
+  background:#303744;border:1px solid var(--border);border-radius:9px;
+  padding:8px 11px;flex:1;min-width:80px
+}
+.stat strong {display:block;font-size:18px}
+.stat span {font-size:10px;color:var(--muted)}
+.editor-label {font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:17px 0 9px}
+.block-library {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.library-block {
+  text-align:left;padding:12px;border-radius:10px;border:1px solid var(--border);
+  background:#2d3440;display:flex;align-items:center;gap:10px
+}
+.library-block .block-symbol {font-size:22px}
+.library-block strong {display:block;font-size:12px}
+.library-block small {display:block;color:var(--muted);font-size:10px}
+.library-block.question {border-left:4px solid var(--cyan)}
+.library-block.guess {border-left:4px solid var(--orange)}
+.canvas {
+  background-color:#1d222c;
+  background-image:radial-gradient(#465063 1px,transparent 1px);
+  background-size:18px 18px;
+  border:1px solid #3a4352;border-radius:12px;padding:14px;min-height:260px
+}
+.flow-marker {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:#9ba8b9;font-size:10px;font-weight:800;letter-spacing:1.3px;padding:8px
+}
+.flow-marker:before,.flow-marker:after {content:"";height:1px;background:#414958;flex:1}
+.flow-marker.end {color:var(--green)}
+.flow-list {display:grid;gap:8px}
+.logic-block {
+  background:#2b323e;border:1px solid #475263;border-left:4px solid var(--cyan);
+  border-radius:10px;padding:10px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;
+  gap:8px;align-items:center
+}
+.logic-block.guess-block {border-left-color:var(--orange)}
+.drag-handle {color:#8290a4;cursor:grab;font-size:17px;text-align:center;user-select:none}
+.logic-block.dragging {opacity:.4}
+.logic-block.drop-target {outline:2px dashed var(--cyan)}
+.block-main {min-width:0}
+.block-top {display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.block-type {
+  font-size:9px;letter-spacing:.7px;text-transform:uppercase;font-weight:900;
+  color:var(--cyan);background:#173b46;padding:3px 6px;border-radius:4px
+}
+.guess-block .block-type {color:var(--orange);background:#49351f}
+.block-main strong {font-size:12px;overflow-wrap:anywhere}
+.block-sub {font-size:10px;color:var(--muted)}
+.block-actions {display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.block-actions button {padding:5px 7px;font-size:11px}
+.add-row {display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.help-box {
+  border:1px solid #3c5262;background:#22313b;border-radius:9px;padding:10px;
+  color:#b9dce7;font-size:11px;margin-top:13px
+}
+.right-panel {position:sticky;top:88px}
+.genie-header {text-align:center;padding:20px 14px 12px}
+.genie {
+  width:100px;height:100px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;
+  font-size:57px;background:radial-gradient(circle at 35% 25%,#566a9c,#272d44 65%);
+  border:2px solid #7183bf;box-shadow:0 0 35px #7365ff22
+}
+.genie-header h2 {font-size:18px;margin:0}
+.genie-header p {font-size:11px;color:var(--muted);margin:4px 0}
+.speech {
+  background:#343b49;border:1px solid #4b5567;border-radius:14px;padding:15px;
+  position:relative;margin:4px 14px 14px;font-size:14px;min-height:88px;
+  display:flex;align-items:center;justify-content:center;text-align:center
+}
+.speech:before {
+  content:"";position:absolute;top:-6px;left:calc(50% - 6px);width:10px;height:10px;
+  transform:rotate(45deg);background:#343b49;border-left:1px solid #4b5567;border-top:1px solid #4b5567
+}
+.progress-wrap {padding:0 14px 14px}
+.progress-text {display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px}
+.progress {height:5px;background:#414958;border-radius:99px;overflow:hidden}
+.progress > div {height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .25s}
+.answer-buttons {display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 14px}
+.answer-buttons button {padding:12px 7px;font-weight:900;font-size:12px}
+.answer-buttons .yes {background:#174c3d;border-color:#2f9979;color:#70f2c3}
+.answer-buttons .no {background:#4b2933;border-color:#9d4658;color:#ff9ba9}
+.answer-buttons .maybe {grid-column:1/-1;background:#39364e;border-color:#666092;color:#d3caff}
+.sim-actions {padding:12px 14px;display:flex;gap:7px}
+.sim-actions button {flex:1;font-size:11px}
+.guess-result {padding:0 14px 15px}
+.result-card {
+  text-align:center;background:#193a32;border:1px solid #2e8d6b;border-radius:12px;padding:17px
+}
+.result-card .result-emoji {font-size:43px}
+.result-card h3 {font-size:17px;margin:5px 0}
+.result-card p {color:#a8ddca;font-size:11px;margin:5px 0 12px}
+.result-card .btn {width:100%}
+.candidate-box {padding:0 14px 15px}
+.candidate-box h4 {font-size:11px;margin:0 0 7px;color:var(--muted)}
+.candidate-row {display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #3b4350}
+.candidate-row:last-child {border-bottom:0}
+.candidate-row .candidate-emoji {font-size:19px}
+.candidate-row .candidate-name {flex:1;font-size:11px}
+.mini-track {width:56px;height:5px;background:#444c5a;border-radius:99px;overflow:hidden}
+.mini-track span {display:block;height:100%;background:var(--green)}
+.candidate-percent {font-size:10px;color:var(--muted);width:32px;text-align:right}
+.settings-grid {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field {display:grid;gap:5px;margin-bottom:11px}
+.field label {font-size:11px;color:#c1cada}
+.field input,.field select,.field textarea {
+  width:100%;min-width:0;background:#1e232d;border:1px solid #4a5362;color:var(--text);
+  padding:10px;border-radius:8px
+}
+.field textarea {min-height:70px;resize:vertical}
+.field input[type=checkbox] {width:auto}
+.field small {font-size:10px;color:var(--muted)}
+.checkline {display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.modal-backdrop {
+  position:fixed;inset:0;background:#090b10cc;z-index:30;display:none;
+  align-items:center;justify-content:center;padding:15px
+}
+.modal-backdrop.open {display:flex}
+.modal {
+  width:min(520px,100%);max-height:90vh;overflow:auto;background:#282e39;
+  border:1px solid #4a5362;border-radius:15px;box-shadow:0 20px 80px #0008
+}
+.modal-header {display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--border)}
+.modal-header h2 {font-size:15px;margin:0}
+.modal-body {padding:16px}
+.modal-footer {display:flex;justify-content:flex-end;gap:8px;padding:14px 16px;border-top:1px solid var(--border)}
+.property-picker {display:flex;flex-wrap:wrap;gap:7px}
+.property-option {display:flex;gap:6px;align-items:center;border:1px solid var(--border);background:#303744;padding:7px 9px;border-radius:8px;font-size:12px}
+.property-option input {accent-color:var(--cyan)}
+.toast {
+  position:fixed;bottom:18px;left:50%;transform:translate(-50%,20px);
+  background:#eafcf5;color:#12382b;padding:10px 16px;border-radius:9px;
+  font-weight:700;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:50
+}
+.toast.show {opacity:1;transform:translate(-50%,0)}
+footer {text-align:center;color:#717e91;font-size:10px;padding:20px}
+@media(max-width:1100px) {
+  .layout {grid-template-columns:minmax(240px,.8fr) minmax(330px,1.2fr)}
+  .right-panel {position:static;grid-column:1/-1}
+  .right-panel .panel-body {display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .right-panel .genie-header,.right-panel .speech,.right-panel .progress-wrap,
+  .right-panel .answer-buttons,.right-panel .sim-actions,.right-panel .guess-result,
+  .right-panel .candidate-box {grid-column:auto}
+  .right-panel .genie-header {grid-row:span 2}
+  .right-panel .speech {align-self:center}
+}
+@media(max-width:720px) {
+  .topbar {padding:12px;align-items:flex-start}
+  .brand h1 {font-size:14px}
+  .brand p {max-width:190px}
+  .top-actions {justify-content:flex-end}
+  .top-actions button {font-size:11px;padding:7px}
+  .layout {display:flex;flex-direction:column;padding:10px;gap:10px}
+  .panel {width:100%}
+  .right-panel {order:3}
+  .center-panel {order:2}
+  .left-panel {order:1}
+  .right-panel .panel-body {display:block}
+  .right-panel .genie-header {grid-row:auto}
+  .block-library {grid-template-columns:1fr 1fr}
+  .canvas {padding:9px}
+  .logic-block {grid-template-columns:20px minmax(0,1fr)}
+  .block-actions {grid-column:2;justify-content:flex-start}
+  .settings-grid {grid-template-columns:1fr}
+}
+@media(max-width:390px) {
+  .brand-icon {width:35px;height:35px;font-size:20px}
+  .brand {gap:8px}
+  .topbar {gap:8px}
+  .top-actions {max-width:112px}
+  .block-library {grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
-    <header class="top-bar">
-        <a href="#" class="logo-link">
-            <i class="fas fa-magic"></i> SIMULAB: AKINATOR DE BLOCOS
-        </a>
-    </header>
-
-    <main class="simulador-container">
-        
-        <section class="painel-variaveis">
-            
-            <h2><i class="fas fa-users"></i> Personagens</h2>
-            <div id="character-definitions">
-                </div>
-            <button onclick="addCharacter()" style="background-color: #4CAF50; color: white; padding: 5px 10px; border: none; border-radius: 4px; margin-top: 10px; width: 100%;">
-                <i class="fas fa-plus"></i> Novo Personagem
-            </button>
-            
-            <hr style="border-top: 1px solid #555; margin: 20px 0;">
-
-            <h2><i class="fas fa-tags"></i> Propriedades</h2>
-            <div id="property-list">
-                </div>
-            <button onclick="addProperty()" style="background-color: #FFA500; color: #333; padding: 5px 10px; border: none; border-radius: 4px; margin-top: 10px; width: 100%;">
-                <i class="fas fa-plus"></i> Nova Propriedade
-            </button>
-        </section>
-
-
-        <section class="painel-comandos">
-            <h2><i class="fas fa-puzzle-piece"></i> Comandos</h2>
-            
-            <div class="bloco-paleta">
-                <div class="bloco" draggable="true" data-type="pergunta" data-pergunta="Tem bigode?" data-prop="bigode">
-                    Pergunta: <input type="text" class="input-pergunta-texto" value="Tem bigode?" onchange="updateBlockParam(this, 'pergunta-texto')">
-                    Propriedade (ID): <input type="text" class="input-prop" value="bigode" onchange="updateBlockParam(this, 'prop')">
-                    <p style="font-size: 0.7em; margin-top: 5px;">
-                        * A resposta registra a característica do usuário.
-                    </p>
-                </div>
-            </div>
-
-            <div class="bloco-paleta">
-                <div class="bloco" draggable="true" data-type="palpite" data-min-perguntas="5" data-min-semelhanca="90">
-                    TENTAR PALPITE (Avançado)
-                    <div style="font-size: 0.8em; margin-top: 5px; text-align: left;">
-                        Mín. Perguntas: <input type="number" class="input-min-perguntas" value="5" min="1" onchange="updateBlockParam(this, 'min-perguntas')">
-                        <br>
-                        Mín. Semelhança (%): <input type="number" class="input-min-semelhanca" value="90" min="50" max="100" onchange="updateBlockParam(this, 'min-semelhanca')">
-                    </div>
-                </div>
-            </div>
-
-             <div class="bloco-paleta">
-                <div class="bloco" draggable="true" data-type="fim">
-                    FIM DA SEQUÊNCIA
-                </div>
-            </div>
-        </section>
-
-        <section class="area-sequencia">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2><i class="fas fa-list-ol"></i> Sequência de Perguntas</h2>
-                <button id="btn-iniciar-sequencia" onclick="startGame()" style="background-color: #1E90FF; color: white; padding: 8px 15px; border: none; border-radius: 4px;"><i class="fas fa-play"></i> INICIAR JOGO</button>
-            </div>
-            
-            <div id="workspace" class="workspace">
-                 <div id="start-block" class="bloco" data-type="inicio" style="background-color: #7A42F4; border-color: #5A2DCF; cursor: default;">
-                    INÍCIO DO JOGO
-                </div>
-                </div>
-        </section>
-
-        <section class="area-jogo">
-            <h2><i class="fas fa-user-secret"></i> Adivinhador</h2>
-            
-            <div id="palpite-box" class="palpite-box">
-                <h3 id="game-question" style="font-size: 1.5em; font-weight: bold; color: #1E90FF;">Construa sua sequência de perguntas.</h3>
-                
-                <div id="game-status" style="min-height: 100px;">
-                    </div>
-                
-                <div class="answer-buttons" style="margin-top: 20px;">
-                    <button id="btn-sim" onclick="answer('sim')" disabled>SIM</button>
-                    <button id="btn-nao" onclick="answer('nao')" disabled>NÃO</button>
-                </div>
-            </div>
-            
-            <button id="btn-reset" onclick="startGame()" style="margin-top: 20px;" disabled><i class="fas fa-redo"></i> REINICIAR</button>
-        </section>
-
-    </main>
-
-    <div id="property-modal-overlay" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modal-title">Gerenciar Propriedade:</h3>
-            <div id="modal-character-list">
-                </div>
-            <button onclick="closePropertyModal()" style="background-color: #1E90FF; color: white; padding: 8px 15px; border: none; border-radius: 4px;"><i class="fas fa-check"></i> Fechar</button>
-        </div>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon">🧞</div>
+    <div>
+      <h1>AKINATOR <span>BUILDER</span></h1>
+      <p>GENIE MAKER · Editor de conhecimento e lógica</p>
     </div>
+  </div>
+  <div class="top-actions">
+    <button id="exportBtn" title="Exportar projeto em JSON">⇩ Exportar</button>
+    <button id="importBtn" title="Importar projeto em JSON">⇧ Importar</button>
+    <button id="resetBtn" class="btn-danger">↺ Restaurar exemplo</button>
+    <input id="importFile" type="file" accept=".json,application/json" hidden>
+  </div>
+</header>
 
+<main class="layout">
+  <!-- PAINEL ESQUERDO -->
+  <aside class="panel left-panel">
+    <div class="panel-heading">
+      <h2>🗃 Base de conhecimento</h2>
+      <small id="dataCount">0 itens</small>
+    </div>
+    <div class="panel-body">
+      <section class="section">
+        <div class="section-title">
+          <h3>Personagens</h3>
+          <span class="count" id="characterCount">0</span>
+        </div>
+        <button class="btn-primary full" id="newCharacterBtn">＋ Novo personagem</button>
+        <div class="character-list" id="characterList"></div>
+      </section>
+      <div class="divider"></div>
+      <section class="section">
+        <div class="section-title">
+          <h3>Propriedades / Tags</h3>
+          <span class="count" id="propertyCount">0</span>
+        </div>
+        <button class="full" id="newPropertyBtn">＋ Nova propriedade</button>
+        <p class="tiny muted">Cada propriedade descreve uma característica que pode ser investigada pelo gênio.</p>
+        <div class="tag-list" id="propertyList"></div>
+      </section>
+      <div class="divider"></div>
+      <section class="section">
+        <div class="section-title"><h3>Regras do palpite</h3></div>
+        <div class="field">
+          <label for="minQuestions">Mínimo de perguntas respondidas</label>
+          <input id="minQuestions" type="number" min="0" max="30" value="2">
+        </div>
+        <div class="field">
+          <label for="guessThreshold">Semelhança mínima para palpite (%)</label>
+          <input id="guessThreshold" type="number" min="0" max="100" value="70">
+        </div>
+        <label class="checkline">
+          <input id="guessOnUnique" type="checkbox" checked>
+          Tentar quando restar um candidato
+        </label>
+        <p class="tiny muted">As alterações são salvas automaticamente neste navegador.</p>
+      </section>
+    </div>
+  </aside>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const painelComandos = document.querySelector('.painel-comandos');
-            const workspace = document.getElementById('workspace');
-            const gameQuestionEl = document.getElementById('game-question');
-            const characterDefinitionsEl = document.getElementById('character-definitions');
-            const propertyListEl = document.getElementById('property-list');
-            const simBtn = document.getElementById('btn-sim');
-            const naoBtn = document.getElementById('btn-nao');
-            const btnReset = document.getElementById('btn-reset');
-            const modalOverlay = document.getElementById('property-modal-overlay');
-            const modalTitle = document.getElementById('modal-title');
-            const modalCharList = document.getElementById('modal-character-list');
+  <!-- PAINEL CENTRAL -->
+  <section class="panel center-panel">
+    <div class="panel-heading">
+      <div class="center-heading">
+        <div>
+          <h2>⚙ Editor de sequência lógica</h2>
+          <small>Monte a estratégia de perguntas do seu gênio.</small>
+        </div>
+      </div>
+      <button class="btn-primary start-button" id="startGameBtn">▶ INICIAR JOGO</button>
+    </div>
+    <div class="panel-body">
+      <div class="editor-stats">
+        <div class="stat"><strong id="statQuestions">0</strong><span>PERGUNTAS</span></div>
+        <div class="stat"><strong id="statGuesses">0</strong><span>BLOCOS DE PALPITE</span></div>
+        <div class="stat"><strong id="statCharacters">0</strong><span>PERSONAGENS</span></div>
+      </div>
 
-            // -----------------------------------
-            // BANCO DE DADOS INICIAL E ESTADO
-            // -----------------------------------
-            
-            // NOVO: Propriedades agora são um mapa central { 'id_propriedade': { 'char_id': boolean, ... } }
-            let propertyMap = { 
-                'bigode': { 'mario': true, 'batman': false, 'peach': false },
-                'mulher': { 'mario': false, 'batman': false, 'peach': true },
-                'capa': { 'mario': true, 'batman': true, 'peach': false },
-            };
-            
-            // Personagens não possuem mais as propriedades diretamente
-            let characterList = [ 
-                { id: 'mario', name: "Super Mário" },
-                { id: 'batman', name: "Batman" },
-                { id: 'peach', name: "Princesa Peach" },
-            ];
-            
-            let userHistory = {}; 
-            let questionCount = 0; 
+      <div class="editor-label">Biblioteca de comandos · clique para adicionar</div>
+      <div class="block-library">
+        <button class="library-block question" id="addQuestionBtn">
+          <span class="block-symbol">❔</span>
+          <span><strong>Bloco de pergunta</strong><small>Investiga uma propriedade</small></span>
+        </button>
+        <button class="library-block guess" id="addGuessBtn">
+          <span class="block-symbol">🔮</span>
+          <span><strong>Tentar palpite</strong><small>Calcula o melhor candidato</small></span>
+        </button>
+      </div>
 
-            let blockCounter = 3;
-            let gameActive = false;
-            let currentBlockIndex = 0;
-            let commandSequence = []; 
+      <div class="editor-label">Sequência de perguntas · arraste para ordenar</div>
+      <div class="canvas">
+        <div class="flow-marker">INÍCIO DO JOGO</div>
+        <div class="flow-list" id="flowList"></div>
+        <div class="flow-marker end">FIM DA SEQUÊNCIA</div>
+      </div>
+      <div class="add-row">
+        <button id="appendQuestionBtn" class="btn-primary">＋ Adicionar pergunta</button>
+        <button id="appendGuessBtn" class="btn-orange">＋ Adicionar palpite</button>
+        <button id="clearFlowBtn" class="btn-danger">Limpar sequência</button>
+      </div>
+      <div class="help-box">
+        <strong>💡 Como funciona?</strong><br>
+        Adicione perguntas vinculadas a propriedades. Durante o jogo, <b>SIM</b> indica que o personagem tem a característica, <b>NÃO</b> indica que não tem, e <b>TALVEZ</b> deixa a resposta em aberto. Os blocos de palpite avaliam os candidatos disponíveis. Você pode mover blocos pelas setas ou arrastando-os.
+      </div>
+    </div>
+  </section>
 
-            // Variáveis de estado para Drag and Drop e Backspace
-            let draggedBlockType = null;
-            let draggedClone = null;
-            let dropTarget = null; 
-            let activeDragBlockId = null; // ID do bloco que está sendo arrastado
+  <!-- PAINEL DIREITO -->
+  <aside class="panel right-panel">
+    <div class="panel-heading">
+      <h2>🧞 Simulador do gênio</h2>
+      <span class="count" id="gameStatus">PRONTO</span>
+    </div>
+    <div class="panel-body">
+      <div class="genie-header">
+        <div class="genie" id="genieAvatar">🧞</div>
+        <h2>O Gênio do Conhecimento</h2>
+        <p id="genieSub">Pense em um dos personagens cadastrados...</p>
+      </div>
+      <div class="speech" id="speech" aria-live="polite">
+        Olá! Vamos começar? Clique em “Iniciar jogo” e pense em um personagem.
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-text"><span id="progressLabel">Progresso do jogo</span><span id="progressCount">0 / 0</span></div>
+        <div class="progress"><div id="progressBar"></div></div>
+      </div>
+      <div class="answer-buttons" id="answerButtons">
+        <button class="yes" data-answer="yes">✓ SIM</button>
+        <button class="no" data-answer="no">✕ NÃO</button>
+        <button class="maybe" data-answer="maybe">◉ TALVEZ / NÃO SEI</button>
+      </div>
+      <div class="sim-actions">
+        <button id="backBtn" disabled>← Voltar</button>
+        <button id="restartBtn">↺ Reiniciar</button>
+      </div>
+      <div class="guess-result" id="guessResult" hidden></div>
+      <div class="candidate-box">
+        <h4>🎯 CANDIDATOS MAIS PROVÁVEIS</h4>
+        <div id="candidateList" class="muted tiny">Inicie uma partida para ver os candidatos.</div>
+      </div>
+    </div>
+  </aside>
+</main>
 
-            // --- FUNÇÕES DE GERENCIAMENTO DE PROPRIEDADES (NOVO) ---
-            
-            function renderProperties() {
-                propertyListEl.innerHTML = Object.keys(propertyMap).map(propId => `
-                    <span class="propriedade-tag" onclick="openPropertyModal('${propId}')">
-                        ${propId}
-                    </span>
-                `).join('');
-            }
-            window.renderProperties = renderProperties;
+<footer>GENIE MAKER · Projeto educativo · Seus dados ficam no navegador.</footer>
 
-            function addProperty() {
-                const newProp = prompt("Digite o ID da nova propriedade (ex: e-robo). Use apenas letras e hífens:");
-                if (newProp && newProp.trim() !== '') {
-                    const cleanProp = newProp.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-                    if (!propertyMap[cleanProp]) {
-                        propertyMap[cleanProp] = {};
-                        // Inicializa a nova propriedade como false para todos os personagens existentes
-                        characterList.forEach(char => {
-                            propertyMap[cleanProp][char.id] = false;
-                        });
-                        renderProperties();
-                        alert(`Propriedade '${cleanProp}' adicionada! Clique nela para definir os personagens.`);
-                    } else {
-                        alert("Essa propriedade já existe!");
-                    }
-                }
-            }
-            window.addProperty = addProperty;
+<!-- MODAL PERSONAGEM -->
+<div class="modal-backdrop" id="characterModal">
+  <form class="modal" id="characterForm">
+    <div class="modal-header">
+      <h2 id="characterModalTitle">Novo personagem</h2>
+      <button type="button" class="icon-btn" data-close="characterModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="characterOriginalId">
+      <div class="field">
+        <label for="characterName">Nome do personagem *</label>
+        <input id="characterName" required maxlength="70" placeholder="Ex.: Super Mario">
+      </div>
+      <div class="field">
+        <label for="characterId">ID único *</label>
+        <input id="characterId" required maxlength="70" placeholder="Ex.: super-mario">
+        <small>Use letras, números, hífens ou sublinhados.</small>
+      </div>
+      <div class="field">
+        <label for="characterEmoji">Ícone / emoji</label>
+        <input id="characterEmoji" maxlength="8" value="🧑‍🚀" placeholder="🎮">
+      </div>
+      <div class="field">
+        <label>Propriedades deste personagem</label>
+        <div class="property-picker" id="characterPropertyPicker"></div>
+        <small>Marque todas as características que se aplicam ao personagem.</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" data-close="characterModal">Cancelar</button>
+      <button type="submit" class="btn-primary">Salvar personagem</button>
+    </div>
+  </form>
+</div>
 
-            // Variável temporária para rastrear a propriedade que está sendo editada no modal
-            let currentPropertyId = null;
+<!-- MODAL PROPRIEDADE -->
+<div class="modal-backdrop" id="propertyModal">
+  <form class="modal" id="propertyForm">
+    <div class="modal-header">
+      <h2 id="propertyModalTitle">Nova propriedade</h2>
+      <button type="button" class="icon-btn" data-close="propertyModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="propertyOriginalId">
+      <div class="field">
+        <label for="propertyName">Nome da propriedade *</label>
+        <input id="propertyName" required maxlength="70" placeholder="Ex.: usa capa">
+      </div>
+      <div class="field">
+        <label for="propertyId">ID único *</label>
+        <input id="propertyId" required maxlength="70" placeholder="Ex.: usa-capa">
+      </div>
+      <div class="field">
+        <label for="propertyQuestion">Pergunta padrão</label>
+        <input id="propertyQuestion" maxlength="180" placeholder="Ex.: Seu personagem usa uma capa?">
+        <small>Você poderá personalizar a pergunta dentro da sequência.</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" data-close="propertyModal">Cancelar</button>
+      <button type="submit" class="btn-primary">Salvar propriedade</button>
+    </div>
+  </form>
+</div>
 
-            function openPropertyModal(propId) {
-                currentPropertyId = propId;
-                modalTitle.textContent = `Gerenciar Propriedade: ${propId}`;
-                
-                modalCharList.innerHTML = characterList.map(char => {
-                    const isChecked = propertyMap[propId][char.id] || false;
-                    return `
-                        <label>
-                            <input type="checkbox" 
-                                data-char-id="${char.id}"
-                                ${isChecked ? 'checked' : ''}
-                                onchange="updateModalCheckbox('${propId}', '${char.id}', this.checked)">
-                            ${char.name} (ID: ${char.id})
-                        </label>
-                    `;
-                }).join('');
-                
-                modalOverlay.style.display = 'flex';
-            }
-            window.openPropertyModal = openPropertyModal;
+<!-- MODAL BLOCO -->
+<div class="modal-backdrop" id="blockModal">
+  <form class="modal" id="blockForm">
+    <div class="modal-header">
+      <h2 id="blockModalTitle">Editar bloco</h2>
+      <button type="button" class="icon-btn" data-close="blockModal">✕</button>
+    </div>
+    <div class="modal-body" id="blockModalBody"></div>
+    <div class="modal-footer">
+      <button type="button" data-close="blockModal">Cancelar</button>
+      <button type="submit" class="btn-primary">Salvar bloco</button>
+    </div>
+  </form>
+</div>
 
-            function updateModalCheckbox(propId, charId, isChecked) {
-                if (propertyMap[propId]) {
-                    propertyMap[propId][charId] = isChecked;
-                }
-                // O placar será atualizado ao fechar o modal ou ao iniciar o jogo
-            }
-            window.updateModalCheckbox = updateModalCheckbox;
+<div class="toast" id="toast"></div>
 
-            function closePropertyModal() {
-                modalOverlay.style.display = 'none';
-                currentPropertyId = null;
-                // Re-renderiza o placar no painel de jogo (por garantia)
-                updateScoreboard();
-            }
-            window.closePropertyModal = closePropertyModal;
+<script>
+(() => {
+  "use strict";
 
-            // --- FUNÇÕES DE GERENCIAMENTO DE PERSONAGENS ---
+  const STORAGE_KEY = "genieMakerProject_v1";
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-            function renderCharacters() {
-                characterDefinitionsEl.innerHTML = characterList.map(char => `
-                    <div class="personagem-box" data-char-id="${char.id}">
-                        Nome: <input type="text" value="${char.name}" onchange="updateCharName('${char.id}', this.value)">
-                        ID: <b>${char.id}</b>
-                        <div style="margin-top: 5px; font-size: 0.8em;">
-                            Total de Propriedades: ${Object.keys(propertyMap).length}
-                        </div>
-                    </div>
-                `).join('');
-            }
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const uid = prefix => prefix + "-" + Math.random().toString(36).slice(2, 9);
+  const slugify = text => text.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "item";
 
-            function addCharacter() {
-                blockCounter++;
-                const newId = `char${blockCounter}`;
-                characterList.push({ id: newId, name: `Novo Personagem ${blockCounter}` });
-                
-                // Inicializa o novo personagem com 'false' em todas as propriedades
-                Object.keys(propertyMap).forEach(propId => {
-                    propertyMap[propId][newId] = false;
-                });
+  function makeDefaultData() {
+    const properties = [
+      {id:"humano", name:"É humano", question:"Seu personagem é humano?"},
+      {id:"bigode", name:"Tem bigode", question:"Seu personagem tem bigode?"},
+      {id:"capa", name:"Usa capa", question:"Seu personagem usa uma capa?"},
+      {id:"superpoderes", name:"Tem superpoderes", question:"Seu personagem tem superpoderes?"},
+      {id:"mulher", name:"É mulher", question:"Seu personagem é uma mulher?"},
+      {id:"realeza", name:"É da realeza", question:"Seu personagem pertence à realeza?"},
+      {id:"video-game", name:"É de videogame", question:"Seu personagem vem de um videogame?"},
+      {id:"mascara", name:"Usa máscara", question:"Seu personagem usa uma máscara?"},
+      {id:"encanador", name:"É encanador", question:"Seu personagem é encanador?"}
+    ];
+    const characters = [
+      {id:"super-mario", name:"Super Mario", emoji:"🍄",
+       properties:["humano","bigode","video-game","encanador"]},
+      {id:"batman", name:"Batman", emoji:"🦇",
+       properties:["humano","capa","mascara"]},
+      {id:"princesa-peach", name:"Princesa Peach", emoji:"👑",
+       properties:["humano","mulher","realeza","video-game"]}
+    ];
+    const sequence = [
+      {id:uid("block"), type:"question", propertyId:"video-game",
+       text:"Seu personagem vem de um videogame?"},
+      {id:uid("block"), type:"question", propertyId:"bigode",
+       text:"Seu personagem tem bigode?"},
+      {id:uid("block"), type:"guess", minQuestions:2, threshold:70},
+      {id:uid("block"), type:"question", propertyId:"capa",
+       text:"Seu personagem usa uma capa?"},
+      {id:uid("block"), type:"question", propertyId:"mulher",
+       text:"Seu personagem é uma mulher?"},
+      {id:uid("block"), type:"guess", minQuestions:3, threshold:60}
+    ];
+    return {
+      version:1, properties, characters, sequence,
+      settings:{minQuestions:2, guessThreshold:70, guessOnUnique:true}
+    };
+  }
 
-                renderCharacters();
-                renderProperties();
-            }
-            window.addCharacter = addCharacter;
+  let data = loadData();
+  let game = freshGame();
+  let editingBlockId = null;
+  let dragSourceId = null;
 
-            function updateCharName(id, newName) {
-                const char = characterList.find(c => c.id === id);
-                if (char) char.name = newName;
-                renderCharacters();
-            }
-            window.updateCharName = updateCharName;
-            
-            function updateBlockParam(inputElement, paramName) {
-                const bloco = inputElement.closest('.bloco');
-                if (bloco) {
-                    if(paramName === 'pergunta-texto') {
-                        bloco.setAttribute('data-pergunta', inputElement.value);
-                    } else {
-                        bloco.setAttribute(`data-${paramName}`, inputElement.value);
-                    }
-                }
-            }
-            window.updateBlockParam = updateBlockParam;
+  function loadData() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.characters) &&
+            Array.isArray(parsed.properties) && Array.isArray(parsed.sequence)) {
+          parsed.settings ||= {minQuestions:2, guessThreshold:70, guessOnUnique:true};
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.warn("Não foi possível ler os dados salvos:", error);
+    }
+    return makeDefaultData();
+  }
 
-            // --- LÓGICA DE CÁLCULO DE SEMELHANÇA (REUSADA E AJUSTADA) ---
-            
-            function calculateSimilarity(characterId) {
-                const answeredProps = Object.keys(userHistory);
-                if (answeredProps.length === 0) return 0;
+  function saveData(showMessage = false) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      if (showMessage) toast("Projeto salvo no navegador.");
+    } catch (error) {
+      toast("Não foi possível salvar. Verifique o armazenamento do navegador.");
+    }
+  }
 
-                let matches = 0;
-                
-                answeredProps.forEach(prop => {
-                    const userValue = userHistory[prop];
-                    const charValue = propertyMap[prop] ? propertyMap[prop][characterId] : false;
-                    
-                    if (userValue === charValue) {
-                        matches++;
-                    }
-                });
+  function freshGame() {
+    return {
+      active:false, finished:false, cursor:0, asked:0, answers:[],
+      history:[], candidates:[], result:null, message:""
+    };
+  }
 
-                return Math.round((matches / answeredProps.length) * 100);
-            }
+  function toast(message) {
+    const el = $("#toast");
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => el.classList.remove("show"), 2400);
+  }
 
-            function updateScoreboard() {
-                const gameStatusEl = document.getElementById('game-status');
-                
-                const scoredCharacters = characterList.map(char => ({
-                    ...char,
-                    similarity: calculateSimilarity(char.id)
-                }));
-                
-                scoredCharacters.sort((a, b) => b.similarity - a.similarity);
+  function propertyById(id) {
+    return data.properties.find(property => property.id === id);
+  }
+  function characterById(id) {
+    return data.characters.find(character => character.id === id);
+  }
 
-                const scoreboardHTML = scoredCharacters.map((char, index) => {
-                    const cor = index === 0 ? 'color: #FF4500; font-weight: bold;' : 'color: #555;';
-                    return `<li style="${cor}">${index + 1}. ${char.name} (Semelhança: ${char.similarity}%)</li>`;
-                }).join('');
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[char]));
+  }
 
-                gameStatusEl.innerHTML = `
-                    <p style="font-weight: bold; margin-bottom: 5px;">
-                        PLACAR (Perguntas feitas: ${questionCount})
-                    </p>
-                    <ul style="list-style: none; padding: 0; text-align: left; font-size: 0.9em;">
-                        ${scoreboardHTML}
-                    </ul>
-                `;
-            }
+  function uniqueId(base, collection, excluding = null) {
+    let id = slugify(base);
+    let candidate = id;
+    let index = 2;
+    while (collection.some(item => item.id === candidate && item.id !== excluding)) {
+      candidate = id + "-" + index++;
+    }
+    return candidate;
+  }
 
-            // --- LÓGICA DE INÍCIO E CONTROLE DO JOGO (Mantida) ---
+  function renderAll() {
+    renderCharacters();
+    renderProperties();
+    renderSequence();
+    renderStats();
+    renderGame();
+    syncSettings();
+  }
 
-            function updateCommandSequence() {
-                commandSequence = Array.from(workspace.children)
-                    .filter(el => el.getAttribute('data-type') !== 'inicio')
-                    .map(el => el.id);
-            }
+  function renderStats() {
+    $("#characterCount").textContent = data.characters.length;
+    $("#propertyCount").textContent = data.properties.length;
+    $("#dataCount").textContent = `${data.characters.length + data.properties.length} itens`;
+    $("#statQuestions").textContent = data.sequence.filter(b => b.type === "question").length;
+    $("#statGuesses").textContent = data.sequence.filter(b => b.type === "guess").length;
+    $("#statCharacters").textContent = data.characters.length;
+  }
 
-            function startGame() {
-                updateCommandSequence(); 
+  function renderCharacters() {
+    const list = $("#characterList");
+    if (!data.characters.length) {
+      list.innerHTML = '<div class="empty">Nenhum personagem cadastrado.<br>Crie o primeiro acima.</div>';
+      return;
+    }
+    list.innerHTML = data.characters.map(character => `
+      <article class="character-card">
+        <div class="avatar">${escapeHtml(character.emoji || "👤")}</div>
+        <div class="char-info">
+          <strong title="${escapeHtml(character.name)}">${escapeHtml(character.name)}</strong>
+          <small>${escapeHtml(character.id)} · ${character.properties.length} tags</small>
+          <div class="card-actions" style="margin-top:6px">
+            <button class="icon-btn" data-edit-character="${escapeHtml(character.id)}">✎ Editar</button>
+            <button class="icon-btn" data-delete-character="${escapeHtml(character.id)}">✕ Excluir</button>
+          </div>
+        </div>
+      </article>
+    `).join("");
+  }
 
-                if (commandSequence.length === 0) {
-                     gameQuestionEl.textContent = "Adicione blocos de PERGUNTA e TENTAR PALPITE na sequência!";
-                     return;
-                }
-                
-                userHistory = {}; 
-                questionCount = 0; 
-                renderCharacters(); // Atualiza a lista de personagens (embora não mudem muito no jogo)
-                gameActive = true;
-                currentBlockIndex = 0;
-                simBtn.disabled = false;
-                naoBtn.disabled = false;
-                btnReset.disabled = false;
-                
-                workspace.querySelectorAll('.bloco').forEach(b => b.classList.remove('highlight-current'));
+  function renderProperties() {
+    const list = $("#propertyList");
+    if (!data.properties.length) {
+      list.innerHTML = '<div class="empty" style="width:100%">Nenhuma propriedade cadastrada.</div>';
+      return;
+    }
+    list.innerHTML = data.properties.map(property => {
+      const linked = data.characters.filter(c => c.properties.includes(property.id)).length;
+      return `
+        <div class="tag">
+          <span title="${escapeHtml(property.id)}">${escapeHtml(property.name)}</span>
+          <span class="tag-count">${linked}</span>
+          <button title="Editar propriedade" data-edit-property="${escapeHtml(property.id)}">✎</button>
+          <button title="Excluir propriedade" data-delete-property="${escapeHtml(property.id)}">×</button>
+        </div>`;
+    }).join("");
+  }
 
-                nextStep();
-            }
-            window.startGame = startGame;
+  function renderSequence() {
+    const list = $("#flowList");
+    if (!data.sequence.length) {
+      list.innerHTML = '<div class="empty">A sequência está vazia.<br>Adicione blocos pela biblioteca acima.</div>';
+      return;
+    }
+    list.innerHTML = data.sequence.map((block, index) => {
+      if (block.type === "question") {
+        const property = propertyById(block.propertyId);
+        return `
+          <article class="logic-block" draggable="true" data-block-id="${escapeHtml(block.id)}">
+            <div class="drag-handle" title="Arraste para ordenar">⠿</div>
+            <div class="block-main">
+              <div class="block-top"><span class="block-type">❔ Pergunta ${index + 1}</span></div>
+              <strong>${escapeHtml(block.text || "Pergunta sem texto")}</strong>
+              <div class="block-sub">Propriedade: ${escapeHtml(property ? property.name : "Não definida")} · ID: ${escapeHtml(block.propertyId || "—")}</div>
+            </div>
+            <div class="block-actions">
+              <button data-move-up="${block.id}" title="Mover para cima" ${index === 0 ? "disabled" : ""}>↑</button>
+              <button data-move-down="${block.id}" title="Mover para baixo" ${index === data.sequence.length-1 ? "disabled" : ""}>↓</button>
+              <button data-edit-block="${block.id}">✎</button>
+              <button class="btn-danger" data-delete-block="${block.id}">×</button>
+            </div>
+          </article>`;
+      }
+      return `
+        <article class="logic-block guess-block" draggable="true" data-block-id="${escapeHtml(block.id)}">
+          <div class="drag-handle" title="Arraste para ordenar">⠿</div>
+          <div class="block-main">
+            <div class="block-top"><span class="block-type">🔮 Tentativa de palpite</span></div>
+            <strong>Calcular melhor candidato</strong>
+            <div class="block-sub">Mín. ${Number(block.minQuestions ?? data.settings.minQuestions)} respostas · Semelhança ≥ ${Number(block.threshold ?? data.settings.guessThreshold)}%</div>
+          </div>
+          <div class="block-actions">
+            <button data-move-up="${block.id}" title="Mover para cima" ${index === 0 ? "disabled" : ""}>↑</button>
+            <button data-move-down="${block.id}" title="Mover para baixo" ${index === data.sequence.length-1 ? "disabled" : ""}>↓</button>
+            <button data-edit-block="${block.id}">✎</button>
+            <button class="btn-danger" data-delete-block="${block.id}">×</button>
+          </div>
+        </article>`;
+    }).join("");
+  }
 
-            function nextStep() {
-                if (!gameActive) return;
+  function syncSettings() {
+    $("#minQuestions").value = data.settings.minQuestions ?? 2;
+    $("#guessThreshold").value = data.settings.guessThreshold ?? 70;
+    $("#guessOnUnique").checked = data.settings.guessOnUnique !== false;
+  }
 
-                workspace.querySelectorAll('.bloco').forEach(b => b.classList.remove('highlight-current'));
-                
-                if (currentBlockIndex >= commandSequence.length) {
-                    endGame("Fim da sequência de comandos.", true);
-                    return;
-                }
+  function renderGame() {
+    const status = $("#gameStatus");
+    const speech = $("#speech");
+    const answerButtons = $("#answerButtons");
+    const resultArea = $("#guessResult");
+    const candidatesArea = $("#candidateList");
+    const progressBar = $("#progressBar");
+    const progressCount = $("#progressCount");
 
-                const currentBlockId = commandSequence[currentBlockIndex];
-                const currentBlock = document.getElementById(currentBlockId);
+    status.textContent = game.finished ? "FINALIZADO" : game.active ? "EM JOGO" : "PRONTO";
+    answerButtons.hidden = !game.active || game.finished;
+    resultArea.hidden = !game.finished;
+    $("#backBtn").disabled = !game.active || game.history.length === 0;
 
-                if (!currentBlock) {
-                    endGame("Erro: Bloco ausente na sequência.", true);
-                    return;
-                }
+    if (!game.active && !game.finished) {
+      speech.textContent = "Olá! Clique em “Iniciar jogo” e pense em um personagem da base de conhecimento.";
+      $("#genieSub").textContent = "Pronto para investigar.";
+      progressBar.style.width = "0%";
+      progressCount.textContent = "0 / 0";
+      candidatesArea.innerHTML = '<span class="muted tiny">Inicie uma partida para ver os candidatos.</span>';
+      return;
+    }
 
-                const type = currentBlock.getAttribute('data-type');
-                currentBlock.classList.add('highlight-current');
+    if (game.finished) {
+      progressBar.style.width = "100%";
+      progressCount.textContent = `${game.asked} / ${game.asked}`;
+      if (game.result) {
+        const result = game.result;
+        speech.textContent = `Tenho quase certeza... é ${result.name}! Acertei?`;
+        $("#genieSub").textContent = "O gênio fez sua previsão.";
+        resultArea.innerHTML = `
+          <div class="result-card">
+            <div class="result-emoji">${escapeHtml(result.emoji || "✨")}</div>
+            <h3>Você estava pensando em: ${escapeHtml(result.name)}!</h3>
+            <p>Compatibilidade estimada: ${Math.round(result.score)}%. Esse resultado usa as respostas que você forneceu.</p>
+            <button class="btn" id="confirmGuessBtn">✓ Sim, acertou!</button>
+            <button class="btn" id="wrongGuessBtn" style="margin-top:7px;background:#49303a;border-color:#84505e">✕ Não era esse</button>
+            <button class="btn" id="playAgainBtn" style="margin-top:7px">↺ Jogar novamente</button>
+          </div>`;
+      } else {
+        speech.textContent = game.message || "Não consegui encontrar um personagem compatível.";
+        $("#genieSub").textContent = "Precisamos de mais dados!";
+        resultArea.innerHTML = `
+          <div class="result-card" style="background:#352c23;border-color:#8e6b3e">
+            <div class="result-emoji">🤔</div>
+            <h3>Não consegui adivinhar</h3>
+            <p>${escapeHtml(game.message || "Revise as propriedades e tente novamente.")}</p>
+            <button class="btn" id="playAgainBtn">↺ Tentar novamente</button>
+          </div>`;
+      }
+      resultArea.hidden = false;
+      candidatesArea.innerHTML = renderCandidateRows(game.candidates);
+      return;
+    }
 
-                if (type === 'pergunta') {
-                    const questionText = currentBlock.getAttribute('data-pergunta') || "Pergunta não definida?";
-                    gameQuestionEl.textContent = `PERGUNTA: ${questionText}`;
-                    
-                } else if (type === 'palpite') {
-                    
-                    const minQuestions = parseInt(currentBlock.getAttribute('data-min-perguntas')) || 1;
-                    const minSimilarity = parseInt(currentBlock.getAttribute('data-min-semelhanca')) || 90;
-                    
-                    gameQuestionEl.textContent = `VERIFICANDO CONDIÇÕES: Perguntas: ${questionCount}/${minQuestions}. Semelhança: Mín. ${minSimilarity}%`;
-                    
-                    if (questionCount < minQuestions) {
-                         gameQuestionEl.textContent = `CRITÉRIO 1 FALHOU: Apenas ${questionCount} perguntas. Mínimo de ${minQuestions}.`;
-                         currentBlockIndex++; 
-                         setTimeout(nextStep, 1500);
-                         return;
-                    }
-                    
-                    let bestMatch = null;
-                    let highestSimilarity = 0;
+    const block = data.sequence[game.cursor];
+    if (!block) {
+      finishGame();
+      renderGame();
+      return;
+    }
 
-                    characterList.forEach(char => {
-                        const similarity = calculateSimilarity(char.id);
-                        if (similarity >= minSimilarity && similarity > highestSimilarity) {
-                            bestMatch = char;
-                            highestSimilarity = similarity;
-                        }
-                    });
-                    
-                    if (bestMatch) {
-                        endGame(`ACERTEI! O personagem é: ${bestMatch.name}! (${highestSimilarity}% de certeza)`, false);
-                    } else {
-                        gameQuestionEl.textContent = `NENHUM PALPITE ACIMA DE ${minSimilarity}%. Máximo encontrado: ${highestSimilarity}%. Continue a sequência.`;
-                        currentBlockIndex++; 
-                        setTimeout(nextStep, 1500); 
-                    }
-                } else if (type === 'fim') {
-                    endGame("Sequência de Comandos Encerrada.", true);
-                }
-            }
+    progressBar.style.width = `${data.sequence.length ? game.cursor / data.sequence.length * 100 : 0}%`;
+    progressCount.textContent = `${game.cursor + 1} / ${data.sequence.length}`;
+    $("#genieSub").textContent = `Pergunta ${game.asked + 1} · ${game.candidates.length} candidato(s)`;
+    resultArea.hidden = true;
+    if (block.type === "question") {
+      const property = propertyById(block.propertyId);
+      speech.textContent = block.text || (property ? property.question : "Essa característica se aplica ao seu personagem?");
+    } else {
+      speech.textContent = "Deixe-me analisar as pistas e calcular quem combina melhor...";
+      // O bloco de palpite é executado automaticamente, sem exigir resposta.
+      executeGuessBlock(block);
+      return;
+    }
+    candidatesArea.innerHTML = renderCandidateRows(game.candidates);
+  }
 
-            window.answer = (response) => {
-                if (!gameActive) return;
+  function renderCandidateRows(candidates) {
+    if (!candidates || !candidates.length) {
+      return '<span class="muted tiny">Nenhum candidato restante com compatibilidade positiva. O gênio usará o melhor resultado aproximado.</span>';
+    }
+    return candidates.slice().sort((a,b) => b.score-a.score).slice(0,5).map(candidate => `
+      <div class="candidate-row">
+        <span class="candidate-emoji">${escapeHtml(candidate.emoji || "👤")}</span>
+        <span class="candidate-name">${escapeHtml(candidate.name)}</span>
+        <span class="mini-track"><span style="width:${Math.max(0,Math.min(100,candidate.score))}%"></span></span>
+        <span class="candidate-percent">${Math.round(candidate.score)}%</span>
+      </div>`).join("");
+  }
 
-                const currentBlockId = commandSequence[currentBlockIndex];
-                const currentBlock = document.getElementById(currentBlockId);
-                const type = currentBlock.getAttribute('data-type');
-                
-                if (type === 'pergunta') {
-                    
-                    const propQuestion = currentBlock.getAttribute('data-prop')?.toLowerCase();
-                    
-                    if (!propertyMap[propQuestion]) {
-                        alert(`Erro de programação: Propriedade '${propQuestion}' inválida ou não definida. Avance o bloco.`);
-                    } else {
-                        // Registra a resposta do usuário no histórico
-                        userHistory[propQuestion] = (response === 'sim');
-                        questionCount++;
-                    }
+  function calculateScores() {
+    const answered = game.answers.filter(a => a.answer !== "maybe");
+    const totalKnown = answered.length;
+    const candidates = data.characters.map(character => {
+      let earned = 0;
+      let possible = 0;
+      let matches = 0;
+      let conflicts = 0;
+      for (const answer of answered) {
+        const hasProperty = character.properties.includes(answer.propertyId);
+        const expected = answer.answer === "yes";
+        possible += 1;
+        if (hasProperty === expected) {
+          earned += 1;
+          matches += 1;
+        } else {
+          conflicts += 1;
+        }
+      }
+      // Com nenhuma resposta conhecida, todos começam com 50%.
+      // A pontuação mede proporção de características conhecidas compatíveis.
+      const score = totalKnown === 0 ? 50 : (earned / possible) * 100;
+      return {...character, score, matches, conflicts};
+    });
+    candidates.sort((a,b) => b.score-a.score || a.conflicts-b.conflicts);
+    return candidates;
+  }
 
-                    updateScoreboard(); 
-                    currentBlockIndex++;
-                    nextStep();
-                }
-            };
-            
-            function endGame(message, isError) {
-                gameActive = false;
-                simBtn.disabled = true;
-                naoBtn.disabled = true;
-                
-                gameQuestionEl.style.color = isError ? '#f44336' : '#4CAF50';
-                gameQuestionEl.textContent = message;
-                
-                workspace.querySelectorAll('.bloco').forEach(b => b.classList.remove('highlight-current'));
-            }
+  function updateCandidates() {
+    game.candidates = calculateScores();
+  }
 
-            // --- FUNÇÕES DE DRAG AND DROP E DELEÇÃO (ATUALIZADO) ---
+  function startGame() {
+    if (!data.characters.length) {
+      toast("Cadastre pelo menos um personagem antes de jogar.");
+      return;
+    }
+    if (!data.sequence.some(block => block.type === "question")) {
+      toast("Adicione pelo menos uma pergunta à sequência.");
+      return;
+    }
+    game = freshGame();
+    game.active = true;
+    game.candidates = calculateScores();
+    advanceToQuestion();
+  }
 
-            function createNewBlock(type) {
-                blockCounter++;
-                const newId = `bloco-${blockCounter}`;
-                const originalBlock = painelComandos.querySelector(`.bloco[data-type="${type}"]`);
-                const clone = originalBlock.cloneNode(true);
-                
-                clone.id = newId;
-                clone.setAttribute('draggable', 'true');
-                
-                const dataAttributes = originalBlock.dataset;
-                for (const key in dataAttributes) {
-                    if (key !== 'type') {
-                        clone.setAttribute(`data-${key}`, dataAttributes[key]);
-                    }
-                }
-                
-                clone.querySelectorAll('input').forEach(inputEl => {
-                    inputEl.addEventListener('dragstart', (e) => e.stopPropagation());
-                    const paramName = inputEl.className.match(/input-(.+)/)[1];
-                    inputEl.onchange = () => updateBlockParam(inputEl, paramName);
-                });
+  function advanceToQuestion() {
+    if (!game.active || game.finished) return;
+    let guard = 0;
+    while (game.cursor < data.sequence.length && guard++ < data.sequence.length + 2) {
+      const block = data.sequence[game.cursor];
+      if (block.type === "guess") {
+        executeGuessBlock(block);
+        if (game.finished) return;
+        game.cursor++;
+        continue;
+      }
+      // Se a pergunta não tem propriedade válida, pule para não travar.
+      if (!propertyById(block.propertyId)) {
+        game.cursor++;
+        continue;
+      }
+      renderGame();
+      return;
+    }
+    finishGame();
+    renderGame();
+  }
 
-                return clone;
-            };
+  function executeGuessBlock(block) {
+    updateCandidates();
+    const minQuestions = Number(block.minQuestions ?? data.settings.minQuestions ?? 0);
+    const threshold = Number(block.threshold ?? data.settings.guessThreshold ?? 70);
+    const best = game.candidates[0];
+    const second = game.candidates[1];
+    const unique = game.candidates.length === 1;
+    const enoughAnswers = game.asked >= minQuestions;
+    const clearLead = best && (!second || best.score > second.score);
+    const aboveThreshold = best && best.score >= threshold;
+    const uniqueAllowed = data.settings.guessOnUnique !== false && unique;
 
-            // DRAG START para Paleta
-            painelComandos.querySelectorAll('.bloco').forEach(bloco => {
-                bloco.addEventListener('dragstart', (e) => {
-                    e.stopPropagation();
-                    draggedBlockType = bloco.getAttribute('data-type');
-                    
-                    draggedClone = createNewBlock(draggedBlockType);
-                    draggedClone.classList.add('dragging');
-                    draggedClone.style.pointerEvents = 'none';
-                    document.body.appendChild(draggedClone);
-                    
-                    activeDragBlockId = draggedClone.id; // Define o bloco ativo (para deleção)
-                    
-                    updateClonePosition(e);
-                });
-            });
+    if (best && enoughAnswers && ((aboveThreshold && clearLead) || uniqueAllowed)) {
+      finishGame(best);
+    }
+  }
 
-            // DRAG START para Workspace
-            workspace.addEventListener('dragstart', (e) => {
-                const target = e.target.closest('.bloco');
-                if (target && target.id !== 'start-block') {
-                    e.stopPropagation();
-                    
-                    draggedClone = target;
-                    draggedClone.classList.add('dragging');
-                    activeDragBlockId = draggedClone.id; // Define o bloco ativo (para deleção)
-                    
-                    const rect = target.getBoundingClientRect();
-                    
-                    draggedClone.offsetX = e.clientX - rect.left;
-                    draggedClone.offsetY = e.clientY - rect.top;
-                    
-                    target.remove();
-                    document.body.appendChild(draggedClone);
-                    
-                    updateClonePosition(e);
-                    
-                    updateCommandSequence();
-                }
-            });
+  function answerQuestion(answer) {
+    if (!game.active || game.finished) return;
+    const block = data.sequence[game.cursor];
+    if (!block || block.type !== "question") return;
 
-            // DRAG OVER / DRAG LEAVE / DRAG END (Mantidos)
-            document.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (draggedClone) {
-                    updateClonePosition(e);
-                    const targetElement = e.target.closest('.bloco, #workspace');
-                    if (targetElement) {
-                        handleHoverEffect(targetElement, e);
-                    } else {
-                        clearHoverEffect();
-                    }
-                }
-            });
+    game.history.push({
+      cursor:game.cursor,
+      asked:game.asked,
+      answers:clone(game.answers),
+      candidates:clone(game.candidates)
+    });
+    if (answer !== "maybe") {
+      game.answers.push({propertyId:block.propertyId, answer});
+    } else {
+      // Registra a pergunta para o histórico, mas não pontua nem elimina candidatos.
+      game.answers.push({propertyId:block.propertyId, answer:"maybe"});
+    }
+    game.asked++;
+    game.cursor++;
+    updateCandidates();
 
-            document.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (draggedClone && dropTarget) {
-                    
-                    const newBlock = createNewBlock(draggedClone.getAttribute('data-type'));
-                    newBlock.id = draggedClone.id;
-                    newBlock.style.position = 'static'; 
+    const remaining = game.candidates;
+    if (remaining.length === 1 && data.settings.guessOnUnique !== false) {
+      finishGame(remaining[0]);
+      renderGame();
+      return;
+    }
 
-                    if (dropTarget.id === 'workspace') {
-                        workspace.appendChild(newBlock);
-                    } else {
-                        workspace.insertBefore(newBlock, dropTarget.nextElementSibling);
-                    }
-                    
-                    updateCommandSequence();
-                }
-                
-                cleanupDrag();
-            });
+    advanceToQuestion();
+  }
 
-            document.addEventListener('dragend', () => {
-                cleanupDrag();
-            });
+  function finishGame(result = null) {
+    updateCandidates();
+    game.active = false;
+    game.finished = true;
+    game.result = result || null;
+    if (!result) {
+      const best = game.candidates[0];
+      if (best && best.score >= Number(data.settings.guessThreshold ?? 70)) {
+        game.result = best;
+      } else {
+        game.message = "A sequência terminou sem atingir a confiança configurada. Adicione perguntas que diferenciem melhor os personagens.";
+      }
+    }
+    renderGame();
+  }
 
-            // --- DELEÇÃO POR BACKSPACE (NOVO) ---
-            window.onkeydown = function(e) {
-                // KeyCode 8 é o Backspace/Delete (em alguns navegadores)
-                if (e.keyCode === 8) { 
-                    // Verifica se há um bloco ativo sendo arrastado e o remove
-                    if (activeDragBlockId && draggedClone) {
-                        e.preventDefault(); // Impede o navegador de voltar para a página anterior
-                        
-                        // Remove o clone (que é o bloco que o usuário está segurando)
-                        draggedClone.remove();
-                        
-                        // Limpa o estado
-                        cleanupDrag(); 
-                        updateCommandSequence();
-                        alert(`Bloco ${activeDragBlockId} deletado com Backspace.`);
-                    }
-                }
-            };
+  function undoAnswer() {
+    if (!game.active || !game.history.length) return;
+    const previous = game.history.pop();
+    game.cursor = previous.cursor;
+    game.asked = previous.asked;
+    game.answers = previous.answers;
+    game.candidates = previous.candidates;
+    game.finished = false;
+    game.active = true;
+    renderGame();
+  }
 
+  function openModal(id) {
+    $("#" + id).classList.add("open");
+  }
+  function closeModal(id) {
+    $("#" + id).classList.remove("open");
+  }
 
-            // --- FUNÇÕES AUXILIARES DE DRAG ---
+  function renderPropertyPicker(selected = []) {
+    const picker = $("#characterPropertyPicker");
+    if (!data.properties.length) {
+      picker.innerHTML = '<span class="muted tiny">Crie propriedades primeiro.</span>';
+      return;
+    }
+    picker.innerHTML = data.properties.map(property => `
+      <label class="property-option">
+        <input type="checkbox" value="${escapeHtml(property.id)}" ${selected.includes(property.id) ? "checked" : ""}>
+        ${escapeHtml(property.name)}
+      </label>`).join("");
+  }
 
-            function updateClonePosition(e) {
-                 if (draggedClone) {
-                    const x = e.clientX - (draggedClone.offsetX || 0);
-                    const y = e.clientY - (draggedClone.offsetY || 0);
-                    draggedClone.style.left = x + 'px';
-                    draggedClone.style.top = y + 'px';
-                }
-            }
+  function openCharacterModal(id = null) {
+    const character = id ? characterById(id) : null;
+    $("#characterForm").reset();
+    $("#characterOriginalId").value = character ? character.id : "";
+    $("#characterModalTitle").textContent = character ? "Editar personagem" : "Novo personagem";
+    $("#characterName").value = character?.name || "";
+    $("#characterId").value = character?.id || "";
+    $("#characterEmoji").value = character?.emoji || "👤";
+    $("#characterId").readOnly = false;
+    renderPropertyPicker(character?.properties || []);
+    openModal("characterModal");
+    $("#characterName").focus();
+  }
 
-            function handleHoverEffect(targetElement, e) {
-                clearHoverEffect();
-                
-                if (targetElement.id === 'start-block') {
-                    dropTarget = document.getElementById('start-block'); 
-                    dropTarget.style.marginBottom = '10px';
-                    return;
-                }
-                
-                if (targetElement.id === 'workspace') {
-                    const lastBlock = workspace.lastElementChild;
-                    dropTarget = lastBlock;
-                    if(dropTarget) dropTarget.style.marginBottom = '10px';
-                    return;
-                }
-                
-                const targetRect = targetElement.getBoundingClientRect();
-                
-                if (e.clientY > targetRect.top + targetRect.height / 2) {
-                    dropTarget = targetElement;
-                    dropTarget.style.marginBottom = '10px';
-                } else {
-                    const prevBlock = targetElement.previousElementSibling;
-                    dropTarget = prevBlock;
-                    if(prevBlock && prevBlock.id !== 'start-block') {
-                         prevBlock.style.marginBottom = '10px';
-                    } else if (!prevBlock) {
-                         document.getElementById('start-block').style.marginBottom = '10px';
-                    }
-                }
-            }
+  function openPropertyModal(id = null) {
+    const property = id ? propertyById(id) : null;
+    $("#propertyForm").reset();
+    $("#propertyOriginalId").value = property ? property.id : "";
+    $("#propertyModalTitle").textContent = property ? "Editar propriedade" : "Nova propriedade";
+    $("#propertyName").value = property?.name || "";
+    $("#propertyId").value = property?.id || "";
+    $("#propertyQuestion").value = property?.question || "";
+    openModal("propertyModal");
+    $("#propertyName").focus();
+  }
 
-            function clearHoverEffect() {
-                workspace.querySelectorAll('.bloco').forEach(b => {
-                    b.style.marginBottom = '0px'; 
-                });
-                dropTarget = null;
-            }
+  function openBlockModal(id = null, type = "question") {
+    const block = id ? data.sequence.find(b => b.id === id) : null;
+    editingBlockId = id;
+    const kind = block?.type || type;
+    $("#blockModalTitle").textContent = block
+      ? (kind === "question" ? "Editar pergunta" : "Editar tentativa de palpite")
+      : (kind === "question" ? "Novo bloco de pergunta" : "Novo bloco de palpite");
 
-            function cleanupDrag() {
-                if (draggedClone) {
-                    draggedClone.remove();
-                }
-                draggedBlockType = null;
-                draggedClone = null;
-                dropTarget = null;
-                activeDragBlockId = null; // Limpa o ID do bloco ativo
-                clearHoverEffect();
-            }
+    if (kind === "question") {
+      const options = data.properties.map(property =>
+        `<option value="${escapeHtml(property.id)}" ${property.id === (block?.propertyId || data.properties[0]?.id) ? "selected" : ""}>${escapeHtml(property.name)} (${escapeHtml(property.id)})</option>`
+      ).join("");
+      $("#blockModalBody").innerHTML = `
+        <input type="hidden" id="blockType" value="question">
+        <div class="field">
+          <label for="blockProperty">Propriedade testada *</label>
+          <select id="blockProperty" required>${options}</select>
+        </div>
+        <div class="field">
+          <label for="blockText">Texto da pergunta *</label>
+          <input id="blockText" required maxlength="180" value="${escapeHtml(block?.text || propertyById(data.properties[0]?.id)?.question || "")}" placeholder="Seu personagem usa uma capa?">
+        </div>
+        <small class="muted">A resposta será comparada com a propriedade selecionada no personagem.</small>`;
+    } else {
+      $("#blockModalBody").innerHTML = `
+        <input type="hidden" id="blockType" value="guess">
+        <div class="field">
+          <label for="blockMinQuestions">Mínimo de respostas conhecidas antes de tentar</label>
+          <input id="blockMinQuestions" type="number" min="0" max="30" value="${Number(block?.minQuestions ?? data.settings.minQuestions ?? 2)}">
+        </div>
+        <div class="field">
+          <label for="blockThreshold">Semelhança mínima (%)</label>
+          <input id="blockThreshold" type="number" min="0" max="100" value="${Number(block?.threshold ?? data.settings.guessThreshold ?? 70)}">
+        </div>
+        <small class="muted">O gênio só tentará neste bloco quando houver respostas suficientes e um candidato acima do limite, com liderança sobre o segundo colocado. A regra de candidato único também pode disparar o palpite.</small>`;
+    }
+    openModal("blockModal");
+  }
 
-            // Inicialização
-            renderCharacters(); 
-            renderProperties();
-        });
-    </script>
+  function addBlock(type) {
+    if (type === "question" && !data.properties.length) {
+      toast("Crie uma propriedade antes de adicionar uma pergunta.");
+      openPropertyModal();
+      return;
+    }
+    openBlockModal(null, type);
+  }
+
+  function moveBlock(id, offset) {
+    const index = data.sequence.findIndex(b => b.id === id);
+    const target = index + offset;
+    if (index < 0 || target < 0 || target >= data.sequence.length) return;
+    const [block] = data.sequence.splice(index, 1);
+    data.sequence.splice(target, 0, block);
+    saveData();
+    renderAll();
+  }
+
+  function deleteBlock(id) {
+    data.sequence = data.sequence.filter(b => b.id !== id);
+    saveData();
+    renderAll();
+    toast("Bloco removido.");
+  }
+
+  function deleteCharacter(id) {
+    const character = characterById(id);
+    if (!character) return;
+    if (!confirm(`Excluir "${character.name}"?`)) return;
+    data.characters = data.characters.filter(c => c.id !== id);
+    saveData();
+    renderAll();
+    if (game.active) startGame();
+    toast("Personagem excluído.");
+  }
+
+  function deleteProperty(id) {
+    const property = propertyById(id);
+    if (!property) return;
+    if (!confirm(`Excluir a propriedade "${property.name}"? Ela será removida dos personagens e dos blocos de pergunta.`)) return;
+    data.properties = data.properties.filter(p => p.id !== id);
+    data.characters.forEach(c => c.properties = c.properties.filter(pid => pid !== id));
+    data.sequence = data.sequence.filter(b => b.type !== "question" || b.propertyId !== id);
+    saveData();
+    renderAll();
+    toast("Propriedade excluída.");
+  }
+
+  // PERSONAGEM: criar / editar
+  $("#newCharacterBtn").addEventListener("click", () => openCharacterModal());
+  $("#characterList").addEventListener("click", event => {
+    const edit = event.target.closest("[data-edit-character]");
+    const del = event.target.closest("[data-delete-character]");
+    if (edit) openCharacterModal(edit.dataset.editCharacter);
+    if (del) deleteCharacter(del.dataset.deleteCharacter);
+  });
+
+  $("#characterName").addEventListener("input", () => {
+    if (!$("#characterOriginalId").value) {
+      $("#characterId").value = slugify($("#characterName").value);
+    }
+  });
+
+  $("#characterForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const originalId = $("#characterOriginalId").value;
+    const name = $("#characterName").value.trim();
+    const idInput = slugify($("#characterId").value);
+    const emoji = $("#characterEmoji").value.trim() || "👤";
+    const properties = $$("#characterPropertyPicker input:checked").map(input => input.value);
+    if (!name || !idInput) return;
+    if (data.characters.some(c => c.id === idInput && c.id !== originalId)) {
+      alert("Esse ID já está em uso por outro personagem.");
+      return;
+    }
+    const record = {id:idInput, name, emoji, properties};
+    if (originalId) {
+      const index = data.characters.findIndex(c => c.id === originalId);
+      if (index >= 0) data.characters[index] = record;
+    } else {
+      data.characters.push(record);
+    }
+    saveData();
+    closeModal("characterModal");
+    renderAll();
+    if (game.active) startGame();
+    toast("Personagem salvo.");
+  });
+
+  // PROPRIEDADES
+  $("#newPropertyBtn").addEventListener("click", () => openPropertyModal());
+  $("#propertyName").addEventListener("input", () => {
+    if (!$("#propertyOriginalId").value) {
+      $("#propertyId").value = slugify($("#propertyName").value);
+      if (!$("#propertyQuestion").value) {
+        $("#propertyQuestion").value = `Seu personagem ${$("#propertyName").value.trim()}?`;
+      }
+    }
+  });
+  $("#propertyList").addEventListener("click", event => {
+    const edit = event.target.closest("[data-edit-property]");
+    const del = event.target.closest("[data-delete-property]");
+    if (edit) openPropertyModal(edit.dataset.editProperty);
+    if (del) deleteProperty(del.dataset.deleteProperty);
+  });
+
+  $("#propertyForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const originalId = $("#propertyOriginalId").value;
+    const name = $("#propertyName").value.trim();
+    const id = slugify($("#propertyId").value);
+    const question = $("#propertyQuestion").value.trim() || `Seu personagem tem a característica "${name}"?`;
+    if (!name || !id) return;
+    if (data.properties.some(p => p.id === id && p.id !== originalId)) {
+      alert("Esse ID já está em uso por outra propriedade.");
+      return;
+    }
+    if (originalId && originalId !== id) {
+      data.characters.forEach(c => {
+        c.properties = c.properties.map(pid => pid === originalId ? id : pid);
+      });
+      data.sequence.forEach(b => {
+        if (b.type === "question" && b.propertyId === originalId) b.propertyId = id;
+      });
+    }
+    const record = {id, name, question};
+    if (originalId) {
+      const index = data.properties.findIndex(p => p.id === originalId || p.id === id);
+      if (index >= 0) data.properties[index] = record;
+      else data.properties.push(record);
+    } else {
+      data.properties.push(record);
+    }
+    // Atualiza o texto dos blocos que não foram personalizados manualmente.
+    data.sequence.forEach(block => {
+      if (block.type === "question" && block.propertyId === id && !block.text) block.text = question;
+    });
+    saveData();
+    closeModal("propertyModal");
+    renderAll();
+    toast("Propriedade salva.");
+  });
+
+  // EDITOR DE SEQUÊNCIA
+  $("#addQuestionBtn").addEventListener("click", () => addBlock("question"));
+  $("#appendQuestionBtn").addEventListener("click", () => addBlock("question"));
+  $("#addGuessBtn").addEventListener("click", () => addBlock("guess"));
+  $("#appendGuessBtn").addEventListener("click", () => addBlock("guess"));
+
+  $("#flowList").addEventListener("click", event => {
+    const up = event.target.closest("[data-move-up]");
+    const down = event.target.closest("[data-move-down]");
+    const edit = event.target.closest("[data-edit-block]");
+    const del = event.target.closest("[data-delete-block]");
+    if (up) moveBlock(up.dataset.moveUp, -1);
+    if (down) moveBlock(down.dataset.moveDown, 1);
+    if (edit) {
+      const block = data.sequence.find(b => b.id === edit.dataset.editBlock);
+      if (block) openBlockModal(block.id, block.type);
+    }
+    if (del) deleteBlock(del.dataset.deleteBlock);
+  });
+
+  $("#blockForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const type = $("#blockType").value;
+    let record;
+    if (type === "question") {
+      const propertyId = $("#blockProperty").value;
+      const property = propertyById(propertyId);
+      const text = $("#blockText").value.trim();
+      if (!property || !text) {
+        alert("Escolha uma propriedade válida e escreva a pergunta.");
+        return;
+      }
+      record = {id:editingBlockId || uid("block"), type:"question", propertyId, text};
+    } else {
+      record = {
+        id:editingBlockId || uid("block"), type:"guess",
+        minQuestions:Math.max(0, Math.min(30, Number($("#blockMinQuestions").value) || 0)),
+        threshold:Math.max(0, Math.min(100, Number($("#blockThreshold").value) || 0))
+      };
+    }
+    if (editingBlockId) {
+      const index = data.sequence.findIndex(b => b.id === editingBlockId);
+      if (index >= 0) data.sequence[index] = record;
+    } else {
+      data.sequence.push(record);
+    }
+    saveData();
+    closeModal("blockModal");
+    renderAll();
+    toast("Bloco salvo na sequência.");
+  });
+
+  $("#clearFlowBtn").addEventListener("click", () => {
+    if (!data.sequence.length) return;
+    if (!confirm("Remover todos os blocos da sequência?")) return;
+    data.sequence = [];
+    saveData();
+    renderAll();
+    toast("Sequência limpa.");
+  });
+
+  // Drag and drop nativo
+  $("#flowList").addEventListener("dragstart", event => {
+    const block = event.target.closest("[data-block-id]");
+    if (!block) return;
+    dragSourceId = block.dataset.blockId;
+    block.classList.add("dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", dragSourceId);
+  });
+  $("#flowList").addEventListener("dragend", event => {
+    const block = event.target.closest("[data-block-id]");
+    if (block) block.classList.remove("dragging");
+    $$(".drop-target", $("#flowList")).forEach(el => el.classList.remove("drop-target"));
+  });
+  $("#flowList").addEventListener("dragover", event => {
+    event.preventDefault();
+    const target = event.target.closest("[data-block-id]");
+    if (target && target.dataset.blockId !== dragSourceId) {
+      $$(".drop-target", $("#flowList")).forEach(el => el.classList.remove("drop-target"));
+      target.classList.add("drop-target");
+    }
+  });
+  $("#flowList").addEventListener("drop", event => {
+    event.preventDefault();
+    const target = event.target.closest("[data-block-id]");
+    const sourceId = event.dataTransfer.getData("text/plain") || dragSourceId;
+    if (!target || !sourceId || sourceId === target.dataset.blockId) return;
+    const from = data.sequence.findIndex(b => b.id === sourceId);
+    const to = data.sequence.findIndex(b => b.id === target.dataset.blockId);
+    if (from < 0 || to < 0) return;
+    const [item] = data.sequence.splice(from, 1);
+    data.sequence.splice(to, 0, item);
+    saveData();
+    renderAll();
+    toast("Ordem dos blocos atualizada.");
+  });
+
+  // CONFIGURAÇÕES GLOBAIS
+  $("#minQuestions").addEventListener("change", () => {
+    data.settings.minQuestions = Math.max(0, Math.min(30, Number($("#minQuestions").value) || 0));
+    saveData(); renderSequence();
+  });
+  $("#guessThreshold").addEventListener("change", () => {
+    data.settings.guessThreshold = Math.max(0, Math.min(100, Number($("#guessThreshold").value) || 0));
+    saveData(); renderSequence();
+  });
+  $("#guessOnUnique").addEventListener("change", () => {
+    data.settings.guessOnUnique = $("#guessOnUnique").checked;
+    saveData();
+  });
+
+  // SIMULADOR
+  $("#startGameBtn").addEventListener("click", startGame);
+  $("#answerButtons").addEventListener("click", event => {
+    const button = event.target.closest("[data-answer]");
+    if (button) answerQuestion(button.dataset.answer);
+  });
+  $("#restartBtn").addEventListener("click", startGame);
+  $("#backBtn").addEventListener("click", undoAnswer);
+  $("#guessResult").addEventListener("click", event => {
+    if (event.target.closest("#playAgainBtn")) startGame();
+    if (event.target.closest("#confirmGuessBtn")) {
+      toast("Boa! O gênio acertou. Que tal adicionar mais personagens?");
+      startGame();
+    }
+    if (event.target.closest("#wrongGuessBtn")) {
+      const wrong = game.result;
+      game.result = null;
+      game.finished = true;
+      game.active = false;
+      game.message = `O palpite foi ${wrong ? wrong.name : "incorreto"}. Adicione propriedades que diferenciem os personagens e tente novamente.`;
+      renderGame();
+      // Mantém uma ação para retomar a investigação sem alterar a base.
+      const button = $("#playAgainBtn");
+      if (button) button.textContent = "↺ Nova tentativa";
+    }
+  });
+
+  // MODAIS: fechar
+  $$("[data-close]").forEach(button => {
+    button.addEventListener("click", () => closeModal(button.dataset.close));
+  });
+  $$(".modal-backdrop").forEach(backdrop => {
+    backdrop.addEventListener("click", event => {
+      if (event.target === backdrop) backdrop.classList.remove("open");
+    });
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") $$(".modal-backdrop.open").forEach(modal => modal.classList.remove("open"));
+  });
+
+  // IMPORTAÇÃO / EXPORTAÇÃO JSON
+  $("#exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "genie-maker-projeto.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Projeto exportado.");
+  });
+
+  $("#importBtn").addEventListener("click", () => $("#importFile").click());
+  $("#importFile").addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = JSON.parse(await file.text());
+      if (!imported || !Array.isArray(imported.characters) ||
+          !Array.isArray(imported.properties) || !Array.isArray(imported.sequence)) {
+        throw new Error("Formato de projeto inválido.");
+      }
+      const ids = new Set();
+      for (const property of imported.properties) {
+        if (!property.id || ids.has(property.id)) throw new Error("IDs de propriedade ausentes ou duplicados.");
+        ids.add(property.id);
+      }
+      const characterIds = new Set();
+      for (const character of imported.characters) {
+        if (!character.id || characterIds.has(character.id)) throw new Error("IDs de personagem ausentes ou duplicados.");
+        characterIds.add(character.id);
+        character.properties = (character.properties || []).filter(id => ids.has(id));
+      }
+      imported.sequence = imported.sequence.filter(block =>
+        block.type === "guess" || (block.type === "question" && ids.has(block.propertyId))
+      );
+      imported.settings ||= {minQuestions:2, guessThreshold:70, guessOnUnique:true};
+      data = imported;
+      saveData();
+      game = freshGame();
+      renderAll();
+      toast("Projeto importado com sucesso.");
+    } catch (error) {
+      alert("Não foi possível importar o projeto: " + error.message);
+    } finally {
+      event.target.value = "";
+    }
+  });
+
+  $("#resetBtn").addEventListener("click", () => {
+    if (!confirm("Restaurar o exemplo original? Isso substituirá a base atual salva neste navegador.")) return;
+    data = makeDefaultData();
+    game = freshGame();
+    saveData();
+    renderAll();
+    toast("Exemplo original restaurado.");
+  });
+
+  // Proteção contra IDs inválidos e referências órfãs em dados salvos antigos.
+  function normalizeData() {
+    data.properties = data.properties.filter(p => p && p.id && p.name);
+    const validProperties = new Set(data.properties.map(p => p.id));
+    data.characters = data.characters.filter(c => c && c.id && c.name).map(c => ({
+      ...c,
+      emoji:c.emoji || "👤",
+      properties:[...new Set((c.properties || []).filter(id => validProperties.has(id)))]
+    }));
+    data.sequence = data.sequence.filter(block =>
+      block && block.id && (
+        block.type === "guess" ||
+        (block.type === "question" && validProperties.has(block.propertyId))
+      )
+    );
+    data.settings = {
+      minQuestions:Math.max(0, Number(data.settings?.minQuestions ?? 2)),
+      guessThreshold:Math.max(0, Math.min(100, Number(data.settings?.guessThreshold ?? 70))),
+      guessOnUnique:data.settings?.guessOnUnique !== false
+    };
+  }
+
+  // Executa blocos de palpite automaticamente ao chegar neles.
+  // Uma pequena proteção impede ciclos acidentais em sequências editadas.
+  const originalRenderGame = renderGame;
+  renderGame = function() {
+    if (game.active && !game.finished) {
+      let guard = 0;
+      while (game.cursor < data.sequence.length &&
+             data.sequence[game.cursor]?.type === "guess" && guard++ < data.sequence.length + 1) {
+        const block = data.sequence[game.cursor];
+        executeGuessBlock(block);
+        if (game.finished) break;
+        game.cursor++;
+      }
+      if (game.active && game.cursor >= data.sequence.length) {
+        finishGame();
+        return;
+      }
+    }
+    originalRenderGame();
+  };
+
+  // O fluxo de jogo chama a renderização após avançar; as perguntas são mostradas
+  // normalmente, e os blocos de palpite são avaliados quando alcançados.
+  normalizeData();
+  saveData();
+  renderAll();
+})();
+</script>
 </body>
 </html>
