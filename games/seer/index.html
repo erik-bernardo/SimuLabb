@@ -1,63 +1,144 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O Grimório do Futuro: Will vs. Going To</title>
-    <link rel="stylesheet" href="style.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100b20">
+<title>O Grimório do Futuro: A Bola de Cristal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#100b20;--panel:#1a1230;--panel2:#21163b;--gold:#e7c879;--gold2:#ad843d;--lav:#c7b6ef;--muted:#a99fbd;--text:#f7f1ff;--line:#49345f;--red:#ff667c;--green:#76e0b1}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,system-ui,sans-serif;background:radial-gradient(ellipse at 50% -15%,#3b205c 0,transparent 48%),radial-gradient(circle at 5% 80%,#191438 0,transparent 30%),var(--bg);overflow-x:hidden}
+body:before{content:"✦     ·       ✧         ·     ✦      ·         ✧";position:fixed;inset:0;pointer-events:none;color:#d9c7ff;opacity:.16;letter-spacing:2.2rem;line-height:5rem;white-space:normal;overflow:hidden;z-index:-1}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}.app{max-width:1400px;margin:auto;padding:0 24px 38px}
+header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 0 20px;border-bottom:1px solid #5a4370}
+.brand{display:flex;align-items:center;gap:14px}.brand-mark{width:48px;height:48px;border:1px solid var(--gold2);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-size:25px;box-shadow:0 0 22px #d9b35a20}
+h1,h2,h3,.serif{font-family:Cinzel,Georgia,serif}h1{font-size:clamp(1.05rem,2.2vw,1.7rem);margin:0;letter-spacing:.04em} .subtitle{font-size:.76rem;color:var(--muted);margin-top:5px;letter-spacing:.08em}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{border:1px solid #614b7d;border-radius:99px;padding:9px 13px;color:var(--lav);font-size:.8rem;background:#211632}
+.btn{border:1px solid var(--gold2);border-radius:10px;padding:11px 15px;background:linear-gradient(135deg,#d8b76d,#a77c36);color:#20142b;font-weight:800;transition:transform .2s,filter .2s,box-shadow .2s}.btn:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 7px 24px #d9b35a25}.btn.secondary{background:#261a3d;color:var(--lav);border-color:#644d80}.btn.ghost{background:transparent;color:var(--muted);border-color:#59446e}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;padding-top:22px;align-items:start}.main-column{min-width:0}.intro{margin:0 0 18px}.eyebrow{color:var(--gold);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700}.intro h2{font-size:clamp(1.25rem,2vw,1.75rem);margin:7px 0}.intro p{color:var(--muted);font-size:.92rem;line-height:1.65;margin:0;max-width:760px}
+.panel{background:linear-gradient(145deg,#211634ed,#171128f2);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px #05020c40}.vision-panel{padding:20px;display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:25px;align-items:center;position:relative;overflow:hidden}.vision-panel:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:#a66eff08;filter:blur(20px);right:10%;top:-100px;pointer-events:none}
+.crystal-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}.crystal{width:min(100%,270px);aspect-ratio:1;border-radius:50%;position:relative;display:grid;place-items:center;isolation:isolate;background:radial-gradient(circle at 36% 27%,#c9b9ff8a 0 2%,#7863b5a0 8%,#39295f 34%,#17152e 65%,#080916 75%);border:5px solid #6f5c8e;box-shadow:inset -18px -20px 35px #050510,inset 9px 8px 24px #e5d8ff55,0 0 0 7px #d5bd7920,0 0 35px #9671f777;animation:float 4.5s ease-in-out infinite;transition:box-shadow .3s}
+.crystal:before{content:"";position:absolute;inset:9%;border-radius:50%;border:1px solid #e4d3ff45;box-shadow:inset 0 0 25px #b99aff32}
+.crystal:after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,#fff4 0%,transparent 30%,transparent 70%,#9b7fe02b);pointer-events:none}
+.crystal-base{width:62%;height:20px;border-radius:50%;background:linear-gradient(#e2c77b,#61452a 35%,#23162c 85%);box-shadow:0 12px 20px #0008;margin-top:-8px}
+.crystal-symbols{z-index:2;display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;padding:20px;font-size:clamp(2rem,4vw,3rem);filter:drop-shadow(0 0 12px #d5c2ff);text-align:center}
+.mist{position:absolute;inset:12%;border-radius:50%;overflow:hidden;z-index:1;pointer-events:none}.mist span{position:absolute;width:75%;height:35%;border-radius:50%;background:#b9a2ff35;filter:blur(17px);animation:mist 7s ease-in-out infinite alternate}.mist span:nth-child(1){left:-10%;top:25%}.mist span:nth-child(2){right:-18%;top:52%;animation-delay:-3s;background:#8de3f22b}.mist span:nth-child(3){left:15%;bottom:-5%;animation-delay:-5s}
+.crystal.success{box-shadow:inset -18px -20px 35px #050510,inset 9px 8px 24px #e5d8ff55,0 0 0 7px #d5bd7940,0 0 55px #d9bd55aa}.crystal.error{box-shadow:inset -18px -20px 35px #050510,0 0 0 7px #ff667c20,0 0 55px #ff334e99}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}@keyframes mist{from{transform:translate(-10%,-8%) rotate(-20deg) scale(.8)}to{transform:translate(20%,12%) rotate(20deg) scale(1.2)}}
+.crystal-caption{font-size:.75rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.vision-copy{position:relative;z-index:2}.vision-copy h3{font-size:1.05rem;color:var(--gold);margin:0 0 9px}.vision-text{font-size:1rem;line-height:1.7;margin:0 0 18px}.symbol-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:17px}.symbol-tag{padding:7px 10px;background:#302044;border:1px solid #614875;border-radius:8px;font-size:.78rem;color:#e0d1f5}.round-meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.8rem}.round-meta strong{color:var(--gold)}
+.puzzle{padding:20px;margin-top:18px}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}.section-head h3{margin:0;font-size:1.05rem}.section-head p{margin:5px 0 0;font-size:.82rem;color:var(--muted);line-height:1.5}.step-number{border:1px solid var(--gold2);border-radius:50%;width:34px;height:34px;flex:none;display:grid;place-items:center;color:var(--gold);font-family:Cinzel,serif}
+.sentence-zone{min-height:78px;border:1px dashed #71578b;border-radius:12px;background:#110d20a8;padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-content:flex-start;align-items:center}.sentence-placeholder{color:#776b8d;font-size:.85rem;padding:8px}.word{border:1px solid #8467a8;background:linear-gradient(140deg,#46305d,#2c2043);color:#fff5ff;border-radius:8px;padding:10px 12px;font-weight:600;box-shadow:0 3px 8px #0002;transition:transform .15s,border-color .15s}.word:hover{transform:translateY(-2px);border-color:var(--gold)}.word.trap{border-color:#875064}.word:focus-visible{outline:2px solid var(--gold)}.zone-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:18px 0 9px}.word-bank{display:flex;flex-wrap:wrap;gap:8px;min-height:42px}.puzzle-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.feedback{margin-top:15px;padding:13px 15px;border-radius:10px;display:none;line-height:1.55;font-size:.88rem}.feedback.show{display:block}.feedback.good{background:#15392f;border:1px solid #3e9475;color:#c9ffea}.feedback.bad{background:#421e32;border:1px solid #a44c68;color:#ffe0e7}.feedback strong{display:block;margin-bottom:4px}
+.sidebar{display:flex;flex-direction:column;gap:16px;min-width:0}.sidebar .panel{padding:18px}.side-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.side-title h3{margin:0;font-size:1.02rem}.tiny{font-size:.72rem;color:var(--muted)}.book-intro{font-size:.82rem;color:var(--muted);line-height:1.55;margin:0 0 12px}.symbol-list{display:flex;flex-direction:column;gap:8px}.symbol-entry{border:1px solid #49365e;border-radius:10px;background:#171027;overflow:hidden}.symbol-toggle{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px;background:transparent;color:var(--text);border:0}.symbol-icon{font-size:1.55rem;width:34px;text-align:center;flex:none}.symbol-name{font-size:.82rem;font-weight:700;flex:1}.chevron{color:var(--gold);transition:transform .2s}.symbol-entry.open .chevron{transform:rotate(180deg)}.symbol-detail{display:none;padding:0 12px 13px 55px;font-size:.79rem;color:var(--muted);line-height:1.55}.symbol-entry.open .symbol-detail{display:block}.grammar-tag{display:inline-block;margin-top:7px;color:var(--gold);font-size:.72rem;font-weight:800;letter-spacing:.06em}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{background:#171027;border:1px solid #443256;border-radius:10px;padding:12px}.stat span{display:block;color:var(--muted);font-size:.72rem;margin-bottom:6px}.stat strong{font-family:Cinzel,serif;font-size:1.35rem;color:var(--gold)}.progress-track{height:7px;background:#372648;border-radius:9px;overflow:hidden;margin:12px 0 6px}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#9c7ad8,var(--gold));transition:width .35s}.progress-note{font-size:.72rem;color:var(--muted)}
+.rule-box{font-size:.82rem;line-height:1.6;color:var(--muted)}.rule-box b{color:var(--lav)}.rule-box .rule{padding:10px 0;border-bottom:1px solid #443256}.rule-box .rule:last-child{border-bottom:0;padding-bottom:0}
+.footer{text-align:center;color:#756a88;font-size:.72rem;padding:25px 0 0;line-height:1.6}
+.toast{position:fixed;bottom:18px;left:50%;transform:translate(-50%,20px);opacity:0;background:#2c2140;border:1px solid #8066a3;border-radius:10px;padding:11px 16px;z-index:20;pointer-events:none;transition:.25s;box-shadow:0 10px 30px #0005;font-size:.85rem}.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal-backdrop{position:fixed;inset:0;background:#080510c9;display:none;place-items:center;padding:20px;z-index:30}.modal-backdrop.show{display:grid}.modal{max-width:480px;width:100%;padding:25px;text-align:center;background:#211634;border:1px solid var(--gold2);border-radius:18px;box-shadow:0 20px 80px #0009}.modal h2{color:var(--gold)}.modal p{color:var(--muted);line-height:1.7}.modal .btn{margin-top:8px}
+@media(max-width:1000px){main{grid-template-columns:minmax(0,1fr) 285px;gap:15px}.vision-panel{grid-template-columns:220px minmax(0,1fr);gap:18px}.crystal{width:210px}.app{padding-inline:16px}}
+@media(max-width:760px){header{align-items:flex-start}.header-actions .pill{display:none}main{grid-template-columns:1fr}.sidebar{display:grid;grid-template-columns:1fr 1fr;align-items:start}.sidebar .book-panel{grid-column:1/-1}.vision-panel{grid-template-columns:1fr;padding:18px}.crystal{width:min(62vw,235px)}.vision-copy{text-align:center}.symbol-tags,.round-meta{justify-content:center}.intro p{font-size:.88rem}}
+@media(max-width:480px){.app{padding-inline:12px}.brand-mark{width:40px;height:40px;font-size:21px}.brand{gap:9px}.subtitle{font-size:.65rem}.header-actions .btn{padding:9px 10px;font-size:.75rem}.sidebar{grid-template-columns:1fr}.sidebar .book-panel{grid-column:auto}.puzzle,.vision-panel,.sidebar .panel{padding:15px}.word{padding:9px 10px;font-size:.82rem}.puzzle-actions .btn{flex:1}.section-head h3{font-size:.96rem}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
 </head>
 <body>
-    
-    <div id="book-container">
-        
-        <header>
-            <h1>O Grimório do Futuro</h1>
-            <p>**Will** (Decisão Instantânea/Opinião) vs. **Going To** (Plano/Evidência)</p>
-        </header>
-
-        <div id="game-container">
-            
-            <div id="scenario-box">
-                <h3 id="scenario-title">O Que o Destino Reserva?</h3>
-                <p id="scenario-text"><span id="scenario-icon">...</span>...</p>
-            </div>
-
-            <div id="mystic-interpretation-box">
-                <p style="font-weight: bold; color: #4B0082;">📖 Interpretação Mística:</p>
-                <p id="interpretation-content">O Oráculo irá revelar o significado do presságio aqui.</p>
-            </div>
-            <div id="target-sentence-area">
-                <p>Seu Vaticínio (Clique para montar a frase, clique novamente para retirar):</p>
-                <div id="target-blocks">
-                    </div>
-            </div>
-
-            <div id="source-blocks-area">
-                <p>Palavras Mágicas (Embaralhadas - Contém Armadilhas!):</p>
-                <div id="source-blocks">
-                    </div>
-            </div>
-
-            <div id="controls">
-                <button id="check-button" disabled>VERIFICAR VÍTICÍNIO</button>
-                <button id="reset-button">LIMPAR</button>
-                <button id="next-button" class="hidden">PRÓXIMA PROFECIA</button>
-            </div>
-            
-            <div id="feedback-box">
-                <p id="feedback-message"></p>
-                <p id="score-display">Pontos: 0</p>
-            </div>
-
-            <div id="translation-dictionary">
-                <h3 style="color: #4B0082; border-bottom: 1px dotted #4B0082; padding-bottom: 5px;">📚 Ajuda Vocabular e Gramatical</h3>
-                <p id="dictionary-content">A tradução de palavras-chave aparecerá aqui.</p>
-            </div>
-        </div>
-    </div>
-    
-    <script src="script.js"></script>
+<div class="app">
+<header>
+  <div class="brand"><div class="brand-mark" aria-hidden="true">☾</div><div><h1>O Grimório do Futuro</h1><div class="subtitle">A BOLA DE CRISTAL · ORÁCULO DA LÍNGUA INGLESA</div></div></div>
+  <div class="header-actions"><div class="pill">✧ Capítulo <span id="chapter">I</span></div><button class="btn secondary" id="restartBtn" type="button">↻ Reiniciar</button></div>
+</header>
+<main>
+<section class="main-column" aria-label="Desafio oracular">
+  <div class="intro"><div class="eyebrow">✦ Sua jornada começa ✦</div><h2>Leia os sinais. Revele o futuro.</h2><p>As visões estão embaralhadas pela névoa. Consulte o grimório, interprete os símbolos e construa o vaticínio em inglês. O futuro favorece quem escolhe as palavras certas.</p></div>
+  <section class="panel vision-panel" aria-labelledby="visionTitle">
+    <div class="crystal-wrap"><div class="crystal" id="crystal" role="img" aria-label="Bola de cristal com símbolos da visão"><div class="mist"><span></span><span></span><span></span></div><div class="crystal-symbols" id="crystalSymbols">🐦‍⬛ 💔</div></div><div class="crystal-base"></div><div class="crystal-caption">Visão <span id="visionNumber">01</span> · Sinais revelados</div></div>
+    <div class="vision-copy"><h3 id="visionTitle">O presságio sussurra...</h3><p class="vision-text" id="visionText">A sombra de um corvo negro surge de repente. Uma lâmina cruza o brilho de um coração partido.</p><div class="symbol-tags" id="symbolTags"></div><div class="round-meta"><span>Desafio <strong id="challengeNumber">1</strong>/<strong id="challengeTotal">6</strong></span><span>·</span><span>Regra em foco: <strong id="focusRule">WILL</strong></span></div></div>
+  </section>
+  <section class="panel puzzle" aria-labelledby="puzzleTitle">
+    <div class="section-head"><div><h3 id="puzzleTitle">✧ Construa o vaticínio</h3><p>Clique nas palavras na ordem correta. Clique em uma palavra da frase para devolvê-la ao repositório.</p></div><div class="step-number">Ⅱ</div></div>
+    <div class="zone-label">Sua frase profética</div><div class="sentence-zone" id="sentenceZone" aria-label="Palavras selecionadas"><span class="sentence-placeholder" id="placeholder">As palavras escolhidas aparecerão aqui...</span></div>
+    <div class="zone-label">Repositório de palavras · escolha com sabedoria</div><div class="word-bank" id="wordBank" aria-label="Palavras disponíveis"></div>
+    <div class="puzzle-actions"><button class="btn" id="revealBtn" type="button">✦ Revelar Vaticínio</button><button class="btn secondary" id="clearBtn" type="button">↶ Limpar frase</button><button class="btn ghost" id="hintBtn" type="button">☼ Pedir uma pista</button></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  </section>
+</section>
+<aside class="sidebar" aria-label="Grimório e progresso">
+  <section class="panel book-panel">
+    <div class="side-title"><h3>📖 Grimório de Símbolos</h3><span class="tiny">ABRIR PISTAS</span></div><p class="book-intro">Toque em um símbolo para revelar seu significado e a regra gramatical que ele invoca.</p><div class="symbol-list" id="symbolList"></div>
+  </section>
+  <section class="panel">
+    <div class="side-title"><h3>✧ Poder Oracular</h3><span class="tiny">SEU PROGRESSO</span></div>
+    <div class="stats-grid"><div class="stat"><span>Energia mística</span><strong id="score">0</strong></div><div class="stat"><span>Acertos seguidos</span><strong id="streak">0</strong></div></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><div class="progress-note" id="progressNote">0 de 6 visões resolvidas</div>
+  </section>
+  <section class="panel">
+    <div class="side-title"><h3>☽ As leis do tempo</h3></div>
+    <div class="rule-box"><div class="rule"><b>WILL</b><br>Decisão tomada no momento da fala, promessa, oferta ou previsão/opinião sem evidência clara.<br><span class="grammar-tag">I think · suddenly · I promise</span></div><div class="rule"><b>BE GOING TO</b><br>Plano ou intenção já decidida, ou previsão apoiada por evidência visível no presente.<br><span class="grammar-tag">already decided · look! · evidence</span></div></div>
+  </section>
+</aside>
+</main>
+<div class="footer">✧ O destino é escrito palavra por palavra. ✧<br>Jogo educativo de inglês · Use o grimório sempre que precisar.</div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal-backdrop" id="endModal" role="dialog" aria-modal="true" aria-labelledby="endTitle"><div class="modal"><div style="font-size:2.5rem">🔮</div><h2 id="endTitle">O véu foi revelado</h2><p id="endText"></p><button class="btn" id="playAgainBtn" type="button">Jogar novamente</button></div></div>
+<script>
+"use strict";
+const symbols = [
+ {id:"raven",icon:"🐦‍⬛",name:"Sombra do Corvo",meaning:"Um acontecimento surge de repente ou uma decisão é tomada no instante da fala.",rule:"WILL",detail:"Use WILL para decisões espontâneas, promessas ou previsões sem evidência concreta. Ex.: “I'll help you.”"},
+ {id:"sword",icon:"⚔️",name:"Espada e Coração",meaning:"Uma pessoa próxima pode causar dor ou quebrar a confiança.",rule:"CONTEXTO",detail:"Este símbolo revela o sentido da profecia, não determina sozinho o tempo verbal. Observe também como a visão acontece."},
+ {id:"clouds",icon:"🌩️",name:"Nuvens Carregadas",meaning:"Há evidência presente de que algo está prestes a acontecer.",rule:"GOING TO",detail:"Use am/is/are going to quando há sinais visíveis. Ex.: “Look at those clouds! It's going to rain.”"},
+ {id:"calendar",icon:"📜",name:"Pergaminho Marcado",meaning:"Um plano ou intenção foi decidido antes do momento da fala.",rule:"GOING TO",detail:"Use be going to para intenções já planejadas. Ex.: “I'm going to study tonight.”"},
+ {id:"coin",icon:"🪙",name:"Moeda Dourada",meaning:"Uma oferta, promessa ou decisão feita agora.",rule:"WILL",detail:"WILL aparece em ofertas e promessas espontâneas. Ex.: “I'll carry that for you.”"},
+ {id:"star",icon:"🌟",name:"Estrela Velada",meaning:"Uma opinião ou crença sobre o futuro, sem prova evidente.",rule:"WILL",detail:"Use WILL em previsões baseadas em opinião: “I think they will win.”"},
+ {id:"footprints",icon:"👣",name:"Pegadas no Caminho",meaning:"Um caminho foi escolhido e a ação já está nos planos.",rule:"GOING TO",detail:"Planos previamente decididos favorecem be going to: “She is going to travel.”"},
+ {id:"lightning",icon:"⚡",name:"Raio no Horizonte",meaning:"Sinais claros no presente anunciam uma consequência iminente.",rule:"GOING TO",detail:"Quando há evidência observável, use be going to: “The glass is going to fall!”"}
+];
+const scenarios = [
+ {title:"A traição sob a asa negra",text:"A sombra do corvo aparece sem aviso. A espada reflete no coração de alguém em quem você confia.",icons:["🐦‍⬛","⚔️","💔"],tags:["Sombra do Corvo","Espada e Coração"],focus:"WILL",symbolIds:["raven","sword"],answer:["Someone","you","trust","will","try","to","hurt","you","today"],trap:["is","are","going","to","tomorrow"],explain:"A visão surge repentinamente e funciona como um presságio imediato. Neste desafio, a profecia usa WILL. “Someone you trust” é o sujeito singular indefinido; a frase correta é “Someone you trust will try to hurt you today.”",hint:"Comece com quem está envolvido: “Someone you trust”. Depois, use WILL antes do verbo base “try”.",translation:"Alguém em quem você confia tentará machucar você hoje."},
+ {title:"A tempestade anunciada",text:"Nuvens negras se acumulam acima da torre. Um relâmpago ilumina o céu e o vento já sacode as janelas.",icons:["🌩️","⚡","🏰"],tags:["Nuvens Carregadas","Raio no Horizonte"],focus:"GOING TO",symbolIds:["clouds","lightning"],answer:["It","is","going","to","rain","very","soon"],trap:["will","are","raining","yesterday"],explain:"Existem evidências presentes: nuvens carregadas e relâmpagos. Para uma previsão apoiada em evidência visível, usamos “is going to” + verbo base: “It is going to rain very soon.”",hint:"A frase começa com “It”. Como o sujeito é singular, use “is going to” antes do verbo “rain”.",translation:"Vai chover muito em breve."},
+ {title:"O plano da aprendiz",text:"Uma aprendiz abre seu pergaminho. Ela já decidiu estudar os encantamentos durante toda a noite.",icons:["📜","📚","🕯️"],tags:["Pergaminho Marcado","Plano definido"],focus:"GOING TO",symbolIds:["calendar","footprints"],answer:["The","apprentice","is","going","to","study","the","spells","tonight"],trap:["will","are","studies","yesterday"],explain:"A aprendiz já tomou a decisão antes de falar: é um plano definido. Use “is going to” (sujeito singular) + verbo na forma base: study.",hint:"A aprendiz é “The apprentice”. Para um plano prévio, escolha “is going to study”.",translation:"A aprendiz vai estudar os encantamentos esta noite."},
+ {title:"A promessa da moeda dourada",text:"Uma viajante deixa cair seus mapas. Você age no mesmo instante e decide ajudá-la.",icons:["🪙","🗺️","🤝"],tags:["Moeda Dourada","Decisão instantânea"],focus:"WILL",symbolIds:["coin","raven"],answer:["I","will","help","you","with","those","maps"],trap:["am","going","to","helped","yesterday"],explain:"A ajuda é uma decisão espontânea tomada no momento da fala. Em ofertas ou decisões instantâneas, usamos “will” + verbo base: “I will help you”.",hint:"A decisão é tomada agora: “I will help…”. Não use “am going to” para esta decisão espontânea do cenário.",translation:"Eu vou ajudar você com esses mapas."},
+ {title:"A estrela da previsão",text:"A estrela velada cintila sobre o reino. Sem sinais concretos, você acredita que o príncipe vencerá o torneio.",icons:["🌟","👑","🏆"],tags:["Estrela Velada","Opinião sobre o futuro"],focus:"WILL",symbolIds:["star","raven"],answer:["I","think","the","prince","will","win","the","tournament"],trap:["is","going","to","wins","yesterday"],explain:"A expressão “I think” apresenta uma opinião, sem evidência concreta. Nesse tipo de previsão, usamos WILL + verbo base: “will win”.",hint:"Previsões baseadas em opinião combinam com “I think … will …”. O verbo depois de WILL fica na forma base.",translation:"Acho que o príncipe vencerá o torneio."},
+ {title:"O cristal prestes a cair",text:"O cristal escorrega da beirada da mesa. Você vê que ele está prestes a cair no chão de pedra.",icons:["🔮","⚡","🪨"],tags:["Evidência visível","Raio no Horizonte"],focus:"GOING TO",symbolIds:["lightning","clouds"],answer:["The","crystal","is","going","to","fall","off","the","table"],trap:["will","are","falls","fell","tomorrow"],explain:"Você vê o cristal escorregando: existe evidência presente. A previsão usa “is going to” + verbo base “fall”. O sujeito “The crystal” é singular.",hint:"O cristal é singular: “The crystal is going to fall…”. Use “fall”, não “falls” ou “fell”.",translation:"O cristal vai cair da mesa."}
+];
+const roman=["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+let state={index:0,score:0,streak:0,bestStreak:0,solved:0,selected:[],bank:[],attempted:false,hints:0,finished:false};
+const $=id=>document.getElementById(id);
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function current(){return scenarios[state.index];}
+function renderBook(){const list=$("symbolList");list.innerHTML="";symbols.forEach(s=>{const entry=document.createElement("div");entry.className="symbol-entry";entry.innerHTML=`<button class="symbol-toggle" type="button" aria-expanded="false"><span class="symbol-icon">${s.icon}</span><span class="symbol-name">${s.name}</span><span class="chevron">⌄</span></button><div class="symbol-detail">${s.meaning}<br><span class="grammar-tag">${s.rule}</span><br>${s.detail}</div>`;const btn=entry.querySelector("button");btn.addEventListener("click",()=>{const opening=!entry.classList.contains("open");entry.classList.toggle("open",opening);btn.setAttribute("aria-expanded",String(opening));});list.appendChild(entry);});}
+function renderScenario(){const s=current();state.selected=[];state.bank=shuffle([...s.answer,...s.trap]);state.attempted=false;state.hints=0;
+$("chapter").textContent=roman[state.index]||String(state.index+1);$("visionNumber").textContent=String(state.index+1).padStart(2,"0");$("challengeNumber").textContent=state.index+1;$("challengeTotal").textContent=scenarios.length;$("visionTitle").textContent=s.title;$("visionText").textContent=s.text;$("focusRule").textContent=s.focus;
+$("crystalSymbols").textContent=s.icons.join(" ");$("crystal").classList.remove("success","error");$("symbolTags").innerHTML="";s.tags.forEach(t=>{const span=document.createElement("span");span.className="symbol-tag";span.textContent=t;$("symbolTags").appendChild(span);});
+$("feedback").className="feedback";$("feedback").innerHTML="";renderWords();updateStats();
+}
+function renderWords(){const zone=$("sentenceZone"),bank=$("wordBank");zone.innerHTML="";bank.innerHTML="";
+if(!state.selected.length){const p=document.createElement("span");p.className="sentence-placeholder";p.id="placeholder";p.textContent="As palavras escolhidas aparecerão aqui...";zone.appendChild(p);}
+state.selected.forEach((w,i)=>{const b=document.createElement("button");b.type="button";b.className="word";b.textContent=w;b.title="Clique para devolver ao repositório";b.setAttribute("aria-label",`Remover palavra ${w}`);b.addEventListener("click",()=>{if(state.attempted)return;state.selected.splice(i,1);state.bank.push(w);renderWords();});zone.appendChild(b);});
+state.bank.forEach((w,i)=>{const b=document.createElement("button");b.type="button";b.className="word"+(current().trap.includes(w)?" trap":"");b.textContent=w;b.addEventListener("click",()=>{if(state.attempted)return;state.selected.push(w);state.bank.splice(i,1);renderWords();});bank.appendChild(b);});
+$("revealBtn").disabled=state.attempted;$("clearBtn").disabled=state.attempted;$("hintBtn").disabled=state.attempted;
+}
+function updateStats(){$("score").textContent=state.score;$("streak").textContent=state.streak;$("progressFill").style.width=`${state.solved/scenarios.length*100}%`;$("progressNote").textContent=`${state.solved} de ${scenarios.length} visões resolvidas`;}
+function normalize(words){return words.join(" ").replace(/[.!?]+$/,"").replace(/\s+/g," ").trim().toLowerCase();}
+function reveal(){if(state.attempted)return;if(!state.selected.length){toast("Escolha as palavras para compor seu vaticínio.");return;}
+const s=current();state.attempted=true;const correct=normalize(state.selected)===normalize(s.answer);const fb=$("feedback");fb.className="feedback show "+(correct?"good":"bad");$("crystal").classList.remove("success","error");
+if(correct){const earned=Math.max(50-state.hints*10,20);state.score+=earned;state.streak++;state.bestStreak=Math.max(state.bestStreak,state.streak);state.solved++;$("crystal").classList.add("success");fb.innerHTML=`<strong>✦ Vaticínio revelado! +${earned} de poder oracular</strong>${s.explain}<br><br><b>Tradução:</b> ${s.translation}`;}
+else{state.streak=0;$("crystal").classList.add("error");fb.innerHTML=`<strong>☽ A névoa ainda encobre o futuro.</strong>${s.explain}<br><br><b>Resposta correta:</b> ${s.answer.join(" ")}.<br><b>Tradução:</b> ${s.translation}`;}
+renderWords();updateStats();
+const next=document.createElement("button");next.type="button";next.className="btn";next.style.marginTop="12px";next.textContent=state.index===scenarios.length-1?"Concluir jornada ✧":"Próxima visão →";next.addEventListener("click",()=>{if(state.index===scenarios.length-1){finishGame();}else{state.index++;renderScenario();window.scrollTo({top:0,behavior:"smooth"});}});fb.appendChild(document.createElement("br"));fb.appendChild(next);
+}
+function clearSentence(){if(state.attempted)return;state.bank.push(...state.selected);state.selected=[];renderWords();}
+function hint(){if(state.attempted)return;const s=current();state.hints++;const hintText=s.hint;toast("Pista do grimório: "+hintText);const fb=$("feedback");fb.className="feedback show";fb.innerHTML=`<strong>☼ Sussurro do grimório</strong>${hintText}`;}
+function toast(msg){const el=$("toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),3400);}
+function finishGame(){state.finished=true;const pct=Math.round(state.solved/scenarios.length*100);$("endTitle").textContent=pct===100?"O Oráculo Supremo!":"O véu foi revelado";$("endText").textContent=`Você resolveu ${state.solved} de ${scenarios.length} visões e acumulou ${state.score} pontos de poder oracular. ${pct===100?"Sua leitura dos sinais foi impecável!":"Continue consultando o grimório: diferenciar planos, evidências e decisões instantâneas fortalece sua magia gramatical."} Maior sequência de acertos: ${state.bestStreak}.`;$("endModal").classList.add("show");$("playAgainBtn").focus();}
+function restart(){state={index:0,score:0,streak:0,bestStreak:0,solved:0,selected:[],bank:[],attempted:false,hints:0,finished:false};$("endModal").classList.remove("show");renderScenario();window.scrollTo({top:0,behavior:"smooth"});}
+$("revealBtn").addEventListener("click",reveal);$("clearBtn").addEventListener("click",clearSentence);$("hintBtn").addEventListener("click",hint);$("restartBtn").addEventListener("click",restart);$("playAgainBtn").addEventListener("click",restart);
+$("endModal").addEventListener("click",e=>{if(e.target===$("endModal"))$("endModal").classList.remove("show");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("endModal").classList.remove("show");});
+renderBook();renderScenario();
+</script>
 </body>
 </html>
