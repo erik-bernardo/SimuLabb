@@ -3,652 +3,895 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batalha de Tanques: Duelo de Velocidade</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
+    <title>Math Tank Duel - Cinematic Edition</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@700&display=swap');
-        
-        body {
+        :root {
+            --p1-color: #00d2ff;
+            --p2-color: #ff416c;
+            --bg-dark: #0a0a12;
+            --panel-bg: rgba(18, 18, 32, 0.9);
+            --gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             overflow: hidden;
-            background-color: #4b6cb7;
-            background: linear-gradient(to bottom, #182848, #4b6cb7);
-            font-family: 'Roboto', sans-serif;
-            touch-action: none;
-            color: rgb(255, 255, 255);
         }
 
-        #gameCanvas {
+        #game-container {
+            position: relative;
+            width: 1000px;
+            height: 650px;
+            background: #000;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+            overflow: hidden;
+            border: 2px solid #222;
+        }
+
+        canvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
+        }
+
+        /* Overlay do HUD superior */
+        #hud {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
             z-index: 10;
-            pointer-events: none; /* Deixa os cliques (se houver) passarem */
+        }
+
+        .player-hud {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .pixel-font { font-family: 'Press Start 2P', cursive; }
-
-        /* Estilos das listas de opções */
-        .option-box {
-            background: rgb(0, 0, 0);
-            border: 2px solid rgba(99, 93, 93, 0.3);
+            width: 280px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 15px;
             border-radius: 8px;
-            padding: 10px 20px;
-            margin: 8px 0;
-            font-size: 1.5rem;
-            text-align: center;
-            transition: all 0.1s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Destaques de seleção */
-        .p1-selected { background: rgba(59, 130, 246, 0.8); border-color: #60a5fa; transform: scale(1.05); }
-        .p2-selected { background: rgba(239, 68, 68, 0.8); border-color: #f87171; transform: scale(1.05); }
-
-        /* Penalidade */
-        .penalty {
-            background: rgba(100, 100, 100, 0.5) !important;
-            border-color: #444 !important;
-            color: #888;
-        }
-        
-        .controls-hint {
-            font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 10px;
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
-        /* Efeito de flash de dano */
-        #damageOverlay {
+        .p1-text { color: var(--p1-color); }
+        .p2-text { color: var(--p2-color); }
+
+        .health-bar-bg {
+            width: 100%;
+            height: 16px;
+            background: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s ease-out;
+        }
+
+        #p1-hp { background: linear-gradient(90deg, #0072ff, var(--p1-color)); }
+        #p2-hp { background: linear-gradient(90deg, #ff4b2b, var(--p2-color)); }
+
+        .freeze-badge {
+            color: #ffcc00;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+            animation: blink 0.5s infinite alternate;
+        }
+
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+
+        /* HUD da Equação Matemática */
+        #math-box {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: red;
-            opacity: 0;
-            z-index: 5;
-            pointer-events: none;
-            transition: opacity 0.2s;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 20, 0.85);
+            border: 2px solid var(--gold);
+            padding: 10px 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            z-index: 10;
         }
+
+        #math-question {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        /* Opções de Resposta para os Jogadores */
+        .controls-overlay {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .options-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .option-card {
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            background: #1a1a2e;
+            border: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        .option-card.selected-p1 { border-color: var(--p1-color); background: rgba(0, 210, 255, 0.2); }
+        .option-card.selected-p2 { border-color: var(--p2-color); background: rgba(255, 65, 108, 0.2); }
+
+        /* Telas de Overlay (Menu e Game Over) */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--p1-color), var(--p2-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .subtitle { color: #aaa; margin-bottom: 30px; font-size: 1.1rem; }
+
+        .menu-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 320px;
+        }
+
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: #333;
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #0052d4, #4364f7);
+            border: none;
+        }
+        .btn-primary:hover { background: linear-gradient(45deg, #4364f7, #6fb1fc); color: #fff; }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .difficulty-selector button {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            flex: 1;
+            margin: 0 3px;
+        }
+
+        .difficulty-selector button.active {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--gold);
+        }
+
+        .instructions {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- Canvas para os gráficos -->
-    <canvas id="gameCanvas"></canvas>
-    <div id="damageOverlay"></div>
+<div id="game-container">
+    <canvas id="gameCanvas" width="1000" height="650"></canvas>
 
-    <div class="ui-layer p-4 md:p-8" id="uiContainer">
-        <!-- Topo: Barras de Vida e Status -->
-        <div class="flex justify-between items-center w-full max-w-6xl mx-auto">
-            <!-- P1 -->
-            <div class="w-1/3 bg-black/50 p-3 rounded-lg border-2 border-blue-500 backdrop-blur-sm">
-                <div class="flex justify-between items-end mb-2">
-                    <div class="text-blue-400 font-bold pixel-font text-xs md:text-sm">JOGADOR 1</div>
-                    <div id="p1Status" class="text-xs font-bold text-red-400 hidden">PENALIDADE!</div>
-                </div>
-                <div class="w-full bg-gray-900 rounded h-4 md:h-6 overflow-hidden">
-                    <div id="hp1" class="bg-blue-500 h-full transition-all duration-300 shadow-[0_0_10px_rgba(59,130,246,0.8)]" style="width: 100%;"></div>
-                </div>
+    <!-- HUD em Jogo -->
+    <div id="hud" class="hidden">
+        <div class="player-hud">
+            <div class="player-info">
+                <span class="p1-text">P1 (JOGADOR)</span>
+                <span id="p1-freeze" class="freeze-badge">BLOQUEADO!</span>
             </div>
-            
-            <div class="text-center">
-                <div class="font-bold text-xl text-white drop-shadow-md pixel-font">DUELO</div>
-            </div>
-
-            <!-- P2 -->
-            <div class="w-1/3 bg-black/50 p-3 rounded-lg border-2 border-red-500 backdrop-blur-sm text-right">
-                <div class="flex justify-between items-end mb-2 flex-row-reverse">
-                    <div class="text-red-400 font-bold pixel-font text-xs md:text-sm">JOGADOR 2</div>
-                    <div id="p2Status" class="text-xs font-bold text-red-400 hidden">PENALIDADE!</div>
-                </div>
-                <div class="w-full bg-gray-900 rounded h-4 md:h-6 overflow-hidden flex justify-end">
-                    <div id="hp2" class="bg-red-500 h-full transition-all duration-300 shadow-[0_0_10px_rgba(239,68,68,0.8)]" style="width: 100%;"></div>
-                </div>
+            <div class="health-bar-bg">
+                <div id="p1-hp" class="health-bar-fill"></div>
             </div>
         </div>
 
-        <!-- Centro: Pergunta e Opções -->
-        <div class="flex-grow flex flex-col justify-center items-center relative h-full">
-            
-            <!-- Menu Iniciar / Fim de jogo -->
-            <div id="overlayScreen" class="absolute inset-0 flex items-center justify-center bg-black/80 z-50 pointer-events-auto">
-                <div class="bg-gray-800 p-8 rounded-xl border-4 border-white text-center max-w-lg">
-                    <h1 id="mainTitle" class="text-3xl md:text-4xl font-bold mb-6 pixel-font text-yellow-400">MATH TANK DUEL</h1>
-                    <p id="mainDesc" class="mb-8 text-gray-300 leading-relaxed">
-                        Seja o mais rápido a resolver a conta!<br><br>
-                        <span class="text-blue-400 font-bold">P1:</span> W/S para mover, D para atirar<br>
-                        <span class="text-red-400 font-bold">P2:</span> Setas ↑/↓ para mover, ← para atirar<br><br>
-                        <span class="text-red-500">Errar congela seu tanque por 2 segundos!</span>
-                    </p>
-                    <button id="btnStart" class="bg-green-500 hover:bg-green-600 border-b-4 border-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl pixel-font transition-all active:translate-y-1 active:border-b-0 w-full">
-                        START DUAL
-                    </button>
-                </div>
+        <div id="math-box">
+            <div id="math-question">5 + 7 = ?</div>
+        </div>
+
+        <div class="player-hud">
+            <div class="player-info">
+                <span id="p2-name" class="p2-text">P2 (JOGADOR)</span>
+                <span id="p2-freeze" class="freeze-badge">BLOQUEADO!</span>
             </div>
-
-            <!-- Área de Jogo -->
-            <div id="gamePlayArea" class="w-full max-w-5xl flex justify-between items-center hidden">
-                
-                <!-- P1 Opções -->
-                <div class="w-1/4 flex flex-col gap-2" id="p1OptionsContainer">
-                    <div class="option-box" id="p1-opt-0">A</div>
-                    <div class="option-box" id="p1-opt-1">B</div>
-                    <div class="option-box" id="p1-opt-2">C</div>
-                    <div class="option-box" id="p1-opt-3">D</div>
-                    <div class="controls-hint text-center font-bold text-blue-300">W/S move - D atira</div>
-                </div>
-
-                <!-- Pergunta Central -->
-                <div class="w-2/4 flex flex-col items-center">
-                    <div class="bg-white/90 px-8 py-6 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.2)] border-4 border-gray-800 text-center transform scale-110">
-                        <div class="text-sm text-gray-500 font-bold mb-2 uppercase tracking-widest">Resolva Rápido!</div>
-                        <div id="questionText" class="text-5xl md:text-6xl font-black text-gray-900 drop-shadow-sm">
-                            5 + 7 = ?
-                        </div>
-                    </div>
-                </div>
-
-                <!-- P2 Opções -->
-                <div class="w-1/4 flex flex-col gap-2" id="p2OptionsContainer">
-                    <div class="option-box" id="p2-opt-0">A</div>
-                    <div class="option-box" id="p2-opt-1">B</div>
-                    <div class="option-box" id="p2-opt-2">C</div>
-                    <div class="option-box" id="p2-opt-3">D</div>
-                    <div class="controls-hint text-center font-bold text-red-300">↑/↓ move - ← atira</div>
-                </div>
+            <div class="health-bar-bg">
+                <div id="p2-hp" class="health-bar-fill"></div>
             </div>
-
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let cw, ch;
+    <!-- Painéis de Controles / Respostas -->
+    <div id="controls-panel" class="controls-overlay hidden">
+        <div class="options-panel" id="p1-options">
+            <!-- Gerado via JS -->
+        </div>
+        <div class="options-panel" id="p2-options">
+            <!-- Gerado via JS -->
+        </div>
+    </div>
 
-        function resize() {
-            cw = window.innerWidth;
-            ch = window.innerHeight;
-            canvas.width = cw;
-            canvas.height = ch;
+    <!-- Tela do Menu Inicial -->
+    <div id="menu-screen" class="overlay-screen">
+        <h1>MATH TANK DUEL</h1>
+        <p class="subtitle">Edição Cinemática de Ação e Raciocínio</p>
+
+        <div class="menu-group">
+            <button class="btn-primary" onclick="setupGame('single')">🎮 1 Jogador (vs CPU)</button>
+            <div class="difficulty-selector">
+                <button id="diff-easy" onclick="setDifficulty('easy')">Fácil</button>
+                <button id="diff-medium" class="active" onclick="setDifficulty('medium')">Médio</button>
+                <button id="diff-hard" onclick="setDifficulty('hard')">Difícil</button>
+            </div>
+            <button onclick="setupGame('multi')">⚔️ 2 Jogadores (Local)</button>
+        </div>
+
+        <div class="instructions">
+            <p><strong>Controles:</strong></p>
+            <p><span class="p1-text">P1:</span> W/S (Selecionar Opção) | D (Atirar)</p>
+            <p><span class="p2-text">P2:</span> Setas ↑/↓ (Selecionar Opção) | Seta ← (Atirar)</p>
+            <p style="margin-top: 5px; color: #aaa;">Errar a conta congela seu tanque por 2 segundos!</p>
+        </div>
+    </div>
+
+    <!-- Tela de Game Over -->
+    <div id="gameover-screen" class="overlay-screen hidden">
+        <h1 id="winner-title">VITÓRIA!</h1>
+        <p id="winner-stats" class="subtitle">Estatísticas da Partida</p>
+        <button class="btn-primary" onclick="returnToMenu()">Voltar ao Menu</button>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO E ESTADO GLOBAL
+// ==========================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let gameMode = 'single'; // 'single' ou 'multi'
+let aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
+let gameState = 'MENU'; // 'MENU', 'PLAYING', 'CINEMATIC', 'GAMEOVER'
+
+// Configurações de tempo de reação e precisão da IA
+const AI_SETTINGS = {
+    easy: { minTime: 3000, maxTime: 5000, accuracy: 0.65 },
+    medium: { minTime: 2000, maxTime: 3500, accuracy: 0.82 },
+    hard: { minTime: 1000, maxTime: 2000, accuracy: 0.95 }
+};
+
+let aiTimer = null;
+
+// Câmera Cinemática
+const camera = {
+    x: 500,
+    y: 325,
+    zoom: 1,
+    targetX: 500,
+    targetY: 325,
+    targetZoom: 1,
+    shake: 0,
+    update() {
+        // Interpolação suave para posição e zoom (Lerp)
+        this.x += (this.targetX - this.x) * 0.1;
+        this.y += (this.targetY - this.y) * 0.1;
+        this.zoom += (this.targetZoom - this.zoom) * 0.08;
+
+        // Efeito de Tremor (Shake)
+        if (this.shake > 0) {
+            this.x += (Math.random() - 0.5) * this.shake;
+            this.y += (Math.random() - 0.5) * this.shake;
+            this.shake *= 0.9;
+            if (this.shake < 0.5) this.shake = 0;
         }
-        window.addEventListener('resize', resize);
-        resize();
+    },
+    reset() {
+        this.targetX = 500;
+        this.targetY = 325;
+        this.targetZoom = 1;
+    }
+};
 
-        // Variáveis de Estado do Jogo
-        let gameState = 'MENU'; // MENU, PLAYING, ANIMATING, GAMEOVER
-        let p1Health = 100;
-        let p2Health = 100;
-        const maxHealth = 100;
+// Sistema de Partículas
+let particles = [];
+class Particle {
+    constructor(x, y, color, speed, size, life) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = (Math.random() - 0.5) * speed;
+        this.vy = (Math.random() - 0.5) * speed;
+        this.size = size;
+        this.life = life;
+        this.maxLife = life;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        this.size = Math.max(0, this.size - 0.05);
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.life / this.maxLife;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
 
-        let currentAnswer = 0;
-        let optionsList = [];
-        
-        let p1Index = 0;
-        let p2Index = 0;
-        
-        let p1Penalty = false;
-        let p2Penalty = false;
-        let p1PenaltyTimeout, p2PenaltyTimeout;
+// Projéteis
+let bullets = [];
+class Bullet {
+    constructor(x, y, targetX, targetY, color, owner) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.owner = owner;
+        this.speed = 12;
+        const angle = Math.atan2(targetY - y, targetX - x);
+        this.vx = Math.cos(angle) * this.speed;
+        this.vy = Math.sin(angle) * this.speed;
+        this.active = true;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
 
-        // Elementos DOM
-        const elHP1 = document.getElementById('hp1');
-        const elHP2 = document.getElementById('hp2');
-        const elP1Status = document.getElementById('p1Status');
-        const elP2Status = document.getElementById('p2Status');
-        const questionText = document.getElementById('questionText');
-        const overlayScreen = document.getElementById('overlayScreen');
-        const gamePlayArea = document.getElementById('gamePlayArea');
-        const mainTitle = document.getElementById('mainTitle');
-        const mainDesc = document.getElementById('mainDesc');
-        const btnStart = document.getElementById('btnStart');
-        const damageOverlay = document.getElementById('damageOverlay');
+        // Fumaça do projétil
+        particles.push(new Particle(this.x, this.y, '#666', 1, 3, 15));
 
-        // Classes de Gráficos (Partículas, Projetil, Tanque)
-        let particles = [];
-        let projectile = null;
-        let craters = []; // Marcas no chão
+        // Colisão com os tanques
+        const targetTank = this.owner === p1 ? p2 : p1;
+        const dist = Math.hypot(this.x - targetTank.x, this.y - targetTank.y);
 
-        class Particle {
-            constructor(x, y, color, vx, vy, life, size) {
-                this.x = x; this.y = y; this.color = color;
-                this.vx = vx; this.vy = vy; this.life = life; this.maxLife = life;
-                this.size = size || (Math.random() * 4 + 2);
-            }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                this.vy += 0.15; // gravidade
-                this.life--;
-            }
-            draw(ctx) {
-                ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
-                ctx.fillStyle = this.color;
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
-                ctx.globalAlpha = 1.0;
-            }
-        }
-
-        class Tank {
-            constructor(x, y, color, isRightFacing) {
-                this.x = x; this.y = y; this.color = color;
-                this.isRightFacing = isRightFacing;
-                this.recoil = 0;
-                this.isPenalty = false;
-            }
-            draw(ctx) {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                
-                let recoilOffset = this.isRightFacing ? -this.recoil : this.recoil;
-                ctx.translate(recoilOffset, 0);
-
-                // Se em penalidade, pisca escuro ou fica cinza
-                let currentColor = this.isPenalty ? '#555' : this.color;
-                
-                // Sombra
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(-45, 30, 90, 10);
-
-                // Corpo
-                ctx.fillStyle = currentColor;
-                ctx.fillRect(-35, -15, 70, 20); // Topo
-                ctx.fillRect(-45, 5, 90, 20);   // Base
-                
-                // Detalhes / Esteiras
-                ctx.fillStyle = '#222';
-                ctx.fillRect(-50, 25, 100, 15);
-                ctx.fillStyle = '#666';
-                for(let i=-40; i<=40; i+=20) {
-                    ctx.beginPath(); ctx.arc(i, 32.5, 6, 0, Math.PI*2); ctx.fill();
-                }
-
-                // Canhão
-                ctx.fillStyle = this.isPenalty ? '#444' : '#888';
-                if (this.isRightFacing) {
-                    ctx.fillRect(15, -10, 50, 10);
-                } else {
-                    ctx.fillRect(-65, -10, 50, 10);
-                }
-
-                // Indicador de fumaça de penalidade
-                if (this.isPenalty && Math.random() > 0.7) {
-                    particles.push(new Particle(this.x + (Math.random()*40-20), this.y - 20, '#555', 0, -1, 30, 4));
-                }
-                
-                ctx.restore();
-                if(this.recoil > 0) this.recoil -= 1;
-            }
-            getBarrelTip() {
-                let recoilOffset = this.isRightFacing ? -this.recoil : this.recoil;
-                return {
-                    x: this.x + recoilOffset + (this.isRightFacing ? 65 : -65),
-                    y: this.y - 5
-                };
-            }
-        }
-
-        class Projectile {
-            constructor(startX, startY, targetX, targetY, shooterColor) {
-                this.x = startX; this.y = startY;
-                this.startX = startX; this.startY = startY;
-                this.targetX = targetX; this.targetY = targetY;
-                this.progress = 0;
-                this.speed = 0.03; // Rápido para o duelo
-                this.color = shooterColor;
-                let dist = Math.abs(targetX - startX);
-                this.arcHeight = dist * 0.15; // Trajetória mais reta, mais agressiva
-            }
-            update() {
-                this.progress += this.speed;
-                if (this.progress > 1) this.progress = 1;
-                this.x = this.startX + (this.targetX - this.startX) * this.progress;
-                let baseY = this.startY + (this.targetY - this.startY) * this.progress;
-                this.y = baseY - Math.sin(this.progress * Math.PI) * this.arcHeight;
-
-                particles.push(new Particle(this.x, this.y, '#FFA500', 0, 0, 10, 3)); // Rastro de fogo
-
-                return this.progress >= 1;
-            }
-            draw(ctx) {
-                ctx.fillStyle = '#FFF';
-                ctx.beginPath(); ctx.arc(this.x, this.y, 5, 0, Math.PI*2); ctx.fill();
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
+        if (dist < targetTank.radius) {
+            this.active = false;
+            triggerHitEffect(targetTank);
         }
 
-        let t1, t2;
-
-        function initEntities() {
-            let groundY = ch - 120;
-            t1 = new Tank(cw * 0.15, groundY, '#3B82F6', true);  // Blue
-            t2 = new Tank(cw * 0.85, groundY, '#EF4444', false); // Red
-            craters = [];
-            particles = [];
+        // Fora da tela
+        if (this.x < 0 || this.x > 1000 || this.y < 0 || this.y > 650) {
+            this.active = false;
         }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
 
-        function generateQuestion() {
-            const types = ['+', '-', '*'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            let num1, num2;
+// Classe dos Tanques
+class Tank {
+    constructor(x, y, color, isP1) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.isP1 = isP1;
+        this.radius = 42; // Tanques maiores (1.5x a 2x)
+        this.hp = 100;
+        this.maxHp = 100;
+        this.selectedOption = 0;
+        this.frozen = false;
+        this.freezeTimer = 0;
+        this.trackOffset = 0;
+        this.angle = isP1 ? 0 : Math.PI; // P1 olha para a direita, P2 para a esquerda
+        this.dead = false;
+    }
 
-            if (type === '+') {
-                num1 = Math.floor(Math.random() * 30) + 5;
-                num2 = Math.floor(Math.random() * 30) + 5;
-                currentAnswer = num1 + num2;
-            } else if (type === '-') {
-                num1 = Math.floor(Math.random() * 50) + 20;
-                num2 = Math.floor(Math.random() * num1);
-                currentAnswer = num1 - num2;
-            } else {
-                num1 = Math.floor(Math.random() * 12) + 2;
-                num2 = Math.floor(Math.random() * 10) + 2;
-                currentAnswer = num1 * num2;
-            }
-
-            questionText.innerText = `${num1} ${type} ${num2}`;
-
-            optionsList = [currentAnswer];
-            while (optionsList.length < 4) {
-                let offset = Math.floor(Math.random() * 15) - 7;
-                if (offset === 0) offset = 2;
-                let wrong = currentAnswer + offset;
-                if (wrong < 0) wrong = Math.abs(wrong) + 1;
-                if (!optionsList.includes(wrong)) {
-                    optionsList.push(wrong);
-                }
-            }
-            optionsList.sort(() => Math.random() - 0.5);
-
-            // Atualizar UI
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`p1-opt-${i}`).innerText = optionsList[i];
-                document.getElementById(`p2-opt-${i}`).innerText = optionsList[i];
-            }
-            
-            p1Index = 0;
-            p2Index = 0;
-            updateSelectionUI();
-        }
-
-        function updateSelectionUI() {
-            for (let i = 0; i < 4; i++) {
-                let opt1 = document.getElementById(`p1-opt-${i}`);
-                let opt2 = document.getElementById(`p2-opt-${i}`);
-                
-                // Reseta classes
-                opt1.className = 'option-box';
-                opt2.className = 'option-box';
-
-                // Aplica seleção
-                if (i === p1Index && !p1Penalty) opt1.classList.add('p1-selected');
-                if (i === p2Index && !p2Penalty) opt2.classList.add('p2-selected');
-
-                // Aplica penalidade visual (cinza)
-                if (p1Penalty) opt1.classList.add('penalty');
-                if (p2Penalty) opt2.classList.add('penalty');
+    update() {
+        if (this.frozen) {
+            this.freezeTimer -= 16;
+            if (this.freezeTimer <= 0) {
+                this.frozen = false;
+                document.getElementById(this.isP1 ? 'p1-freeze' : 'p2-freeze').style.display = 'none';
             }
         }
+    }
 
-        function applyPenalty(player) {
-            if (player === 1) {
-                p1Penalty = true;
-                elP1Status.classList.remove('hidden');
-                t1.isPenalty = true;
-                clearTimeout(p1PenaltyTimeout);
-                // Mini explosão de falha no próprio cano
-                let tip = t1.getBarrelTip();
-                createExplosion(tip.x, tip.y, 10, '#333');
-                
-                p1PenaltyTimeout = setTimeout(() => {
-                    p1Penalty = false;
-                    elP1Status.classList.add('hidden');
-                    if(t1) t1.isPenalty = false;
-                    updateSelectionUI();
-                }, 2000);
-            } else {
-                p2Penalty = true;
-                elP2Status.classList.remove('hidden');
-                t2.isPenalty = true;
-                clearTimeout(p2PenaltyTimeout);
-                let tip = t2.getBarrelTip();
-                createExplosion(tip.x, tip.y, 10, '#333');
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
 
-                p2PenaltyTimeout = setTimeout(() => {
-                    p2Penalty = false;
-                    elP2Status.classList.add('hidden');
-                    if(t2) t2.isPenalty = false;
-                    updateSelectionUI();
-                }, 2000);
-            }
-            updateSelectionUI();
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (gameState !== 'PLAYING') {
-                // Previne rolagem de tela com setas mesmo fora do jogo
-                if(["ArrowUp","ArrowDown"," "].indexOf(e.code) > -1) {
-                    e.preventDefault();
-                }
-                return;
-            }
-
-            // --- Player 1 Controls (W, S, D) ---
-            if (!p1Penalty) {
-                if (e.key === 'w' || e.key === 'W') {
-                    p1Index = (p1Index - 1 + 4) % 4;
-                    updateSelectionUI();
-                } else if (e.key === 's' || e.key === 'S') {
-                    p1Index = (p1Index + 1) % 4;
-                    updateSelectionUI();
-                } else if (e.key === 'd' || e.key === 'D') {
-                    checkAnswer(1, p1Index);
-                }
-            }
-
-            // --- Player 2 Controls (ArrowUp, ArrowDown, ArrowLeft) ---
-            if (!p2Penalty) {
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    p2Index = (p2Index - 1 + 4) % 4;
-                    updateSelectionUI();
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    p2Index = (p2Index + 1) % 4;
-                    updateSelectionUI();
-                } else if (e.key === 'ArrowLeft') {
-                    checkAnswer(2, p2Index);
-                }
-            }
-        });
-
-        function checkAnswer(player, selectedIndex) {
-            let selectedValue = optionsList[selectedIndex];
-            
-            if (selectedValue === currentAnswer) {
-                // Acertou! Atira.
-                fireTank(player);
-            } else {
-                // Errou. Penalidade.
-                applyPenalty(player);
-            }
-        }
-
-        function fireTank(winnerPlayer) {
-            gameState = 'ANIMATING'; // Pausa os inputs temporariamente
-            
-            let attacker = winnerPlayer === 1 ? t1 : t2;
-            let target = winnerPlayer === 1 ? t2 : t1;
-            
-            attacker.recoil = 20;
-            let tip = attacker.getBarrelTip();
-            createExplosion(tip.x, tip.y, 20, '#FFFF00'); // Fogo do canhão
-
-            let targetX = target.x;
-            let targetY = target.y + 10; // Mira na base do tanque
-
-            projectile = new Projectile(tip.x, tip.y, targetX, targetY, attacker.color);
-        }
-
-        function onImpact() {
-            createExplosion(projectile.targetX, projectile.targetY, 50, '#FF4500');
-            craters.push({x: projectile.targetX, y: ch - 120, size: 40}); // Marca no chão
-
-            // Efeito de tela piscando vermelho
-            damageOverlay.style.opacity = 0.3;
-            setTimeout(() => damageOverlay.style.opacity = 0, 100);
-
-            // Calcula dano
-            let damage = 25;
-            if (projectile.color === t1.color) { // P1 atirou
-                p2Health -= damage;
-            } else { // P2 atirou
-                p1Health -= damage;
-            }
-
-            updateHealthBars();
-            projectile = null;
-
-            if (p1Health <= 0 || p2Health <= 0) {
-                setTimeout(endGame, 1000);
-            } else {
-                // Aguarda um momento antes de liberar nova pergunta
-                setTimeout(() => {
-                    generateQuestion();
-                    gameState = 'PLAYING';
-                }, 1000);
-            }
-        }
-
-        function createExplosion(x, y, amount, baseColor) {
-            for(let i=0; i<amount; i++) {
-                let vx = (Math.random() - 0.5) * 15;
-                let vy = (Math.random() - 0.5) * 15 - 5;
-                let color = Math.random() > 0.4 ? baseColor : '#FFF';
-                particles.push(new Particle(x, y, color, vx, vy, Math.random()*30 + 10));
-            }
-        }
-
-        function drawBackground() {
-            // Chão noturno/cyberpunk
-            let groundY = ch - 120;
-            
-            // Grade no fundo (estilo Tron/Retrowave)
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 1;
+        if (this.dead) {
+            // Desenha destroços do tanque
+            ctx.fillStyle = '#222';
             ctx.beginPath();
-            for(let i=0; i<cw; i+=50) { ctx.moveTo(i, 0); ctx.lineTo(i, groundY); }
-            for(let j=0; j<groundY; j+=50) { ctx.moveTo(0, j); ctx.lineTo(cw, j); }
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            return;
+        }
+
+        // Efeito visual de congelado
+        if (this.frozen) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + 8, 0, Math.PI * 2);
             ctx.stroke();
-
-            // Chão base
-            ctx.fillStyle = '#0f172a'; // Slate 900
-            ctx.fillRect(0, groundY, cw, ch - groundY);
-            
-            // Linha neon divisória
-            ctx.fillStyle = '#38bdf8'; // Cyan neon
-            ctx.fillRect(0, groundY, cw, 4);
-
-            // Craters (Marcas de tiro)
-            craters.forEach(c => {
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.ellipse(c.x, c.y + 4, c.size, c.size/3, 0, 0, Math.PI*2);
-                ctx.fill();
-            });
         }
 
-        function gameLoop() {
-            ctx.clearRect(0, 0, cw, ch);
-            
-            drawBackground();
+        ctx.rotate(this.angle);
 
-            if (t1 && t2) {
-                t1.draw(ctx);
-                t2.draw(ctx);
-            }
+        // Esteiras do Tanque
+        ctx.fillStyle = '#111';
+        ctx.fillRect(-this.radius, -this.radius - 4, this.radius * 2, 12);
+        ctx.fillRect(-this.radius, this.radius - 8, this.radius * 2, 12);
 
-            if (projectile) {
-                let hit = projectile.update();
-                projectile.draw(ctx);
-                if (hit) {
-                    onImpact();
-                }
-            }
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.update();
-                p.draw(ctx);
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-
-            requestAnimationFrame(gameLoop);
+        // Detalhes da esteira
+        ctx.fillStyle = '#333';
+        for (let i = -this.radius + 4; i < this.radius - 4; i += 8) {
+            ctx.fillRect(i, -this.radius - 4, 4, 12);
+            ctx.fillRect(i, this.radius - 8, 4, 12);
         }
 
-        // --- Funções de Controle de Jogo ---
-        function updateHealthBars() {
-            elHP1.style.width = Math.max(0, (p1Health / maxHealth) * 100) + '%';
-            elHP2.style.width = Math.max(0, (p2Health / maxHealth) * 100) + '%';
+        // Corpo Principal
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.roundRect(-this.radius + 6, -this.radius + 6, (this.radius - 6) * 2, (this.radius - 6) * 2, 8);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Torreta / Canhão
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Tubo do Canhão
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, -6, this.radius * 1.2, 12);
+        ctx.strokeRect(0, -6, this.radius * 1.2, 12);
+
+        ctx.restore();
+    }
+
+    freeze() {
+        this.frozen = true;
+        this.freezeTimer = 2000; // 2 segundos
+        document.getElementById(this.isP1 ? 'p1-freeze' : 'p2-freeze').style.display = 'inline';
+    }
+}
+
+// Instâncias dos Jogadores
+const p1 = new Tank(150, 325, '#00d2ff', true);
+const p2 = new Tank(850, 325, '#ff416c', false);
+
+// Estado da Questão Matemática
+let currentQuestion = {
+    text: '',
+    correctAnswer: 0,
+    options: []
+};
+
+// ==========================================
+// LÓGICA MATEMÁTICA E IA
+// ==========================================
+function generateMathQuestion() {
+    const ops = ['+', '-', '×'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+    let a, b, ans;
+
+    if (op === '+') {
+        a = Math.floor(Math.random() * 20) + 1;
+        b = Math.floor(Math.random() * 20) + 1;
+        ans = a + b;
+    } else if (op === '-') {
+        a = Math.floor(Math.random() * 20) + 10;
+        b = Math.floor(Math.random() * a) + 1;
+        ans = a - b;
+    } else {
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        ans = a * b;
+    }
+
+    // Gerar 4 opções únicas
+    const optionsSet = new Set([ans]);
+    while (optionsSet.size < 4) {
+        let wrong = ans + (Math.floor(Math.random() * 10) - 5);
+        if (wrong !== ans && wrong >= 0) optionsSet.add(wrong);
+    }
+
+    const options = Array.from(optionsSet).sort(() => Math.random() - 0.5);
+
+    currentQuestion = {
+        text: `${a} ${op} ${b} = ?`,
+        correctAnswer: ans,
+        options: options
+    };
+
+    document.getElementById('math-question').textContent = currentQuestion.text;
+    renderOptions();
+
+    // Se estiver no modo Single Player, agendar ação da IA
+    if (gameMode === 'single' && gameState === 'PLAYING') {
+        scheduleAIResponse();
+    }
+}
+
+function renderOptions() {
+    const p1Container = document.getElementById('p1-options');
+    const p2Container = document.getElementById('p2-options');
+    p1Container.innerHTML = '';
+    p2Container.innerHTML = '';
+
+    const labels = ['A', 'B', 'C', 'D'];
+
+    currentQuestion.options.forEach((opt, idx) => {
+        // Opções P1
+        const card1 = document.createElement('div');
+        card1.className = `option-card ${p1.selectedOption === idx ? 'selected-p1' : ''}`;
+        card1.innerHTML = `<span>${labels[idx]}</span> <span>${opt}</span>`;
+        p1Container.appendChild(card1);
+
+        // Opções P2
+        const card2 = document.createElement('div');
+        card2.className = `option-card ${p2.selectedOption === idx ? 'selected-p2' : ''}`;
+        card2.innerHTML = `<span>${labels[idx]}</span> <span>${opt}</span>`;
+        p2Container.appendChild(card2);
+    });
+}
+
+function scheduleAIResponse() {
+    if (aiTimer) clearTimeout(aiTimer);
+    if (p2.frozen || p2.dead) return;
+
+    const settings = AI_SETTINGS[aiDifficulty];
+    const delay = Math.random() * (settings.maxTime - settings.minTime) + settings.minTime;
+
+    aiTimer = setTimeout(() => {
+        if (gameState !== 'PLAYING' || p2.frozen) return;
+
+        const isCorrect = Math.random() < settings.accuracy;
+        if (isCorrect) {
+            p2.selectedOption = currentQuestion.options.indexOf(currentQuestion.correctAnswer);
+        } else {
+            // Seleciona uma opção errada aleatória
+            const wrongIndices = currentQuestion.options
+                .map((opt, i) => opt !== currentQuestion.correctAnswer ? i : -1)
+                .filter(i => i !== -1);
+            p2.selectedOption = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+        }
+        renderOptions();
+        processShoot(p2);
+    }, delay);
+}
+
+// ==========================================
+// AÇÕES DE JOGO E DISPAROS
+// ==========================================
+function processShoot(player) {
+    if (player.frozen || gameState !== 'PLAYING') return;
+
+    const selectedValue = currentQuestion.options[player.selectedOption];
+
+    if (selectedValue === currentQuestion.correctAnswer) {
+        // Disparo Correto!
+        const target = player === p1 ? p2 : p1;
+        bullets.push(new Bullet(player.x, player.y, target.x, target.y, player.color, player));
+        generateMathQuestion(); // Nova questão após acerto
+    } else {
+        // Resposta Incorreta -> Congelamento
+        player.freeze();
+    }
+}
+
+// ==========================================
+// EFEITOS CINEMÁTICOS E ANIMAÇÕES
+// ==========================================
+function triggerHitEffect(target) {
+    // Aplicar Dano
+    target.hp = Math.max(0, target.hp - 25);
+    updateHPBars();
+
+    // Faíscas e explosão no ponto do impacto
+    for (let i = 0; i < 20; i++) {
+        particles.push(new Particle(target.x, target.y, '#ffaa00', 6, 4, 30));
+        particles.push(new Particle(target.x, target.y, '#ff0000', 4, 3, 20));
+    }
+
+    if (target.hp <= 0) {
+        triggerCinematicKill(target);
+    } else {
+        // Hit Zoom Temporário
+        camera.targetX = target.x;
+        camera.targetY = target.y;
+        camera.targetZoom = 1.35;
+        camera.shake = 12;
+
+        setTimeout(() => {
+            if (gameState === 'PLAYING') camera.reset();
+        }, 350);
+    }
+}
+
+function triggerCinematicKill(victim) {
+    gameState = 'CINEMATIC';
+    victim.dead = true;
+
+    // Slow motion e Câmera Zoom na vítima
+    camera.targetX = victim.x;
+    camera.targetY = victim.y;
+    camera.targetZoom = 1.7;
+    camera.shake = 25;
+
+    let explosionCount = 0;
+    const explosionInterval = setInterval(() => {
+        explosionCount++;
+
+        // Explosões múltiplas em partículas
+        for (let i = 0; i < 35; i++) {
+            particles.push(new Particle(
+                victim.x + (Math.random() - 0.5) * 60,
+                victim.y + (Math.random() - 0.5) * 60,
+                Math.random() > 0.5 ? '#ff4500' : '#ffd700',
+                8,
+                6,
+                45
+            ));
+            particles.push(new Particle(
+                victim.x + (Math.random() - 0.5) * 40,
+                victim.y + (Math.random() - 0.5) * 40,
+                '#333',
+                3,
+                8,
+                60
+            ));
         }
 
-        function startGame() {
-            p1Health = 100;
-            p2Health = 100;
-            p1Penalty = false;
-            p2Penalty = false;
-            clearTimeout(p1PenaltyTimeout);
-            clearTimeout(p2PenaltyTimeout);
-            elP1Status.classList.add('hidden');
-            elP2Status.classList.add('hidden');
-            
-            updateHealthBars();
-            initEntities();
-            
-            overlayScreen.classList.add('hidden');
-            gamePlayArea.classList.remove('hidden');
-            
-            generateQuestion();
-            gameState = 'PLAYING';
+        camera.shake = 15;
+
+        if (explosionCount >= 6) {
+            clearInterval(explosionInterval);
+            setTimeout(() => showGameOver(victim === p2 ? p1 : p2), 800);
         }
+    }, 180);
+}
 
-        function endGame() {
-            gameState = 'GAMEOVER';
-            gamePlayArea.classList.add('hidden');
-            overlayScreen.classList.remove('hidden');
-            
-            let winner = p1Health > 0 ? 1 : 2;
-            mainTitle.innerText = `JOGADOR ${winner} VENCEU!`;
-            mainTitle.className = `text-4xl md:text-5xl font-bold mb-6 pixel-font ${winner === 1 ? 'text-blue-500' : 'text-red-500'} drop-shadow-lg`;
-            mainDesc.innerHTML = "As ruínas do tanque inimigo ainda fumegam.<br>Quer jogar outra partida?";
-            btnStart.innerText = "NOVO DUELO";
+function updateHPBars() {
+    document.getElementById('p1-hp').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
+    document.getElementById('p2-hp').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
+}
+
+// ==========================================
+// LOOP PRINCIPAL DE RENDERIZAÇÃO
+// ==========================================
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Atualização de Câmera
+    camera.update();
+
+    ctx.save();
+    // Aplicação das transformações de Câmera (Zoom e Pan)
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(-camera.x, -camera.y);
+
+    // Desenhar Arena/Cenário
+    drawGrid(ctx);
+
+    // Atualizar e Desenhar Tanques
+    p1.update();
+    p2.update();
+    p1.draw(ctx);
+    p2.draw(ctx);
+
+    // Atualizar e Desenhar Projéteis
+    bullets.forEach((b, idx) => {
+        b.update();
+        b.draw(ctx);
+        if (!b.active) bullets.splice(idx, 1);
+    });
+
+    // Atualizar e Desenhar Partículas
+    particles.forEach((p, idx) => {
+        p.update();
+        p.draw(ctx);
+        if (p.life <= 0) particles.splice(idx, 1);
+    });
+
+    ctx.restore();
+
+    requestAnimationFrame(gameLoop);
+}
+
+function drawGrid(ctx) {
+    ctx.strokeStyle = '#181828';
+    ctx.lineWidth = 1;
+    const size = 50;
+    for (let x = 0; x < 1000; x += size) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 650); ctx.stroke();
+    }
+    for (let y = 0; y < 650; y += size) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1000, y); ctx.stroke();
+    }
+}
+
+// ==========================================
+// CONTROLES DE INTERFACE E ENTRADA
+// ==========================================
+function setDifficulty(diff) {
+    aiDifficulty = diff;
+    document.querySelectorAll('.difficulty-selector button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`diff-${diff}`).classList.add('active');
+}
+
+function setupGame(mode) {
+    gameMode = mode;
+    document.getElementById('p2-name').textContent = mode === 'single' ? `CPU (${aiDifficulty.toUpperCase()})` : 'P2 (JOGADOR)';
+
+    // Resetar estado dos jogadores
+    p1.hp = 100; p2.hp = 100;
+    p1.dead = false; p2.dead = false;
+    p1.frozen = false; p2.frozen = false;
+    p1.selectedOption = 0; p2.selectedOption = 0;
+    bullets = []; particles = [];
+    camera.reset();
+    updateHPBars();
+
+    // Transição de telas
+    document.getElementById('menu-screen').classList.add('hidden');
+    document.getElementById('gameover-screen').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('controls-panel').classList.remove('hidden');
+
+    gameState = 'PLAYING';
+    generateMathQuestion();
+}
+
+function showGameOver(winner) {
+    gameState = 'GAMEOVER';
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('controls-panel').classList.add('hidden');
+    document.getElementById('gameover-screen').classList.remove('hidden');
+
+    const winnerText = winner === p1 ? 'JOGADOR 1 VENCEU!' : (gameMode === 'single' ? 'A CPU VENCEU!' : 'JOGADOR 2 VENCEU!');
+    document.getElementById('winner-title').textContent = winnerText;
+    document.getElementById('winner-title').style.color = winner.color;
+    document.getElementById('winner-stats').textContent = `Vida Restante do Vencedor: ${winner.hp}%`;
+}
+
+function returnToMenu() {
+    gameState = 'MENU';
+    if (aiTimer) clearTimeout(aiTimer);
+    document.getElementById('gameover-screen').classList.add('hidden');
+    document.getElementById('menu-screen').classList.remove('hidden');
+}
+
+// Mapeamento de Teclas
+window.addEventListener('keydown', (e) => {
+    if (gameState !== 'PLAYING') return;
+
+    // Jogador 1 (W, S, D)
+    if (e.key === 'w' || e.key === 'W') {
+        p1.selectedOption = (p1.selectedOption - 1 + 4) % 4;
+        renderOptions();
+    } else if (e.key === 's' || e.key === 'S') {
+        p1.selectedOption = (p1.selectedOption + 1) % 4;
+        renderOptions();
+    } else if (e.key === 'd' || e.key === 'D') {
+        processShoot(p1);
+    }
+
+    // Jogador 2 (Setas ↑, ↓, ←) - Apenas se não for contra a CPU
+    if (gameMode === 'multi') {
+        if (e.key === 'ArrowUp') {
+            p2.selectedOption = (p2.selectedOption - 1 + 4) % 4;
+            renderOptions();
+        } else if (e.key === 'ArrowDown') {
+            p2.selectedOption = (p2.selectedOption + 1) % 4;
+            renderOptions();
+        } else if (e.key === 'ArrowLeft') {
+            processShoot(p2);
         }
+    }
+});
 
-        btnStart.addEventListener('click', startGame);
-
-        // Inicia a animação de fundo mesmo no menu
-        initEntities();
-        requestAnimationFrame(gameLoop);
-
-    </script>
+// Inicialização
+requestAnimationFrame(gameLoop);
+</script>
 </body>
 </html>
