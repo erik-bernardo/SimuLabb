@@ -179,24 +179,42 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
 <script>
 const games = [
   {title:"Voa-Palavra: Sinônimos Perfeitos",subject:"Português",desc:"Controle o pássaro e colete o sinônimo perfeito da palavra-chave. Um desafio de reflexo e vocabulário.",img:"images/flappyword.png",href:"games/flappy-words/index.html"},
-  {title:"Cobras Escadas (Conjugação)",subject:"Português",desc:"Conjugue o verbo corretamente no tempo e modo solicitados antes que o tempo acabe.",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl5BDil6kN91n6I3z-tqq4ko2wp1GA-WINVz9pP4TOshfNlWhvk1MgIPw&s=10",href:"games/escada/index.html"},
-  {title:"Porques Blast",subject:"Português",desc:"Atire o porquê certo para completar as frases antes que o tempo acabe.",img:"https://erik-bernardo.github.io/SimuLabb/images/games/porqueblast.jpg",href:"games/porque-blast/index.html"},
-  {title:"Chuva de Palavras",subject:"Português",desc:"Enquanto palavras caem do céu, um jogador corre pelo gramado para recolher apenas os Verbos (bloco verde) e o outro recolhe apenas os Adjetivos (bloco rosa). Ganha quem somar mais pontos e cometer menos erros antes que o tempo acabe!",img:"https://erik-bernardo.github.io/SimuLabb/images/games/Chuva.jpg" ,href:"games/chuuva/index.html"},
-  {title:"Português Social",subject:"Português",desc:"Responda corretamente a perguntas em contextos sociais e diferencie palavras parecidas.",img:"images/games/portuguesocial.jpg"},
-  {title:"Frase, Oração e Período",subject:"Português",desc:"Você sabe diferenciar frase, oração e período? Vamos conferir.",img:"https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=700&q=85",href:"games/frases.html"},
-  {title:"The Seer",subject:"Inglês",desc:"Decifre o destino: acerte a previsão de primeira ou consulte o grimório para selar seu futuro.",img:"https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=700&q=85",href:"games/seer/index.html"},
-  {title:"Who Is the Owner?",subject:"Inglês",desc:"Arraste cada item até o dono correto e escolha o pronome de objeto que completa a frase.",img:"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=700&q=85",href:"games/owner/index.html"},
-  {title:"Duelos de Cálculo Mental",subject:"Matemática",desc:"Resolva adição, subtração, multiplicação e divisão contra o relógio.",img:"https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/duelos.html"},
-  {title:"A Pirâmide Doidinha",subject:"Química",desc:"Combine elementos corretamente para formar compostos estáveis e explorar a pirâmide maluca.",img:"https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=700&q=85",href:"games/A_piramide_doidinha.html"},
-  {title:"Match 3 Elementos",subject:"Química",desc:"Combine três elementos iguais para apagar uma linha e avançar no desafio.",img:"images/match3.png",href:"games/periodica.html"},
-  {title:"Atira Vírus",subject:"Biologia",desc:"Você é um glóbulo branco e precisa combater vírus e bactérias malignas.",img:"https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=700&q=85",href:"games/virus/index.html"},
-  {title:"Immune Defense: Micro War",subject:"Biologia",desc:"Proteja seu corpo de bactérias, vírus e fungos neste jogo de tower defense.",img:"https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/Imune/"},
-  {title:"Adivinhe a Bandeira",subject:"Geografia",desc:"Teste seus conhecimentos identificando bandeiras e capitais do mundo em um quiz rápido.",img:"https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=85",href:"games/bandeiras/index.html"},
-  {title:"RÉVOLUTION (1789–1799)",subject:"História",desc:"Tome decisões para governar a França durante o período da Revolução Francesa.",img:"https://images.unsplash.com/photo-1590237550502-0b2c7b6a7a6b?auto=format&fit=crop&w=700&q=85",href:"games/revolucao.html"},
-  {title:"Seje Justo",subject:"Filosofia",desc:"Enfrente dilemas éticos e morais inspirados em grandes correntes filosóficas, de Platão a Kant.",img:"https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?auto=format&fit=crop&w=700&q=85",href:"games/card/index.html"},
-  {title:"Labirinto de Loops (For/While)",subject:"Programação",desc:"Programe o caminho do robô usando o menor número possível de comandos de repetição.",img:"https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=700&q=85",href:"games/labirinto.html"},
-  {title:"Seu-FlappyBird: Gravidade e Variáveis",subject:"Física",desc:"Simule gravidade e movimento em 2D usando variáveis de posição nos eixos X e Y.",img:"https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=700&q=85",href:"games/flappy-blocks/index.html"},
-  {title:"Seu-Akinator: Árvore de Decisão",subject:"Programação",desc:"Construa uma árvore de decisão eficiente com perguntas e condicionais aninhadas.",img:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=85",href:"games/make-your-akinator.html"}
+  
+ {title:"Cobras Escadas (Conjugação)",subject:"Português",desc:"Conjugue o verbo corretamente no tempo e modo solicitados antes que o tempo acabe.",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl5BDil6kN91n6I3z-tqq4ko2wp1GA-WINVz9pP4TOshfNlWhvk1MgIPw&s=10",href:"games/escada/index.html"},
+  
+ {title:"Porques Blast",subject:"Português",desc:"Atire o porquê certo para completar as frases antes que o tempo acabe.",img:"https://erik-bernardo.github.io/SimuLabb/images/games/porqueblast.jpg",href:"games/porque-blast/index.html"},
+  
+ {title:"Chuva de Palavras",subject:"Português",desc:"Enquanto palavras caem do céu, um jogador corre pelo gramado para recolher apenas os Verbos (bloco verde) e o outro recolhe apenas os Adjetivos (bloco rosa). Ganha quem somar mais pontos e cometer menos erros antes que o tempo acabe!",img:"https://erik-bernardo.github.io/SimuLabb/images/games/Chuva.jpg" ,href:"games/chuuva/index.html"},
+  
+ {title:"Português Social",subject:"Português",desc:"Responda corretamente a perguntas em contextos sociais e diferencie palavras parecidas.",img:"images/games/portuguesocial.jpg", href:"games/portugues-social/index.html"},
+  
+ {title:"Frase, Oração e Período",subject:"Português",desc:"Você sabe diferenciar frase, oração e período? Vamos conferir.",img:"https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=700&q=85",href:"games/frases.html"},
+  
+ {title:"The Seer",subject:"Inglês",desc:"Decifre o destino: acerte a previsão de primeira ou consulte o grimório para selar seu futuro.",img:"https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=700&q=85",href:"games/seer/index.html"},
+  
+ {title:"Who Is the Owner?",subject:"Inglês",desc:"Arraste cada item até o dono correto e escolha o pronome de objeto que completa a frase.",img:"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=700&q=85",href:"games/owner/index.html"},
+  
+ {title:"Duelos de Cálculo Mental",subject:"Matemática",desc:"Resolva adição, subtração, multiplicação e divisão contra o relógio.",img:"https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/duelos.html"},
+  
+ {title:"A Pirâmide Doidinha",subject:"Química",desc:"Combine elementos corretamente para formar compostos estáveis e explorar a pirâmide maluca.",img:"https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=700&q=85",href:"games/A_piramide_doidinha.html"},
+  
+ {title:"Match 3 Elementos",subject:"Química",desc:"Combine três elementos iguais para apagar uma linha e avançar no desafio.",img:"images/match3.png",href:"games/periodica.html"},
+  
+ {title:"Atira Vírus",subject:"Biologia",desc:"Você é um glóbulo branco e precisa combater vírus e bactérias malignas.",img:"https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=700&q=85",href:"games/virus/index.html"},
+  
+ {title:"Immune Defense: Micro War",subject:"Biologia",desc:"Proteja seu corpo de bactérias, vírus e fungos neste jogo de tower defense.",img:"https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/Imune/"},
+  
+ {title:"Adivinhe a Bandeira",subject:"Geografia",desc:"Teste seus conhecimentos identificando bandeiras e capitais do mundo em um quiz rápido.",img:"https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=85",href:"games/bandeiras/index.html"},
+  
+ {title:"RÉVOLUTION (1789–1799)",subject:"História",desc:"Tome decisões para governar a França durante o período da Revolução Francesa.",img:"https://images.unsplash.com/photo-1590237550502-0b2c7b6a7a6b?auto=format&fit=crop&w=700&q=85",href:"games/revolucao.html"},
+  
+ {title:"Seje Justo",subject:"Filosofia",desc:"Enfrente dilemas éticos e morais inspirados em grandes correntes filosóficas, de Platão a Kant.",img:"https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?auto=format&fit=crop&w=700&q=85",href:"games/card/index.html"},
+  
+ {title:"Labirinto de Loops (For/While)",subject:"Programação",desc:"Programe o caminho do robô usando o menor número possível de comandos de repetição.",img:"https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=700&q=85",href:"games/labirinto.html"},
+  
+ {title:"Seu-FlappyBird: Gravidade e Variáveis",subject:"Física",desc:"Simule gravidade e movimento em 2D usando variáveis de posição nos eixos X e Y.",img:"https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=700&q=85",href:"games/flappy-blocks/index.html"},
+  
+ {title:"Seu-Akinator: Árvore de Decisão",subject:"Programação",desc:"Construa uma árvore de decisão eficiente com perguntas e condicionais aninhadas.",img:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=85",href:"games/make-your-akinator.html"}
 ];
 
 const subjectClass = {"Matemática":"","Física":"physics","Química":"chemistry","Biologia":"biology","Programação":"programming","Português":"other","Inglês":"other","Geografia":"other","História":"other","Filosofia":"other","Lógica":"programming","Outros":"other"};
