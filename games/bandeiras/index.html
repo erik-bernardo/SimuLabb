@@ -3,62 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adivinhe a Bandeira - Digitação</title>
-    <link rel="stylesheet" href="style.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
+    <title>Adivinhe a Bandeira</title>
+    <style>
+        /* ================= TEMA E VARIÁVEIS ================= */
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --primary: #ffd700;
+            --primary-hover: #e6c200;
+            --text-light: #c9d1d9;
+            --success: #2ea043;
+            --danger: #da3633;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--panel-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        /* ================= BOTÕES E INPUTS ================= */
+        button {
+            background-color: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: var(--primary);
+            color: var(--bg-color);
+        }
+
+        button.btn-danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        button.btn-danger:hover {
+            background-color: var(--danger);
+            color: #fff;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: var(--bg-color);
+            color: #fff;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        /* ================= TELAS ================= */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Menu */
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mode-selector label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* HUD e Jogo */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .timer.danger-time {
+            color: var(--danger);
+            animation: flash-red 1s infinite;
+        }
+
+        @keyframes flash-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+
+        .flag-card {
+            margin: 20px auto;
+            width: 100%;
+            max-width: 320px;
+            height: 213px; /* Proporção padrão 3:2 aproximada */
+            background-color: #222;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .flag-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Animações de Feedback */
+        .pulse-green { animation: pulseGreen 0.5s; box-shadow: 0 0 20px var(--success); }
+        .shake-red { animation: shakeRed 0.4s; box-shadow: 0 0 20px var(--danger); }
+
+        @keyframes pulseGreen {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shakeRed {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        /* Tabela de Diagnóstico */
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: #1f242c;
+            color: var(--primary);
+            position: sticky;
+            top: 0;
+        }
+
+        .flag-icon { width: 30px; height: 20px; border-radius: 2px; object-fit: cover; vertical-align: middle; }
+        .status-acertou { color: var(--success); font-weight: bold; }
+        .status-errou { color: var(--danger); font-weight: bold; }
+        
+        /* Cores de dificuldade */
+        .diff-green { color: var(--success); }
+        .diff-red { color: var(--danger); font-weight: bold; }
+
+    </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div id="game-header">
-            <div class="score-box">
-                <span>PONTOS:</span>
-                <span id="score-value">0</span>
-            </div>
-            <div class="timer-box">
-                <span>TEMPO:</span>
-                <span id="timer-value">60</span>s
-            </div>
-        </div>
-
-        <div id="central-area">
+    <div class="container">
+        <!-- ================= TELA INICIAL ================= -->
+        <div id="screen-menu" class="screen active">
+            <h1>🌍 Adivinhe a Bandeira</h1>
+            <p>Teste seus conhecimentos de geografia antes que o tempo acabe!</p>
             
-            <div id="flag-container">
-                <img id="current-flag" src="" alt="Bandeira do País a ser adivinhado">
+            <div class="mode-selector">
+                <label>
+                    <input type="radio" name="inputMode" value="buttons" checked>
+                    Múltipla Escolha
+                </label>
+                <label>
+                    <input type="radio" name="inputMode" value="typing">
+                    Digitação
+                </label>
             </div>
 
-            <div id="dialog-bubble" class="speech-bubble">
-                <p id="npc-statement">De qual país é esta bandeira?</p>
+            <button onclick="startGame()">▶ Iniciar Jogo</button>
+        </div>
+
+        <!-- ================= TELA DO JOGO ================= -->
+        <div id="screen-game" class="screen">
+            <div class="hud">
+                <div>Pontos: <span id="score">0</span></div>
+                <div class="timer" id="timer-display">Tempo: 60s</div>
+            </div>
+
+            <div id="flag-container" class="flag-card">
+                <img id="flag-img" src="" alt="Bandeira do país">
+            </div>
+
+            <div id="input-area-typing" style="display: none;">
+                <input type="text" id="type-input" placeholder="Digite o nome do país e aperte Enter..." autocomplete="off">
+            </div>
+
+            <div id="input-area-buttons" class="options-grid" style="display: none;">
+                <!-- Botões gerados via JS -->
             </div>
         </div>
 
-        <div id="input-container">
-            <input type="text" id="answer-input" placeholder="Digite o nome do país aqui...">
-            <button id="submit-button" class="big-button">ENVIAR</button>
-        </div>
-        
-        <div id="feedback-area">
-            <p id="feedback-message"></p>
-        </div>
+        <!-- ================= TELA DE FIM DE JOGO E ESTATÍSTICAS ================= -->
+        <div id="screen-end" class="screen">
+            <h2>Fim de Jogo!</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 15px;">Você acertou <strong id="final-score" style="color: var(--primary);">0</strong> bandeiras.</p>
 
-        <div id="overlay" class="game-overlay">
-            <div id="game-start-screen" class="screen-box">
-                <h1>Adivinhe a Bandeira</h1>
-                <p>Você tem 60 segundos para digitar o nome de todas as bandeiras que conseguir!</p>
-                <button id="start-button" class="big-button">INICIAR DESAFIO</button>
+            <h3 style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">📊 Diagnóstico de Dificuldades</h3>
+            
+            <div class="table-container">
+                <table id="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Bandeira</th>
+                            <th>País</th>
+                            <th>Na Partida</th>
+                            <th>Erros Históricos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-body">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
             </div>
 
-            <div id="game-over-screen" class="screen-box hidden">
-                <h2>Fim de Jogo!</h2>
-                <p>Bandeiras Adivinhadas:</p>
-                <span id="final-score">0</span>
-                <button id="restart-button" class="big-button">JOGAR NOVAMENTE</button>
+            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <button onclick="goToMenu()">Voltar ao Menu</button>
+                <button onclick="startGame()">Jogar Novamente</button>
+                <button class="btn-danger" onclick="clearHistory()">Limpar Histórico</button>
             </div>
         </div>
-
     </div>
 
+    <!-- SCRIPT COM OS DADOS DAS BANDEIRAS -->
     <script src="flag_guesser.js"></script>
+
+    <script>
+        // ================= ESTADO DO JOGO =================
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let currentCountry = null;
+        let gameMode = 'buttons';
+        let sessionHistory = []; // { countryObj, status: 'acertou' | 'errou' }
+
+        // Elementos DOM
+        const screens = {
+            menu: document.getElementById('screen-menu'),
+            game: document.getElementById('screen-game'),
+            end: document.getElementById('screen-end')
+        };
+        const domElements = {
+            score: document.getElementById('score'),
+            timer: document.getElementById('timer-display'),
+            flagImg: document.getElementById('flag-img'),
+            flagContainer: document.getElementById('flag-container'),
+            inputTyping: document.getElementById('input-area-typing'),
+            typeField: document.getElementById('type-input'),
+            inputButtons: document.getElementById('input-area-buttons'),
+            finalScore: document.getElementById('final-score'),
+            statsBody: document.getElementById('stats-body')
+        };
+
+        // ================= LÓGICA DO JOGO =================
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        function startGame() {
+            gameMode = document.querySelector('input[name="inputMode"]:checked').value;
+            score = 0;
+            timeLeft = 60;
+            sessionHistory = [];
+            
+            domElements.score.textContent = score;
+            domElements.timer.textContent = `Tempo: ${timeLeft}s`;
+            domElements.timer.classList.remove('danger-time');
+
+            domElements.inputTyping.style.display = gameMode === 'typing' ? 'block' : 'none';
+            domElements.inputButtons.style.display = gameMode === 'buttons' ? 'grid' : 'none';
+            
+            if (gameMode === 'typing') {
+                domElements.typeField.value = '';
+                setTimeout(() => domElements.typeField.focus(), 100);
+            }
+
+            showScreen('game');
+            nextFlag();
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            domElements.timer.textContent = `Tempo: ${timeLeft}s`;
+
+            if (timeLeft <= 10) {
+                domElements.timer.classList.add('danger-time');
+            }
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function nextFlag() {
+            // Escolhe país aleatório
+            currentCountry = countries[Math.floor(Math.random() * countries.length)];
+            // Usa API FlagCDN para imagens em alta qualidade
+            domElements.flagImg.src = `https://flagcdn.com/w320/${currentCountry.code}.png`;
+
+            if (gameMode === 'buttons') {
+                generateButtons();
+            } else {
+                domElements.typeField.value = '';
+                domElements.typeField.focus();
+            }
+        }
+
+        function generateButtons() {
+            domElements.inputButtons.innerHTML = '';
+            // Pega o correto + 3 incorretos aleatórios
+            let options = [currentCountry];
+            while (options.length < 4) {
+                let randomOption = countries[Math.floor(Math.random() * countries.length)];
+                if (!options.includes(randomOption)) options.push(randomOption);
+            }
+            // Embaralha
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.textContent = opt.name;
+                btn.onclick = () => handleAnswer(opt.code === currentCountry.code, opt.name);
+                domElements.inputButtons.appendChild(btn);
+            });
+        }
+
+        // ================= VALIDAÇÃO E FUZZY MATCHING =================
+
+        // Trata string (remove acentos, deixa minúsculo)
+        function normalizeString(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        }
+
+        // Calcula distância de Levenshtein para tolerar erros de digitação (typos)
+        function getLevenshteinDistance(a, b) {
+            if (!a.length) return b.length;
+            if (!b.length) return a.length;
+            const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+            for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+            for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+            
+            for (let i = 1; i <= a.length; i++) {
+                for (let j = 1; j <= b.length; j++) {
+                    const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1,      // Deleção
+                        matrix[i][j - 1] + 1,      // Inserção
+                        matrix[i - 1][j - 1] + cost // Substituição
+                    );
+                }
+            }
+            return matrix[a.length][b.length];
+        }
+
+        function checkTypingAnswer(input) {
+            const normInput = normalizeString(input);
+            const normCorrect = normalizeString(currentCountry.name);
+            
+            if (normInput === normCorrect) return true;
+            
+            // Tolerância: 1 erro para nomes curtos, 2 para longos
+            const maxTypos = normCorrect.length <= 6 ? 1 : 2;
+            const distance = getLevenshteinDistance(normInput, normCorrect);
+            
+            return distance <= maxTypos;
+        }
+
+        domElements.typeField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const isCorrect = checkTypingAnswer(this.value);
+                handleAnswer(isCorrect, this.value);
+            }
+        });
+
+        // ================= PROCESSAMENTO DA RESPOSTA E FEEDBACK =================
+
+        function handleAnswer(isCorrect, userAnswer) {
+            // Animação de feedback
+            domElements.flagContainer.classList.remove('pulse-green', 'shake-red');
+            void domElements.flagContainer.offsetWidth; // Trigger reflow
+
+            // Atualiza LocalStorage e Histórico da Sessão
+            updateLocalStorage(currentCountry.code, isCorrect);
+            
+            // Impede duplicação no histórico da tela final se o país aparecer duas vezes na mesma partida
+            const existingEntry = sessionHistory.find(h => h.country.code === currentCountry.code);
+            if (!existingEntry) {
+                sessionHistory.push({
+                    country: currentCountry,
+                    status: isCorrect ? 'acertou' : 'errou'
+                });
+            } else if (!isCorrect) {
+                existingEntry.status = 'errou'; // Sobrescreve se errou numa segunda aparição
+            }
+
+            if (isCorrect) {
+                score++;
+                domElements.score.textContent = score;
+                domElements.flagContainer.classList.add('pulse-green');
+                nextFlag();
+            } else {
+                domElements.flagContainer.classList.add('shake-red');
+                if (gameMode === 'typing') domElements.typeField.value = '';
+                // No modo botão, vamos direto pro próximo após errar (ou pode mudar de ideia)
+                setTimeout(() => nextFlag(), 500); 
+            }
+        }
+
+        // ================= LOCALSTORAGE =================
+
+        function getStats() {
+            return JSON.parse(localStorage.getItem('flagStats')) || {};
+        }
+
+        function updateLocalStorage(countryCode, isCorrect) {
+            let stats = getStats();
+            if (!stats[countryCode]) stats[countryCode] = 0;
+            
+            if (!isCorrect) {
+                stats[countryCode]++;
+            }
+            localStorage.setItem('flagStats', JSON.stringify(stats));
+        }
+
+        function clearHistory() {
+            if (confirm("Tem certeza que deseja apagar todo o seu histórico de dificuldades?")) {
+                localStorage.removeItem('flagStats');
+                renderStatsTable(); // Atualiza a tabela na tela
+                alert("Histórico apagado com sucesso!");
+            }
+        }
+
+        // ================= FIM DE JOGO =================
+
+        function endGame() {
+            clearInterval(timerInterval);
+            domElements.finalScore.textContent = score;
+            renderStatsTable();
+            showScreen('end');
+        }
+
+        function renderStatsTable() {
+            domElements.statsBody.innerHTML = '';
+            const allStats = getStats();
+
+            if (sessionHistory.length === 0) {
+                domElements.statsBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma bandeira jogada.</td></tr>';
+                return;
+            }
+
+            sessionHistory.forEach(item => {
+                const tr = document.createElement('tr');
+                const totalErros = allStats[item.country.code] || 0;
+                
+                // Formatação de cor baseada no histórico de erros globais
+                let difClass = "diff-green";
+                if (totalErros > 2) difClass = "diff-red";
+                else if (totalErros > 0) difClass = "";
+
+                tr.innerHTML = `
+                    <td><img src="https://flagcdn.com/w40/${item.country.code}.png" class="flag-icon" alt="${item.country.name}"></td>
+                    <td>${item.country.name}</td>
+                    <td class="${item.status === 'acertou' ? 'status-acertou' : 'status-errou'}">
+                        ${item.status === 'acertou' ? '✔️ Acertou' : '❌ Errou'}
+                    </td>
+                    <td class="${difClass}">${totalErros} erro(s)</td>
+                `;
+                domElements.statsBody.appendChild(tr);
+            });
+        }
+
+        function goToMenu() {
+            showScreen('menu');
+        }
+
+    </script>
 </body>
 </html>
