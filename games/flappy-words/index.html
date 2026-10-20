@@ -2,16 +2,394 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Voa-Palavra: O Jogo da Correspondência</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pássaro Letrado</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #87CEEB;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            max-width: 100vw;
+            height: 600px;
+            max-height: 100vh;
+            background-color: #87CEEB;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 20px;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #rule-display { color: #2563eb; }
+
+        /* Telas (Menus, Feedback, Game Over) */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        h1, h2 { font-family: 'Fredoka One', cursive; margin-bottom: 15px; }
+        h1 { font-size: 36px; color: #3b82f6; }
+        h2 { font-size: 28px; color: #ef4444; }
+        p { font-size: 18px; color: #4b5563; margin-bottom: 25px; line-height: 1.5; }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #2563eb;
+            transition: transform 0.1s;
+        }
+
+        .btn:active { transform: translateY(5px); box-shadow: none; }
+        .btn-green { background: #10b981; box-shadow: 0 5px 0 #059669; }
+        .btn-green:active { box-shadow: none; }
+    </style>
 </head>
 <body>
-    <canvas id="flappyCanvas" width="800" height="800"></canvas>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div id="hud" class="hidden">
+        <div class="hud-item">Vidas: <span id="lives-ui">❤️❤️❤️</span></div>
+        <div class="hud-item" id="rule-display">Regra: N/A</div>
+        <div class="hud-item">Pts: <span id="score-ui">0</span></div>
+    </div>
+
+    <div id="start-screen" class="screen">
+        <div class="card">
+            <h1>Pássaro Letrado</h1>
+            <p>Voe com espaço ou clicando na tela.<br>Passe por dentro da caixa com a palavra escrita corretamente!</p>
+            <button class="btn btn-green" onclick="startGame()">Jogar Agora</button>
+        </div>
+    </div>
+
+    <div id="feedback-screen" class="screen hidden">
+        <div class="card">
+            <h2>Ops! Colisão</h2>
+            <p id="feedback-text">Explicação da regra vai aqui.</p>
+            <button class="btn" onclick="resumeGame()">Continuar</button>
+        </div>
+    </div>
+
+    <div id="gameover-screen" class="screen hidden">
+        <div class="card">
+            <h2>Game Over</h2>
+            <p>Você ficou sem vidas!<br>Pontuação final: <strong id="final-score">0</strong></p>
+            <button class="btn btn-green" onclick="startGame()">Tentar Novamente</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- SPRITES (IMAGENS) ---
+    const bgImg = new Image();
+    bgImg.src = "bg.png"; // Fundo do jogo
+
+    const birdImg = new Image();
+    birdImg.src = "bird.png"; // Pássaro
+
+    let bgX = 0; // Controla o scrolling do background
+
+    // --- BANCO DE PALAVRAS ---
+    const wordDB = [
+        { word: "árvore", rule: "Proparoxítona", options: ["ârvore", "arvóre", "arvôre", "árvore"], correct: 3, explanation: "Todas as proparoxítonas são acentuadas." },
+        { word: "café", rule: "Oxítona", options: ["cafe", "cafê", "cáfe", "café"], correct: 3, explanation: "Acentuam-se as oxítonas terminadas em 'e'." },
+        { word: "lâmpada", rule: "Proparoxítona", options: ["lampada", "lÂmpada", "lampáda", "lâmpada"], correct: 3, explanation: "Todas as proparoxítonas são acentuadas." },
+        { word: "saída", rule: "Hiato", options: ["saida", "saîda", "sáida", "saída"], correct: 3, explanation: "Acentua-se o 'i' ou 'u' tônico isolado na sílaba (hiato)." },
+        { word: "fácil", rule: "Paroxítona", options: ["facil", "facíl", "fàcil", "fácil"], correct: 3, explanation: "Acentuam-se as paroxítonas terminadas em 'l'." },
+        { word: "cipó", rule: "Oxítona", options: ["cipo", "cípo", "cipô", "cipó"], correct: 3, explanation: "Acentuam-se as oxítonas terminadas em 'o'." },
+        { word: "matemática", rule: "Proparoxítona", options: ["matematica", "matemàtica", "matemáticá", "matemática"], correct: 3, explanation: "Todas as proparoxítonas são acentuadas." },
+        { word: "baú", rule: "Hiato", options: ["bau", "báu", "baû", "baú"], correct: 3, explanation: "Acentua-se o 'u' tônico do hiato isolado." }
+    ];
+
+    // --- VARIÁVEIS DE JOGO ---
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let animationId;
+    let isPlaying = false;
     
-    <script src="script.js"></script>
+    let score = 0;
+    let lives = 3;
+    
+    const bird = { x: 100, y: 300, radius: 18, velocity: 0, gravity: 0.4, jump: -7 };
+    
+    let obstacles = [];
+    const blockWidth = 200;
+    const blockSpeed = 3;
+    let currentWordIndex = 0;
+
+    const uiLives = document.getElementById("lives-ui");
+    const uiScore = document.getElementById("score-ui");
+    const uiRule = document.getElementById("rule-display");
+    const hud = document.getElementById("hud");
+    
+    const screenStart = document.getElementById("start-screen");
+    const screenFeedback = document.getElementById("feedback-screen");
+    const screenGameOver = document.getElementById("gameover-screen");
+
+    // --- CONTROLES ---
+    function flap() {
+        if (isPlaying) {
+            bird.velocity = bird.jump;
+        }
+    }
+
+    window.addEventListener("keydown", (e) => { if (e.code === "Space") flap(); });
+    window.addEventListener("mousedown", flap);
+    window.addEventListener("touchstart", flap);
+
+    // --- FUNÇÕES PRINCIPAIS ---
+    function shuffleOptions(wordObj) {
+        let opts = wordObj.options.map((text, index) => ({ text, isCorrect: index === wordObj.correct }));
+        for (let i = opts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [opts[i], opts[j]] = [opts[j], opts[i]];
+        }
+        return opts;
+    }
+
+    function spawnObstacle() {
+        if (currentWordIndex >= wordDB.length) currentWordIndex = 0;
+        const wordData = wordDB[currentWordIndex];
+        const shuffledOpts = shuffleOptions(wordData);
+        
+        uiRule.innerText = `Regra: ${wordData.rule}`;
+        const laneHeight = 500 / 4; 
+        
+        const newObstacle = { x: canvas.width, passed: false, data: wordData, blocks: [] };
+        for (let i = 0; i < 4; i++) {
+            newObstacle.blocks.push({
+                y: i * laneHeight,
+                width: blockWidth,
+                height: laneHeight,
+                text: shuffledOpts[i].text,
+                isCorrect: shuffledOpts[i].isCorrect
+            });
+        }
+
+        obstacles.push(newObstacle);
+        currentWordIndex++;
+    }
+
+    function updateHUD() {
+        uiScore.innerText = score;
+        uiLives.innerText = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
+    }
+
+    function startGame() {
+        score = 0; lives = 3; bird.y = 300; bird.velocity = 0;
+        obstacles = []; currentWordIndex = 0; bgX = 0;
+        updateHUD();
+        
+        screenStart.classList.add("hidden");
+        screenGameOver.classList.add("hidden");
+        screenFeedback.classList.add("hidden");
+        hud.classList.remove("hidden");
+
+        isPlaying = true;
+        spawnObstacle();
+        loop();
+    }
+
+    function resumeGame() {
+        screenFeedback.classList.add("hidden");
+        obstacles = []; bird.y = 300; bird.velocity = 0;
+        spawnObstacle();
+        isPlaying = true;
+        loop();
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        document.getElementById("final-score").innerText = score;
+        screenGameOver.classList.remove("hidden");
+    }
+
+    function handleCollision(explanation) {
+        isPlaying = false;
+        lives--;
+        updateHUD();
+
+        if (lives <= 0) {
+            gameOver();
+        } else {
+            document.getElementById("feedback-text").innerHTML = `Palavra incorreta (ou chão)!<br><br><strong>Dica:</strong> ${explanation}`;
+            screenFeedback.classList.remove("hidden");
+        }
+    }
+
+    function drawBird() {
+        // Se a imagem carregar com sucesso, renderiza a imagem
+        if (birdImg.complete && birdImg.naturalHeight !== 0) {
+            // A largura/altura é o dobro do raio de colisão
+            const size = bird.radius * 2;
+            ctx.drawImage(birdImg, bird.x - bird.radius, bird.y - bird.radius, size, size);
+        } else {
+            // Fallback: desenha o círculo amarelo original se faltar o PNG
+            ctx.fillStyle = "#fbbf24";
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(bird.x + 5, bird.y - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function loop() {
+        if (!isPlaying) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Desenhar Background com Scrolling ou Fallback (cor + gradiente original)
+        if (bgImg.complete && bgImg.naturalHeight !== 0) {
+            bgX -= (blockSpeed * 0.5); // Move mais devagar que os blocos (Efeito Parallax)
+            if (bgX <= -canvas.width) bgX = 0; // Reseta perfeitamente
+            
+            // Desenha duas imagens lado a lado para um looping contínuo
+            ctx.drawImage(bgImg, bgX, 0, canvas.width, canvas.height);
+            ctx.drawImage(bgImg, bgX + canvas.width, 0, canvas.width, canvas.height);
+        } else {
+            // Fallback de cor caso o jogador esqueça a imagem bg.png
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0.6, '#87CEEB'); grad.addColorStop(0.6, '#5cb85c'); grad.addColorStop(1, '#4cae4c');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Área de Colisão do Chão (invisível caso usemos PNG completo, mas mantemos o verde se fall back)
+        if (bgImg.complete || bgImg.naturalHeight === 0) {
+            ctx.fillStyle = "#4cae4c";
+            ctx.fillRect(0, 500, canvas.width, 100);
+        }
+
+        // Física Passarinho
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+
+        if (bird.y + bird.radius >= 500) {
+            handleCollision("Você bateu no chão. Mantenha-se no ar!");
+            return;
+        }
+        if (bird.y - bird.radius <= 0) {
+            bird.y = bird.radius;
+            bird.velocity = 0;
+        }
+
+        // Desenhar e Atualizar Obstáculos
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.x -= blockSpeed;
+
+            for (let b of obs.blocks) {
+                ctx.fillStyle = "rgba(229, 231, 235, 0.9)"; // Bloco semi-transparente para ver o bg
+                ctx.fillRect(obs.x, b.y, b.width, b.height);
+                ctx.strokeStyle = "#9ca3af";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(obs.x, b.y, b.width, b.height);
+
+                ctx.fillStyle = "#1f2937";
+                ctx.font = "24px 'Fredoka One'";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(b.text, obs.x + (b.width / 2), b.y + (b.height / 2));
+
+                if (bird.x + bird.radius > obs.x && bird.x - bird.radius < obs.x + b.width) {
+                    if (bird.y > b.y && bird.y < b.y + b.height) {
+                        if (!b.isCorrect && !obs.passed) {
+                            handleCollision(obs.data.explanation);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (obs.x + blockWidth < bird.x && !obs.passed) {
+                obs.passed = true;
+                score += 100;
+                updateHUD();
+                spawnObstacle(); 
+            }
+
+            if (obs.x + blockWidth < 0) obstacles.splice(i, 1);
+        }
+
+        drawBird();
+        animationId = requestAnimationFrame(loop);
+    }
+</script>
 </body>
 </html>
