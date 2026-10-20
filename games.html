@@ -1,4 +1,6 @@
-<html lang="pt-BR"><head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jogos | SimuLab</title>
@@ -15,8 +17,6 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
 @media(max-width:1250px){.hero{grid-template-columns:125px 1fr 1fr}.hero-mascot img{max-width:145px;height:150px}.content-grid{grid-template-columns:minmax(0,1fr) 235px;gap:15px}.game-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.game-grid.popular{grid-template-columns:repeat(4,minmax(0,1fr))}.toplinks{gap:12px}.brand{min-width:160px}}
 @media(max-width:980px){.topbar{padding:0 16px;gap:12px}.brand{min-width:auto}.toplinks a:not(.access),.avatar{display:none}.layout{grid-template-columns:68px minmax(0,1fr)}.sidebar{padding:16px 8px;align-items:center}.side-link{width:48px;height:45px;justify-content:center;padding:0}.side-link .label,.side-bottom,.side-sep{display:none}.side-link .ico{font-size:20px}.hero{grid-template-columns:90px 1fr}.hero-art{display:none}.content-grid{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.promo{min-height:0}.game-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.topbar{height:auto;min-height:64px;flex-wrap:wrap;padding:10px 12px;gap:10px}.brand{font-size:17px}.logo-mark{width:29px}.search{order:3;flex-basis:100%;max-width:none}.toplinks{margin-left:auto}.toplinks .access{padding:9px 11px;font-size:11px}.layout{grid-template-columns:1fr}.sidebar{position:sticky;top:105px;z-index:8;flex-direction:row;overflow-x:auto;align-items:center;padding:8px;background:#fff;border-right:0;border-bottom:1px solid var(--line)}.side-link{flex:none;width:auto;height:36px;padding:0 11px;gap:6px}.side-link .label{display:inline;font-size:12px}.side-link .ico{font-size:15px;width:auto}.main{padding:0}main{padding:12px 12px 30px}.hero{padding:20px 17px;grid-template-columns:1fr;min-height:0}.hero-mascot{display:none}.hero h1{font-size:30px}.hero p{font-size:13px}.content-grid{margin-top:17px}.filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.filter{white-space:nowrap;padding:9px 12px}.game-grid,.game-grid.popular{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game-thumb{height:115px}.game-info{padding:9px}.game-info p{min-height:48px}.section-title{font-size:18px}.side-panel{grid-template-columns:1fr}.promo{padding:16px}.more-box{padding:13px}.footer{flex-direction:column}.toplinks .access{white-space:nowrap}}
-
-
 
 /* Sidebar no estilo da referência, com ícones Font Awesome */
 .sidebar{padding:26px 9px;background:#fff;gap:5px}
@@ -40,9 +40,6 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
 .side-link .subject-filo{background:#7e02f1}
 .side-link .subject-other{background:#ffebfa}
 
-
-
-
 .side-link.subject-link.active{background:#fff2e9;color:var(--orange);box-shadow:none}
 .side-link.subject-link.active .ico{color:#fff}
 @media(max-width:980px){
@@ -61,10 +58,8 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
  .side-link .label{display:inline;font-size:12px}
  .side-link .ico{font-size:15px;width:auto;min-width:20px}
 }
-
 </style>
 <style>
-
 /* Compatibilidade com o cabeçalho compartilhado de dados/head.js */
 .top-bar{
   min-height:70px;background:#fff;border-bottom:1px solid var(--line);
@@ -111,17 +106,10 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
   .nav-links{margin-left:auto;gap:3px}
   .nav-link{min-height:35px;padding:0 7px;font-size:10px}
   .nav-link.main-action{padding:0 10px;margin-left:0}
-
-
 }
-
 </style>
 </head>
 <body>
-
-
-    
-
 
 <div class="layout">
   <aside class="sidebar" aria-label="Navegação principal">
@@ -129,7 +117,7 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
     <a class="side-link" href="https://erik-bernardo.github.io/SimuLabb/index.html"><span class="ico"><i class="fa-solid fa-house" aria-hidden="true"></i></span><span class="label">Início</span></a>
     <a class="side-link active" href="#jogos"><span class="ico"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span class="label">Jogos</span></a>
     <a class="side-link" href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html"><span class="ico"><i class="fa-solid fa-calculator" aria-hidden="true"></i></span><span class="label">Simuladores</span></a>
-    <a  class="side-link" href="https://erik-bernardo.github.io/SimuLabb/sobre.html"><i class="fa-solid fa-circle-info"></i><span>Sobre Nós</span></a>
+    <a class="side-link" href="https://erik-bernardo.github.io/SimuLabb/sobre.html"><i class="fa-solid fa-circle-info"></i><span>Sobre Nós</span></a>
     <div class="side-sep"></div>
     <div class="side-heading">MATÉRIAS</div>
     <a class="side-link subject-link" href="#jogos" data-filter="Matemática"><span class="ico subject-math"><i class="fa-solid fa-square-root-variable" aria-hidden="true"></i></span><span class="label">Matemática</span></a>
@@ -143,7 +131,6 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
     <a class="side-link subject-link" href="#jogos" data-filter="História"><span class="ico subject-hist"><i class="fa-solid fa-landmark" aria-hidden="true"></i></span><span class="label">História</span></a>
     <a class="side-link subject-link" href="#jogos" data-filter="Filosofia"><span class="ico subject-filo"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span class="label">Filosofia</span></a>
     <a class="side-link subject-link" href="#jogos" data-filter="Outros"><span class="ico subject-other"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></span><span class="label">Outros</span></a>
-
   </aside>
   <main id="jogos">
     <section class="hero">
@@ -159,7 +146,7 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
       <div class="main-column">
         <nav class="filters" aria-label="Filtrar jogos">
           <button class="filter" data-filter="Todos"><span>🎮</span>Todos</button>
-          <button class="filter active" data-filter="Matemática"><span>∑</span>Matemática</button>
+          <button class="filter" data-filter="Matemática"><span>∑</span>Matemática</button>
           <button class="filter" data-filter="Física"><span>⚛️</span>Física</button>
           <button class="filter" data-filter="Química"><span>⚗️</span>Química</button>
           <button class="filter" data-filter="Biologia"><span>🌿</span>Biologia</button>
@@ -175,7 +162,9 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
 
         <section class="section" id="biblioteca">
           <div class="section-head"><h2 class="section-title" id="allGamesTitle"><span class="big-icon">▦</span>Todos os jogos de Matemática</h2><span class="see-all" id="gameCount">6 jogos</span></div>
-          <div class="game-grid" id="allGamesGrid"><article class="game-card" data-subject="Matemática" data-title="jump academy"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1614294149010-950b698f72c0?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Jump Academy" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>Jump Academy</h3><p>Use seus conhecimentos de funções e gráficos para avançar neste mundo de saltos!</p><button class="play-btn" data-play="jump">🎮 Jogar <span>→</span></button></div></article><article class="game-card" data-subject="Matemática" data-title="craft &amp; build"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1627856013091-fed6e4e30025?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Craft &amp; Build" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>Craft &amp; Build</h3><p>Construa, explore e resolva problemas de geometria e espaço.</p><button class="play-btn" data-play="craft">🎮 Jogar <span>→</span></button></div></article><article class="game-card" data-subject="Matemática" data-title="the price is right"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="The Price is Right" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>The Price is Right</h3><p>Calcule, estime e vença em um desafio de números e preços.</p><button class="play-btn" data-play="price">🎮 Jogar <span>→</span></button></div></article><article class="game-card" data-subject="Matemática" data-title="desafio das equações"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Desafio das Equações" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>Desafio das Equações</h3><p>Encontre o valor desconhecido e desbloqueie novas fases.</p><button class="play-btn" data-play="equations">🎮 Jogar <span>→</span></button></div></article><article class="game-card" data-subject="Matemática" data-title="duelos de cálculo mental"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="Duelos de Cálculo Mental" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>Duelos de Cálculo Mental</h3><p>Resolva adição, subtração, multiplicação e divisão contra o relógio.</p><p style="min-height:0;margin-top:-5px;font-size:10px;color:#8a5a38"><strong>Foco:</strong> Operações básicas · Fundamental/Médio</p><button class="play-btn" data-play="duelos-calculo">🎮 Jogar <span>→</span></button></div></article><article class="game-card" data-subject="Matemática" data-title="a queda de pi: geometria"><div class="game-thumb"><img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&amp;fit=crop&amp;w=700&amp;q=85" alt="A Queda de Pi: Geometria" loading="lazy" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffcf9e,#ffdcbf)';"><span class="tag ">Matemática</span></div><div class="game-info"><h3>A Queda de Pi: Geometria</h3><p>Calcule área, perímetro e volume de figuras geométricas antes que atinjam o chão.</p><p style="min-height:0;margin-top:-5px;font-size:10px;color:#8a5a38"><strong>Foco:</strong> Geometria plana e espacial</p><button class="play-btn" disabled="" style="opacity:.65;cursor:not-allowed">⏳ Em breve</button></div></article></div>
+          <div class="game-grid" id="allGamesGrid">
+            <!-- Conteúdo será injetado pelo JavaScript -->
+          </div>
         </section>
       </div>
       <aside class="side-panel">
@@ -189,54 +178,37 @@ main{min-width:0;padding:19px 22px 48px;max-width:1800px;width:100%;margin:0 aut
 </div>
 <script>
 const games = [
- 
-    
   {title:"Voa-Palavra: Sinônimos Perfeitos",subject:"Português",desc:"Controle o pássaro e colete o sinônimo perfeito da palavra-chave. Um desafio de reflexo e vocabulário.",img:"images/flappyword.png",href:"games/flappy-words/index.html"},
-    
   {title:"Cobras Escadas (Conjugação)",subject:"Português",desc:"Conjugue o verbo corretamente no tempo e modo solicitados antes que o tempo acabe.",img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl5BDil6kN91n6I3z-tqq4ko2wp1GA-WINVz9pP4TOshfNlWhvk1MgIPw&s=10",href:"games/escada/index.html"},
-    
   {title:"Porques Blast",subject:"Português",desc:"Atire o porquê certo para completar as frases antes que o tempo acabe.",img:"https://erik-bernardo.github.io/SimuLabb/images/games/porqueblast.jpg",href:"games/porque-blast/index.html"},
-    
   {title:"Chuva de Palavras",subject:"Português",desc:"Enquanto palavras caem do céu, um jogador corre pelo gramado para recolher apenas os Verbos (bloco verde) e o outro recolhe apenas os Adjetivos (bloco rosa). Ganha quem somar mais pontos e cometer menos erros antes que o tempo acabe!",img:"https://erik-bernardo.github.io/SimuLabb/images/games/Chuva.jpg" ,href:"games/chuuva/index.html"},
-
-    
   {title:"Português Social",subject:"Português",desc:"Responda corretamente a perguntas em contextos sociais e diferencie palavras parecidas.",img:"images/games/portuguesocial.jpg"},
-    
   {title:"Frase, Oração e Período",subject:"Português",desc:"Você sabe diferenciar frase, oração e período? Vamos conferir.",img:"https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=700&q=85",href:"games/frases.html"},
-    
   {title:"The Seer",subject:"Inglês",desc:"Decifre o destino: acerte a previsão de primeira ou consulte o grimório para selar seu futuro.",img:"https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=700&q=85",href:"games/seer/index.html"},
-    
   {title:"Who Is the Owner?",subject:"Inglês",desc:"Arraste cada item até o dono correto e escolha o pronome de objeto que completa a frase.",img:"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=700&q=85",href:"games/owner/index.html"},
-    
   {title:"Duelos de Cálculo Mental",subject:"Matemática",desc:"Resolva adição, subtração, multiplicação e divisão contra o relógio.",img:"https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/duelos.html"},
-
   {title:"A Pirâmide Doidinha",subject:"Química",desc:"Combine elementos corretamente para formar compostos estáveis e explorar a pirâmide maluca.",img:"https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=700&q=85",href:"games/A_piramide_doidinha.html"},
-    
   {title:"Match 3 Elementos",subject:"Química",desc:"Combine três elementos iguais para apagar uma linha e avançar no desafio.",img:"images/match3.png",href:"games/periodica.html"},
- 
   {title:"Atira Vírus",subject:"Biologia",desc:"Você é um glóbulo branco e precisa combater vírus e bactérias malignas.",img:"https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=700&q=85",href:"games/virus/index.html"},
-    
   {title:"Immune Defense: Micro War",subject:"Biologia",desc:"Proteja seu corpo de bactérias, vírus e fungos neste jogo de tower defense.",img:"https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=700&q=85",href:"https://erik-bernardo.github.io/SimuLabb/games/Imune/"},
-    
   {title:"Adivinhe a Bandeira",subject:"Geografia",desc:"Teste seus conhecimentos identificando bandeiras e capitais do mundo em um quiz rápido.",img:"https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=700&q=85",href:"games/bandeiras/index.html"},
-    
   {title:"RÉVOLUTION (1789–1799)",subject:"História",desc:"Tome decisões para governar a França durante o período da Revolução Francesa.",img:"https://images.unsplash.com/photo-1590237550502-0b2c7b6a7a6b?auto=format&fit=crop&w=700&q=85",href:"games/revolucao.html"},
-    
   {title:"Seje Justo",subject:"Filosofia",desc:"Enfrente dilemas éticos e morais inspirados em grandes correntes filosóficas, de Platão a Kant.",img:"https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?auto=format&fit=crop&w=700&q=85",href:"games/card/index.html"},
-    
   {title:"Labirinto de Loops (For/While)",subject:"Programação",desc:"Programe o caminho do robô usando o menor número possível de comandos de repetição.",img:"https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=700&q=85",href:"games/labirinto.html"},
-    
   {title:"Seu-FlappyBird: Gravidade e Variáveis",subject:"Física",desc:"Simule gravidade e movimento em 2D usando variáveis de posição nos eixos X e Y.",img:"https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=700&q=85",href:"games/flappy-blocks/index.html"},
-    
   {title:"Seu-Akinator: Árvore de Decisão",subject:"Programação",desc:"Construa uma árvore de decisão eficiente com perguntas e condicionais aninhadas.",img:"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=700&q=85",href:"games/make-your-akinator.html"}
 ];
+
 const subjectClass = {"Matemática":"","Física":"physics","Química":"chemistry","Biologia":"biology","Programação":"programming","Português":"other","Inglês":"other","Geografia":"other","História":"other","Filosofia":"other","Lógica":"programming","Outros":"other"};
-let activeFilter = "Todos";
+
+// Alteração aqui: Verifica a URL ou a Sessão para definir o filtro inicial[cite: 3]
+const urlParams = new URLSearchParams(window.location.search);
+let activeFilter = urlParams.get('filter') || sessionStorage.getItem('filtroAtivo') || "Todos";
 let query = "";
+
 function card(game) {
   const cls = subjectClass[game.subject] || "";
   
-  // Transformamos o botão clicável em uma tag <a> com o atributo href
   const button = game.status 
     ? `<button class="play-btn" disabled style="opacity:.65;cursor:not-allowed">⏳ ${game.status}</button>` 
     : `<a href="${game.href}" class="play-btn" style="text-decoration: none; display: inline-block;">🎮 Jogar <span>→</span></a>`;
@@ -254,9 +226,9 @@ function card(game) {
             </div>
           </article>`;
 }
+
 function render(){
  const subjectSelected = activeFilter !== "Todos";
- // Ao escolher uma matéria, transforma a página em uma biblioteca única daquela disciplina.
  document.querySelectorAll("[data-home-section]").forEach(section => {
    section.style.display = subjectSelected ? "none" : "";
  });
@@ -273,7 +245,7 @@ function render(){
  document.getElementById("allGamesGrid").innerHTML = filteredAll.length
    ? filteredAll.map(card).join("")
    : `<div class="empty"><strong>Nenhum jogo encontrado</strong>Tente outro termo ou escolha uma categoria diferente.</div>`;
- // Na página inicial, mantém os blocos de destaque, populares e novidades.
+ 
  if (!subjectSelected) {
    const sections = [
      ["featuredGrid", games.filter(g => g.featured)],
@@ -281,24 +253,41 @@ function render(){
      ["newGrid", games.filter(g => g.fresh)]
    ];
    sections.forEach(([id, list]) => {
-     const filtered = list.filter(g => (`${g.title} ${g.subject} ${g.desc} ${g.focus || ""}`).toLowerCase().includes(query));
-     document.getElementById(id).innerHTML = filtered.length
-       ? filtered.map(card).join("")
-       : `<div class="empty"><strong>Nenhum jogo encontrado</strong>Tente outro termo.</div>`;
+     const elem = document.getElementById(id);
+     if(elem) {
+        const filtered = list.filter(g => (`${g.title} ${g.subject} ${g.desc} ${g.focus || ""}`).toLowerCase().includes(query));
+        elem.innerHTML = filtered.length
+          ? filtered.map(card).join("")
+          : `<div class="empty"><strong>Nenhum jogo encontrado</strong>Tente outro termo.</div>`;
+     }
    });
  }
 }
+
+// Alteração aqui: Salva na sessão e atualiza a URL
 function setFilter(value){
- activeFilter=value;
+ activeFilter = value;
+ 
+ sessionStorage.setItem('filtroAtivo', value); 
+ 
+ const novaUrl = new URL(window.location);
+ novaUrl.searchParams.set('filter', value);
+ window.history.pushState({}, '', novaUrl);
+
  document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===value));
  document.querySelectorAll("[data-side-filter]").forEach(a=>a.classList.toggle("active",a.dataset.sideFilter===value));
  render();
 }
+
 document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>setFilter(b.dataset.filter)));
 document.querySelectorAll("[data-side-filter]").forEach(a=>a.addEventListener("click",()=>{setFilter(a.dataset.sideFilter);}));
-document.getElementById("searchForm").addEventListener("submit",e=>{e.preventDefault();query=document.getElementById("searchInput").value.trim().toLowerCase();render();document.getElementById("jogos").scrollIntoView({behavior:"smooth"});});
-document.getElementById("searchInput").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();render();});
+document.getElementById("searchForm")?.addEventListener("submit",e=>{e.preventDefault();query=document.getElementById("searchInput").value.trim().toLowerCase();render();document.getElementById("jogos").scrollIntoView({behavior:"smooth"});});
+document.getElementById("searchInput")?.addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();render();});
+
 document.addEventListener("click",e=>{const button=e.target.closest("[data-play]");if(!button)return;const game=games.find(g=>g.id===button.dataset.play);if(game&&game.link!=="#"){window.location.href=game.link;}else{alert(`"${game.title}" está pronto para receber o link do jogo.\\n\\nNo código, altere link: "#" pelo endereço da página ou do jogo.`);}});
-render();
+
+// Alteração aqui: Inicializa passando o filtro atual em vez de apenas chamar o render()[cite: 3]
+setFilter(activeFilter);
 </script>
-</body></html>
+</body>
+</html>
