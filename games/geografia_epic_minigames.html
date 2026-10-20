@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geografia Epic Minigames</title>
+    <!-- Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka para um estilo Arcade/Roblox -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            /* Fundo vibrante estilo jogo Arcade */
+            background: radial-gradient(circle at center, #3b0764 0%, #0f172a 100%);
+            color: #ffffff;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Efeitos de botões 3D estilo Roblox/Arcade */
+        .btn-3d {
+            transition: all 0.15s ease;
+            position: relative;
+            top: 0;
+        }
+        .btn-3d:active, .btn-3d.pressed {
+            top: 6px;
+            box-shadow: 0 0px 0px rgba(0,0,0,0) !important;
+        }
+        
+        /* Cores de botões com sombras grossas */
+        .btn-blue { background-color: #06b6d4; box-shadow: 0 6px 0px #0891b2; }
+        .btn-blue:hover { background-color: #22d3ee; }
+        
+        .btn-purple { background-color: #a855f7; box-shadow: 0 6px 0px #7e22ce; }
+        .btn-purple:hover { background-color: #c084fc; }
+
+        .btn-green { background-color: #22c55e !important; box-shadow: 0 6px 0px #15803d !important; color: white !important;}
+        .btn-red { background-color: #ef4444 !important; box-shadow: 0 6px 0px #b91c1c !important; color: white !important;}
+
+        .btn-option {
+            background-color: #1e293b;
+            box-shadow: 0 6px 0px #0f172a;
+            color: #e2e8f0;
+            border: 2px solid #334155;
+        }
+        .btn-option:hover {
+            background-color: #334155;
+            border-color: #475569;
+        }
+
+        /* Barra de tempo animada */
+        .timer-bar {
+            transition: width 1s linear, background-color 0.5s ease;
+        }
+
+        /* Animações de entrada */
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center">
+
+    <!-- HUD Superior (Sempre Visível após iniciar) -->
+    <div id="hud" class="absolute top-0 w-full max-w-3xl p-4 flex justify-between items-center hidden z-50">
+        <div class="bg-slate-800/80 border-2 border-slate-600 rounded-2xl px-6 py-2 shadow-lg backdrop-blur-sm">
+            <span class="text-slate-300 text-sm uppercase font-bold tracking-wider">Score</span>
+            <div id="score-display" class="text-3xl font-bold text-yellow-400">0</div>
+        </div>
+        <div class="bg-slate-800/80 border-2 border-slate-600 rounded-2xl px-6 py-2 shadow-lg backdrop-blur-sm text-right">
+            <span class="text-slate-300 text-sm uppercase font-bold tracking-wider">Streak</span>
+            <div id="streak-display" class="text-3xl font-bold text-orange-400">0 🔥</div>
+        </div>
+    </div>
+
+    <!-- TELA INICIAL -->
+    <div id="start-screen" class="flex flex-col items-center text-center p-6 max-w-2xl z-10">
+        <div class="mb-8 pop-in">
+            <h1 class="text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 drop-shadow-lg mb-4" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
+                GEO EPIC<br>MINIGAMES
+            </h1>
+            <p class="text-xl text-slate-300 font-semibold">Sobreviva aos desafios geográficos!</p>
+        </div>
+        <button onclick="startGame()" class="btn-3d btn-blue text-3xl font-bold py-4 px-12 rounded-3xl w-full max-w-md pop-in animate-bounce">
+            JOGAR AGORA
+        </button>
+    </div>
+
+    <!-- TELA DE INTERMISSÃO / RESULTADO -->
+    <div id="intermission-screen" class="hidden flex-col items-center justify-center text-center p-6 w-full h-full z-20 absolute top-0 left-0 bg-slate-900/95 backdrop-blur-md">
+        <h2 id="intermission-title" class="text-5xl md:text-6xl font-bold mb-4 drop-shadow-xl pop-in">Próximo Jogo</h2>
+        <p id="intermission-subtitle" class="text-3xl text-slate-300 font-semibold mb-8 pop-in"></p>
+        <div id="intermission-points" class="text-4xl font-bold hidden pop-in"></div>
+    </div>
+
+    <!-- TELA DO JOGO -->
+    <div id="game-screen" class="hidden flex-col items-center w-full max-w-3xl p-4 h-full pt-28 pb-8 z-10 relative">
+        
+        <!-- Cabeçalho do Minigame Atual -->
+        <div class="w-full text-center mb-4">
+            <h2 id="game-title" class="text-3xl md:text-4xl font-bold tracking-wide drop-shadow-md">Título do Jogo</h2>
+        </div>
+
+        <!-- Barra de Tempo -->
+        <div class="w-full bg-slate-800 rounded-full h-6 mb-8 border-2 border-slate-700 overflow-hidden shadow-inner relative">
+            <div id="timer-bar" class="h-full bg-green-500 timer-bar w-full"></div>
+            <span id="timer-text" class="absolute top-0 w-full text-center text-sm font-bold leading-6 text-white drop-shadow-md">15s</span>
+        </div>
+
+        <!-- Área de Pergunta / Imagem -->
+        <div id="question-container" class="flex-1 flex flex-col items-center justify-center w-full mb-8">
+            <div id="question-emoji" class="text-8xl md:text-9xl drop-shadow-2xl mb-4 hidden">🇧🇷</div>
+            <p id="question-text" class="text-2xl md:text-3xl text-center font-semibold bg-slate-800/50 p-6 rounded-2xl border border-slate-600 shadow-lg"></p>
+        </div>
+
+        <!-- Grade de Opções (2x2) -->
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <button class="btn-3d btn-option text-xl font-bold py-5 px-6 rounded-2xl">Opção 1</button>
+            <button class="btn-3d btn-option text-xl font-bold py-5 px-6 rounded-2xl">Opção 2</button>
+            <button class="btn-3d btn-option text-xl font-bold py-5 px-6 rounded-2xl">Opção 3</button>
+            <button class="btn-3d btn-option text-xl font-bold py-5 px-6 rounded-2xl">Opção 4</button>
+        </div>
+
+    </div>
+
+    <script>
+        /* --- BANCO DE DADOS (Mock) --- */
+        const DB = {
+            countries: [
+                { emoji: "🇧🇷", country: "Brasil", capital: "Brasília" },
+                { emoji: "🇺🇸", country: "Estados Unidos", capital: "Washington, D.C." },
+                { emoji: "🇯🇵", country: "Japão", capital: "Tóquio" },
+                { emoji: "🇫🇷", country: "França", capital: "Paris" },
+                { emoji: "🇮🇹", country: "Itália", capital: "Roma" },
+                { emoji: "🇩🇪", country: "Alemanha", capital: "Berlim" },
+                { emoji: "🇦🇷", country: "Argentina", capital: "Buenos Aires" },
+                { emoji: "🇪🇸", country: "Espanha", capital: "Madri" },
+                { emoji: "🇵🇹", country: "Portugal", capital: "Lisboa" },
+                { emoji: "🇲🇽", country: "México", capital: "Cidade do México" },
+                { emoji: "🇨🇦", country: "Canadá", capital: "Ottawa" },
+                { emoji: "🇦🇺", country: "Austrália", capital: "Camberra" },
+                { emoji: "🇨🇳", country: "China", capital: "Pequim" },
+                { emoji: "🇮🇳", country: "Índia", capital: "Nova Délhi" },
+                { emoji: "🇷🇺", country: "Rússia", capital: "Moscou" },
+                { emoji: "🇿🇦", country: "África do Sul", capital: "Pretória" },
+                { emoji: "🇬🇧", country: "Reino Unido", capital: "Londres" },
+                { emoji: "🇰🇷", country: "Coreia do Sul", capital: "Seul" },
+                { emoji: "🇪🇬", country: "Egito", capital: "Cairo" },
+                { emoji: "🇨🇱", country: "Chile", capital: "Santiago" }
+            ],
+            reliefs: [
+                { name: "Planalto", desc: "Superfície elevada, geralmente plana ou levemente ondulada, onde o desgaste erosivo é maior que o acúmulo de sedimentos." },
+                { name: "Planície", desc: "Área de baixa altitude, plana, formada principalmente pelo acúmulo de sedimentos de rios ou mares." },
+                { name: "Depressão", desc: "Região mais baixa em relação às áreas ao seu redor ou em relação ao nível do mar." },
+                { name: "Montanha", desc: "Elevação natural do terreno, com grande altitude e encostas íngremes." },
+                { name: "Cordilheira", desc: "Um grande conjunto ou cadeia contínua de montanhas interligadas." },
+                { name: "Vale", desc: "Área de baixa altitude cercada por áreas mais altas (montanhas ou colinas), geralmente onde corre um rio." },
+                { name: "Falésia", desc: "Paredão íngreme encontrado no litoral, formado pela erosão da água do mar." },
+                { name: "Colina", desc: "Pequena elevação de terreno, com encostas suaves, menor que uma montanha." }
+            ],
+            biomes: [
+                { name: "Amazônia", desc: "Maior floresta tropical do mundo, possui clima quente e úmido e a maior biodiversidade do planeta." },
+                { name: "Cerrado", desc: "Conhecido como a savana brasileira. Tem clima com duas estações bem definidas e árvores de troncos retorcidos e casca grossa." },
+                { name: "Mata Atlântica", desc: "Floresta tropical que acompanha o litoral brasileiro. É um dos biomas mais ricos e também um dos mais devastados do país." },
+                { name: "Caatinga", desc: "Bioma exclusivamente brasileiro, com clima semiárido. Sua vegetação é adaptada à falta de água, com muitos cactos e arbustos espinhosos." },
+                { name: "Pantanal", desc: "Considerada a maior planície alagável do mundo. Fica no Centro-Oeste e possui uma fauna extremamente rica e visível." },
+                { name: "Pampa", desc: "Também chamado de Campos Sulinos. Possui vegetação rasteira (gramíneas) e clima subtropical, ótimo para pastagem." }
+            ]
+        };
+
+        const MINIGAMES = [
+            { id: 'flag', title: 'Adivinhe a Bandeira!', color: 'text-blue-400' },
+            { id: 'capital', title: 'Capital Express!', color: 'text-yellow-400' },
+            { id: 'relief', title: 'Tipos de Relevo', color: 'text-green-400' },
+            { id: 'biome', title: 'Biomas Brasileiros', color: 'text-pink-400' }
+        ];
+
+        /* --- ESTADO DO JOGO --- */
+        let score = 0;
+        let streak = 0;
+        let timeRemaining = 15;
+        let maxTime = 15;
+        let timerInterval;
+        let currentAnswer = "";
+        let isAnsweringAllowed = false;
+
+        /* --- ELEMENTOS DO DOM --- */
+        const screens = {
+            start: document.getElementById('start-screen'),
+            game: document.getElementById('game-screen'),
+            intermission: document.getElementById('intermission-screen'),
+            hud: document.getElementById('hud')
+        };
+        const displays = {
+            score: document.getElementById('score-display'),
+            streak: document.getElementById('streak-display'),
+            gameTitle: document.getElementById('game-title'),
+            timerBar: document.getElementById('timer-bar'),
+            timerText: document.getElementById('timer-text'),
+            questionEmoji: document.getElementById('question-emoji'),
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container')
+        };
+
+        /* --- FUNÇÕES AUXILIARES --- */
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId];
+                array[curId] = array[randId];
+                array[randId] = tmp;
+            }
+            return array;
+        }
+
+        function getRandomItems(array, count, excludeItem) {
+            let filtered = array.filter(item => item !== excludeItem);
+            shuffleArray(filtered);
+            return filtered.slice(0, count);
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            if (screenName === 'game' || screenName === 'intermission' && score > 0) {
+                screens.hud.classList.remove('hidden');
+            }
+        }
+
+        /* --- LÓGICA PRINCIPAL --- */
+        function startGame() {
+            score = 0;
+            streak = 0;
+            updateHUD();
+            nextRoundIntermission();
+        }
+
+        function updateHUD() {
+            displays.score.innerText = score;
+            displays.streak.innerText = streak + " 🔥";
+        }
+
+        function nextRoundIntermission() {
+            const nextGame = MINIGAMES[Math.floor(Math.random() * MINIGAMES.length)];
+            
+            showScreen('intermission');
+            const title = document.getElementById('intermission-title');
+            title.className = `text-5xl md:text-6xl font-bold mb-4 drop-shadow-xl pop-in ${nextGame.color}`;
+            title.innerText = "Sorteando Jogo...";
+            document.getElementById('intermission-subtitle').innerText = "";
+            document.getElementById('intermission-points').classList.add('hidden');
+
+            // Efeito de sorteio visual
+            let ticks = 0;
+            let shuffleInterval = setInterval(() => {
+                title.innerText = MINIGAMES[Math.floor(Math.random() * MINIGAMES.length)].title;
+                ticks++;
+                if(ticks > 10) {
+                    clearInterval(shuffleInterval);
+                    title.innerText = nextGame.title;
+                    title.className = `text-5xl md:text-6xl font-bold mb-4 drop-shadow-xl pop-in ${nextGame.color}`;
+                    document.getElementById('intermission-subtitle').innerText = "Prepare-se!";
+                    
+                    setTimeout(() => {
+                        setupMinigame(nextGame);
+                    }, 2000);
+                }
+            }, 100);
+        }
+
+        function setupMinigame(gameType) {
+            displays.gameTitle.innerText = gameType.title;
+            displays.gameTitle.className = `text-3xl md:text-4xl font-bold tracking-wide drop-shadow-md ${gameType.color} pop-in`;
+            
+            displays.questionEmoji.classList.add('hidden');
+            displays.questionText.classList.add('hidden');
+            displays.optionsContainer.innerHTML = '';
+            
+            let correctAnswerObj, options = [];
+
+            switch(gameType.id) {
+                case 'flag':
+                    correctAnswerObj = DB.countries[Math.floor(Math.random() * DB.countries.length)];
+                    currentAnswer = correctAnswerObj.country;
+                    displays.questionEmoji.innerText = correctAnswerObj.emoji;
+                    displays.questionEmoji.classList.remove('hidden');
+                    displays.questionText.innerText = "De qual país é esta bandeira?";
+                    displays.questionText.classList.remove('hidden');
+                    
+                    options = getRandomItems(DB.countries.map(c => c.country), 3, currentAnswer);
+                    options.push(currentAnswer);
+                    break;
+
+                case 'capital':
+                    correctAnswerObj = DB.countries[Math.floor(Math.random() * DB.countries.length)];
+                    currentAnswer = correctAnswerObj.capital;
+                    displays.questionText.innerHTML = `Qual é a capital de:<br><span class="text-4xl text-yellow-400 font-bold mt-2 inline-block">${correctAnswerObj.emoji} ${correctAnswerObj.country}</span>`;
+                    displays.questionText.classList.remove('hidden');
+                    
+                    options = getRandomItems(DB.countries.map(c => c.capital), 3, currentAnswer);
+                    options.push(currentAnswer);
+                    break;
+
+                case 'relief':
+                    correctAnswerObj = DB.reliefs[Math.floor(Math.random() * DB.reliefs.length)];
+                    currentAnswer = correctAnswerObj.name;
+                    displays.questionText.innerHTML = `<strong>Identifique o relevo:</strong><br><span class="text-xl font-normal mt-2 inline-block">"${correctAnswerObj.desc}"</span>`;
+                    displays.questionText.classList.remove('hidden');
+                    
+                    options = getRandomItems(DB.reliefs.map(r => r.name), 3, currentAnswer);
+                    options.push(currentAnswer);
+                    break;
+
+                case 'biome':
+                    correctAnswerObj = DB.biomes[Math.floor(Math.random() * DB.biomes.length)];
+                    currentAnswer = correctAnswerObj.name;
+                    displays.questionText.innerHTML = `<strong>Qual é o bioma?</strong><br><span class="text-xl font-normal mt-2 inline-block">"${correctAnswerObj.desc}"</span>`;
+                    displays.questionText.classList.remove('hidden');
+                    
+                    options = getRandomItems(DB.biomes.map(b => b.name), 3, currentAnswer);
+                    options.push(currentAnswer);
+                    break;
+            }
+
+            shuffleArray(options);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-3d btn-option text-xl font-bold py-5 px-6 rounded-2xl pop-in w-full h-full min-h-[80px] flex items-center justify-center text-center';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt, btn);
+                displays.optionsContainer.appendChild(btn);
+            });
+
+            showScreen('game');
+            startTimer();
+            isAnsweringAllowed = true;
+        }
+
+        function startTimer() {
+            timeRemaining = maxTime;
+            displays.timerText.innerText = timeRemaining + "s";
+            displays.timerBar.style.width = "100%";
+            displays.timerBar.className = "h-full bg-green-500 timer-bar w-full";
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                displays.timerText.innerText = timeRemaining + "s";
+                
+                let percent = (timeRemaining / maxTime) * 100;
+                displays.timerBar.style.width = percent + "%";
+
+                if (timeRemaining <= 5) {
+                    displays.timerBar.classList.replace('bg-green-500', 'bg-red-500');
+                    displays.timerBar.classList.replace('bg-yellow-400', 'bg-red-500');
+                    displays.timerText.classList.add('text-red-300', 'shake');
+                } else if (timeRemaining <= 10) {
+                    displays.timerBar.classList.replace('bg-green-500', 'bg-yellow-400');
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function lockOptions() {
+            isAnsweringAllowed = false;
+            const buttons = displays.optionsContainer.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.onclick = null;
+                b.style.cursor = 'default';
+                if(b.innerText === currentAnswer) {
+                    b.classList.add('btn-green');
+                    b.classList.remove('btn-option');
+                } else {
+                    b.classList.add('opacity-50');
+                }
+            });
+        }
+
+        function handleAnswer(selectedOption, buttonElement) {
+            if (!isAnsweringAllowed) return;
+            clearInterval(timerInterval);
+            lockOptions();
+            
+            buttonElement.classList.add('pressed');
+
+            const isCorrect = selectedOption === currentAnswer;
+            
+            if (isCorrect) {
+                buttonElement.classList.replace('btn-option', 'btn-green');
+                buttonElement.classList.remove('opacity-50');
+            } else {
+                buttonElement.classList.replace('btn-option', 'btn-red');
+                buttonElement.classList.remove('opacity-50');
+                screens.game.classList.add('shake');
+            }
+
+            setTimeout(() => {
+                screens.game.classList.remove('shake');
+                showResultScreen(isCorrect, false);
+            }, 1500);
+        }
+
+        function handleTimeout() {
+            if (!isAnsweringAllowed) return;
+            lockOptions();
+            screens.game.classList.add('shake');
+            setTimeout(() => {
+                screens.game.classList.remove('shake');
+                showResultScreen(false, true);
+            }, 1500);
+        }
+
+        function showResultScreen(isCorrect, isTimeout) {
+            showScreen('intermission');
+            const title = document.getElementById('intermission-title');
+            const subtitle = document.getElementById('intermission-subtitle');
+            const ptsDisplay = document.getElementById('intermission-points');
+            
+            ptsDisplay.classList.remove('hidden');
+
+            if (isCorrect) {
+                // Cálculo de pontos por tempo restante
+                const pts = 10 + (timeRemaining * 2); 
+                score += pts;
+                streak++;
+                
+                title.innerText = "VITÓRIA!";
+                title.className = "text-5xl md:text-6xl font-bold mb-4 drop-shadow-xl pop-in text-green-400";
+                subtitle.innerText = "Resposta Correta!";
+                ptsDisplay.innerText = `+${pts} Pontos`;
+                ptsDisplay.className = "text-4xl font-bold pop-in text-yellow-400";
+            } else {
+                streak = 0;
+                
+                title.innerText = isTimeout ? "TEMPO ESGOTADO!" : "GAME OVER!";
+                title.className = "text-5xl md:text-6xl font-bold mb-4 drop-shadow-xl pop-in text-red-500";
+                subtitle.innerText = `A resposta era: ${currentAnswer}`;
+                ptsDisplay.innerText = "Sequência perdida!";
+                ptsDisplay.className = "text-4xl font-bold pop-in text-slate-400";
+            }
+
+            updateHUD();
+
+            setTimeout(() => {
+                nextRoundIntermission();
+            }, 3000);
+        }
+
+        // Corrige exibição da barra de timer no início
+        displays.timerText.classList.remove('shake');
+
+    </script>
+</body>
+</html>
