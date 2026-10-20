@@ -2,39 +2,937 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Defesa Imunológica: O Jogo do Glóbulo Branco</title>
-    <link rel="stylesheet" href="imune.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WHITE BLOOD: CELLULAR WARFARE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --bg-color: #050000;
+            --hud-bg: #222;
+            --hud-border: #555;
+            --text-main: #fff;
+            --text-accent: #f00;
+            --text-green: #0f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 800px;
+            max-width: 100%;
+            height: 600px;
+            max-height: 100vh;
+            background: #000;
+            border: 4px solid var(--hud-border);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #viewport {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            background: #110000;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* Classic DOOM style HUD */
+        #hud {
+            height: 120px;
+            background: var(--hud-bg);
+            border-top: 4px solid var(--hud-border);
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            gap: 15px;
+            background-image: linear-gradient(45deg, #111 25%, #222 25%, #222 50%, #111 50%, #111 75%, #222 75%, #222 100%);
+            background-size: 10px 10px;
+        }
+
+        .hud-box {
+            background: #000;
+            border: 3px inset #666;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #hud-face {
+            width: 80px;
+            flex-shrink: 0;
+            position: relative;
+            background: #333;
+        }
+
+        #face-canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        #hud-stats {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            height: 100%;
+        }
+
+        .stat {
+            background: #000;
+            border: 3px inset #666;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            color: var(--text-accent);
+        }
+        
+        .stat-value.green { color: var(--text-green); }
+        .stat-value.blue { color: #0cf; }
+
+        #hud-weapons {
+            width: 160px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-left: 15px;
+        }
+
+        .weapon-slot {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .weapon-slot.active {
+            color: #fff;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 { color: #f00; text-shadow: 2px 2px 0 #500; font-size: 28px; margin-bottom: 20px; line-height: 1.5; }
+        p { font-size: 12px; line-height: 2; margin-bottom: 20px; color: #ccc; }
+        
+        .btn {
+            background: #800; color: #fff; border: 4px solid #f00; padding: 15px 30px;
+            font-family: inherit; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { background: #f00; transform: scale(1.05); }
+
+        .hidden { display: none !important; }
+        
+        #damage-flash {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,0,0,0.5); pointer-events: none; opacity: 0;
+            transition: opacity 0.1s; z-index: 10;
+        }
+
+    </style>
 </head>
 <body>
 
-    <div id="game-container">
+<div id="game-wrapper">
+    <div id="viewport">
+        <canvas id="gameCanvas" width="640" height="360"></canvas>
+        <div id="damage-flash"></div>
         
-        <div id="status-display">
-            <div id="score-box">Pontos: <span id="score-value">0</span></div>
-            <div id="health-box">Vida: <span id="health-value">100</span>%</div>
+        <div id="start-screen" class="overlay">
+            <h1>WHITE BLOOD<br>CELLULAR WARFARE</h1>
+            <p>
+                WASD / Setas para mover.<br>
+                Mouse para mirar. Botão Esquerdo atira.<br>
+                1, 2, 3 ou Roda do Mouse troca armas.<br><br>
+                Proteja o organismo. Elimine a infecção.
+            </p>
+            <button class="btn" id="start-btn">INICIAR COMBATE</button>
         </div>
 
-        <canvas id="game-canvas" width="800" height="600">
-            Seu navegador não suporta Canvas HTML5.
-        </canvas>
-
-        <div id="game-overlay" class="hidden">
-            <div id="start-screen">
-                <h1>Defesa Imunológica</h1>
-                <p>Controle o Glóbulo Branco (Macrófago) para fagocitar os invasores.</p>
-                <p>Mova-se com: **W A S D**</p>
-                <button id="start-button">Iniciar Batalha</button>
-            </div>
-            <div id="game-over-screen" class="hidden">
-                <h2>Game Over!</h2>
-                <p>Seu sistema falhou. Pontuação Final:</p>
-                <span id="final-score">0</span>
-                <button id="restart-button">Tentar Novamente</button>
-            </div>
+        <div id="game-over-screen" class="overlay hidden">
+            <h1>MEMBRANA ROMPIDA</h1>
+            <p>A infecção tomou conta do organismo.</p>
+            <p style="font-size: 16px; color: yellow;">PONTOS: <span id="final-score">0</span></p>
+            <button class="btn" id="restart-btn">TENTAR NOVAMENTE</button>
         </div>
     </div>
 
-    <script src="imune.js"></script>
+    <div id="hud">
+        <div class="hud-box" id="hud-face">
+            <canvas id="face-canvas" width="64" height="64"></canvas>
+        </div>
+        <div id="hud-stats">
+            <div class="stat">
+                <div class="stat-label">SAUDE</div>
+                <div class="stat-value" id="ui-health">100%</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">MUNICAO (W3)</div>
+                <div class="stat-value blue" id="ui-ammo">3</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">ELIMINADOS</div>
+                <div class="stat-value green" id="ui-kills">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">SCORE</div>
+                <div class="stat-value" id="ui-score" style="color:#ff0;">0</div>
+            </div>
+        </div>
+        <div class="hud-box" id="hud-weapons">
+            <div class="weapon-slot active" id="w1">1. PEROXIDO</div>
+            <div class="weapon-slot" id="w2">2. ANTICORPOS</div>
+            <div class="weapon-slot" id="w3">3. HISTAMINA</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- ENGINE SETUP ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const faceCanvas = document.getElementById('face-canvas');
+const faceCtx = faceCanvas.getContext('2d');
+
+const SCREEN_W = canvas.width;
+const SCREEN_H = canvas.height;
+const FOV = Math.PI / 3;
+const HALF_FOV = FOV / 2;
+
+// --- GAME STATE ---
+let gameState = 'START'; // START, PLAY, OVER
+let keys = {};
+let lastTime = 0;
+let zBuffer = new Array(SCREEN_W).fill(0);
+
+// --- MAPA (Arena Sanguínea) ---
+// 1 = Parede de tecido, 0 = Espaço
+const map = [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1],
+    [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1],
+    [1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1],
+    [1,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+const mapW = map[0].length;
+const mapH = map.length;
+const CELL_SIZE = 64; // Escala do grid lógico para o raycaster
+
+// --- JOGADOR ---
+const player = {
+    x: 3 * CELL_SIZE, y: 3 * CELL_SIZE,
+    dir: 0, // Ângulo em radianos
+    moveSpeed: 150, // pixels por segundo
+    rotSpeed: 2.5,  // radianos por segundo
+    radius: 16,
+    health: 100,
+    maxHealth: 100,
+    ammo: 3, // Bombas de histamina
+    kills: 0,
+    score: 0,
+    weapon: 1, // 1, 2, 3
+    shootTimer: 0,
+    painTimer: 0,
+    isShooting: false
+};
+
+// --- ENTIDADES (Inimigos, Projéteis, Partículas) ---
+let entities = [];
+let projectiles = [];
+let particles = [];
+
+const ENEMY_TYPES = {
+    VIRUS: {
+        radius: 20, speed: 80, hp: 30, color: '#0f0', score: 100,
+        attackCooldown: 1.5, type: 'virus'
+    },
+    BACTERIA: {
+        radius: 30, speed: 40, hp: 100, color: '#a0f', score: 250,
+        attackCooldown: 2.0, type: 'bacteria'
+    }
+};
+
+// --- SPRITE IMAGES ---
+function createSpriteImage(type) {
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    const x = c.getContext('2d');
+    
+    if (type === 'virus') {
+        // Vírus Roxo Mutante
+        x.fillStyle = '#9900ff';
+        x.beginPath(); x.arc(32, 32, 16, 0, Math.PI*2); x.fill();
+        for(let i=0; i<8; i++) {
+            x.save(); x.translate(32,32); x.rotate(i*Math.PI/4);
+            x.beginPath(); x.moveTo(10, -5); x.lineTo(28, 0); x.lineTo(10, 5); x.fill();
+            x.restore();
+        }
+        x.fillStyle = '#ff00ff'; x.beginPath(); x.arc(26, 26, 4, 0, Math.PI*2); x.fill();
+    } else {
+        // Bactéria Tanque Verde
+        x.fillStyle = '#00cc00';
+        x.beginPath(); x.ellipse(32, 32, 20, 30, 0, 0, Math.PI*2); x.fill();
+        x.fillStyle = '#005500'; 
+        x.beginPath(); x.arc(24, 20, 6, 0, Math.PI*2); x.fill();
+        x.beginPath(); x.arc(40, 40, 8, 0, Math.PI*2); x.fill();
+    }
+    
+    const img = new Image();
+    img.src = c.toDataURL(); // Converte o canvas para um Data URI (Base64)
+    return img;
+}
+
+const sprites = {
+    virus: createSpriteImage('virus'),
+    bacteria: createSpriteImage('bacteria')
+};
+
+// --- CLASSES ---
+class Projectile {
+    constructor(x, y, dir, speed, isPlayer, type, dmg) {
+        this.x = x; this.y = y; this.dir = dir;
+        this.speed = speed; this.isPlayer = isPlayer;
+        this.type = type; // 'normal', 'spread', 'bomb', 'enemy_fan', 'enemy_spiral'
+        this.dmg = dmg;
+        this.active = true;
+        this.radius = type === 'bomb' ? 8 : 4;
+        this.life = 0;
+    }
+    update(dt) {
+        this.x += Math.cos(this.dir) * this.speed * dt;
+        this.y += Math.sin(this.dir) * this.speed * dt;
+        this.life += dt;
+        
+        // Colisão com paredes
+        let mapX = Math.floor(this.x / CELL_SIZE);
+        let mapY = Math.floor(this.y / CELL_SIZE);
+        if (map[mapY] && map[mapY][mapX] === 1) {
+            this.active = false;
+            spawnParticles(this.x, this.y, this.isPlayer ? '#0cf' : '#0f0', 5);
+            if(this.type === 'bomb') explode(this.x, this.y, 150, 100);
+            return;
+        }
+        
+        // Timeout
+        if(this.life > 3) this.active = false;
+    }
+}
+
+class Enemy {
+    constructor(x, y, template) {
+        this.x = x; this.y = y;
+        this.template = template;
+        this.hp = template.hp;
+        this.radius = template.radius;
+        this.active = true;
+        this.attackTimer = Math.random() * template.attackCooldown;
+        this.spiralAngle = 0;
+        this.hitTimer = 0;
+    }
+    update(dt) {
+        if(this.hitTimer > 0) this.hitTimer -= dt;
+        
+        let dx = player.x - this.x;
+        let dy = player.y - this.y;
+        let dist = Math.hypot(dx, dy);
+        
+        // Move towards player se não estiver muito perto
+        if (dist > 100) {
+            let moveDir = Math.atan2(dy, dx);
+            let nx = this.x + Math.cos(moveDir) * this.template.speed * dt;
+            let ny = this.y + Math.sin(moveDir) * this.template.speed * dt;
+            if(!checkWallCol(nx, this.y, this.radius)) this.x = nx;
+            if(!checkWallCol(this.x, ny, this.radius)) this.y = ny;
+        }
+
+        // Attack logic
+        this.attackTimer -= dt;
+        if (this.attackTimer <= 0) {
+            this.attackTimer = this.template.attackCooldown;
+            if (this.template.type === 'virus') {
+                // Fan attack
+                let pDir = Math.atan2(dy, dx);
+                for(let a = -0.2; a <= 0.2; a += 0.2) {
+                    projectiles.push(new Projectile(this.x, this.y, pDir + a, 250, false, 'enemy_fan', 10));
+                }
+            } else if (this.template.type === 'bacteria') {
+                // Spiral bullet hell
+                for(let i=0; i<8; i++) {
+                    let a = this.spiralAngle + (i * Math.PI / 4);
+                    projectiles.push(new Projectile(this.x, this.y, a, 150, false, 'enemy_spiral', 15));
+                }
+                this.spiralAngle += 0.3;
+            }
+        }
+    }
+    takeDamage(dmg) {
+        this.hp -= dmg;
+        this.hitTimer = 0.1;
+        if(this.hp <= 0) {
+            this.active = false;
+            player.kills++;
+            player.score += this.template.score;
+            updateHUD();
+            spawnParticles(this.x, this.y, this.template.color, 20);
+            if(Math.random() < 0.2) player.ammo++; // Chance de drop de munição
+        }
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        let a = Math.random() * Math.PI * 2;
+        let s = Math.random() * 50 + 20;
+        this.vx = Math.cos(a) * s; this.vy = Math.sin(a) * s;
+        this.life = 1.0;
+        this.decay = Math.random() * 1.5 + 0.5;
+        this.radius = Math.random() * 3 + 1;
+    }
+    update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= this.decay * dt;
+    }
+}
+
+// --- CORE FUNCTIONS ---
+
+function checkWallCol(x, y, radius) {
+    let padding = radius || 2;
+    let corners = [
+        {cx: x - padding, cy: y - padding},
+        {cx: x + padding, cy: y - padding},
+        {cx: x - padding, cy: y + padding},
+        {cx: x + padding, cy: y + padding}
+    ];
+    for(let c of corners) {
+        let mx = Math.floor(c.cx / CELL_SIZE);
+        let my = Math.floor(c.cy / CELL_SIZE);
+        if(map[my] && map[my][mx] === 1) return true;
+    }
+    return false;
+}
+
+function spawnParticles(x, y, color, count) {
+    for(let i=0; i<count; i++) particles.push(new Particle(x, y, color));
+}
+
+function explode(x, y, radius, dmg) {
+    // Apenas danifica inimigos
+    entities.forEach(e => {
+        if(Math.hypot(e.x - x, e.y - y) <= radius) e.takeDamage(dmg);
+    });
+    spawnParticles(x, y, '#ff0', 30);
+}
+
+function playerShoot() {
+    if (player.shootTimer > 0) return;
+    player.isShooting = true;
+    setTimeout(() => player.isShooting = false, 100);
+
+    if (player.weapon === 1) { // Peroxido (Pistola)
+        player.shootTimer = 0.2;
+        projectiles.push(new Projectile(player.x, player.y, player.dir, 600, true, 'normal', 15));
+    } else if (player.weapon === 2) { // Anticorpos (Shotgun)
+        player.shootTimer = 0.8;
+        for(let a = -0.15; a <= 0.15; a += 0.05) {
+            projectiles.push(new Projectile(player.x, player.y, player.dir + a, 500, true, 'spread', 12));
+        }
+    } else if (player.weapon === 3) { // Bomba Histamina
+        if (player.ammo > 0) {
+            player.ammo--;
+            player.shootTimer = 1.2;
+            projectiles.push(new Projectile(player.x, player.y, player.dir, 400, true, 'bomb', 100));
+        } else {
+            // Sem munição
+            player.shootTimer = 0.2;
+            player.isShooting = false;
+        }
+    }
+    updateHUD();
+}
+
+function spawnWave() {
+    // Lógica simples: mantem cerca de 5 inimigos na tela
+    while(entities.length < 5 + Math.floor(player.kills/10)) {
+        // Encontra posicao vazia
+        let px, py;
+        do {
+            px = (Math.random() * (mapW-2) + 1) * CELL_SIZE;
+            py = (Math.random() * (mapH-2) + 1) * CELL_SIZE;
+        } while(checkWallCol(px, py, 20) || Math.hypot(px-player.x, py-player.y) < 200);
+        
+        let type = Math.random() > 0.7 ? ENEMY_TYPES.BACTERIA : ENEMY_TYPES.VIRUS;
+        entities.push(new Enemy(px, py, type));
+    }
+}
+
+// --- UPDATE & RENDER LOOP ---
+
+function update(dt) {
+    if (gameState !== 'PLAY') return;
+
+    // Movement
+    let moveStep = player.moveSpeed * dt;
+    let rotStep = player.rotSpeed * dt;
+    
+    // Keyboard rotation
+    if (keys['ArrowLeft']) player.dir -= rotStep;
+    if (keys['ArrowRight']) player.dir += rotStep;
+    
+    let moveX = 0; let moveY = 0;
+    if (keys['w']) { moveX += Math.cos(player.dir); moveY += Math.sin(player.dir); }
+    if (keys['s']) { moveX -= Math.cos(player.dir); moveY -= Math.sin(player.dir); }
+    if (keys['a']) { moveX += Math.cos(player.dir - Math.PI/2); moveY += Math.sin(player.dir - Math.PI/2); }
+    if (keys['d']) { moveX += Math.cos(player.dir + Math.PI/2); moveY += Math.sin(player.dir + Math.PI/2); }
+    
+    // Normalize and apply
+    if (moveX !== 0 || moveY !== 0) {
+        let len = Math.hypot(moveX, moveY);
+        moveX = (moveX/len) * moveStep;
+        moveY = (moveY/len) * moveStep;
+        
+        if (!checkWallCol(player.x + moveX, player.y, player.radius)) player.x += moveX;
+        if (!checkWallCol(player.x, player.y + moveY, player.radius)) player.y += moveY;
+    }
+
+    // Weapons
+    if (player.shootTimer > 0) player.shootTimer -= dt;
+    if (player.painTimer > 0) player.painTimer -= dt;
+
+    // Entities
+    entities.forEach(e => e.update(dt));
+    entities = entities.filter(e => e.active);
+    
+    // Projectiles & Collisions
+    projectiles.forEach(p => p.update(dt));
+    
+    // Check collisions
+    projectiles.forEach(p => {
+        if(!p.active) return;
+        if(p.isPlayer) {
+            entities.forEach(e => {
+                if(!p.active) return;
+                if(Math.hypot(p.x - e.x, p.y - e.y) < e.radius + p.radius) {
+                    p.active = false;
+                    e.takeDamage(p.dmg);
+                    if(p.type === 'bomb') explode(p.x, p.y, 150, 100);
+                }
+            });
+        } else {
+            // Enemy bullets hitting player
+            if(Math.hypot(p.x - player.x, p.y - player.y) < player.radius + p.radius) {
+                p.active = false;
+                takeDamage(p.dmg);
+            }
+        }
+    });
+    
+    projectiles = projectiles.filter(p => p.active);
+    
+    // Particles
+    particles.forEach(p => p.update(dt));
+    particles = particles.filter(p => p.life > 0);
+
+    spawnWave();
+    drawDOOMFace();
+}
+
+function takeDamage(amount) {
+    player.health -= amount;
+    player.painTimer = 0.5;
+    updateHUD();
+    
+    let flash = document.getElementById('damage-flash');
+    flash.style.opacity = 1;
+    setTimeout(() => flash.style.opacity = 0, 100);
+
+    if (player.health <= 0) {
+        gameState = 'OVER';
+        document.exitPointerLock();
+        document.getElementById('final-score').innerText = player.score;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+    }
+}
+
+// --- RAYCASTING & RENDERING ---
+
+function normalizeAngle(angle) {
+    angle = angle % (2 * Math.PI);
+    if (angle < 0) angle += (2 * Math.PI);
+    return angle;
+}
+
+function render3D() {
+    // Floor and Ceiling
+    let grad = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
+    grad.addColorStop(0, '#1a0000'); // Teto (tecido escuro)
+    grad.addColorStop(0.5, '#050000');
+    grad.addColorStop(1, '#3a0000'); // Chão (sangue coagulado)
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Raycasting Walls
+    let rayAngle = player.dir - HALF_FOV;
+    let angleStep = FOV / SCREEN_W;
+
+    for (let x = 0; x < SCREEN_W; x++) {
+        let rAngle = normalizeAngle(rayAngle);
+        
+        let sinA = Math.sin(rAngle);
+        let cosA = Math.cos(rAngle);
+
+        let hit = false;
+        let dist = 0;
+        let color = '#a00'; // Cor base da parede
+
+        // DDA Step (simplified / brute force grid walk for small map)
+        // For production, use true DDA, but step-based is short enough here
+        let stepSize = 1;
+        let rx = player.x;
+        let ry = player.y;
+        
+        while (!hit && dist < 1000) {
+            rx += cosA * stepSize;
+            ry += sinA * stepSize;
+            dist += stepSize;
+            
+            let mapX = Math.floor(rx / CELL_SIZE);
+            let mapY = Math.floor(ry / CELL_SIZE);
+            
+            if (mapX < 0 || mapX >= mapW || mapY < 0 || mapY >= mapH) {
+                hit = true; dist = 1000;
+            } else if (map[mapY][mapX] > 0) {
+                hit = true;
+                // Fake shading based on horizontal vs vertical hit (basic)
+                let blockX = rx % CELL_SIZE;
+                let blockY = ry % CELL_SIZE;
+                if (blockX < 2 || blockX > CELL_SIZE-2) color = '#800'; // Darker
+                else color = '#d00'; // Lighter (veins)
+            }
+        }
+
+        // Fix Fisheye
+        let correctedDist = dist * Math.cos(player.dir - rAngle);
+        zBuffer[x] = correctedDist;
+
+        // Draw Wall Strip
+        let wallH = (CELL_SIZE / correctedDist) * ((SCREEN_W / 2) / Math.tan(HALF_FOV));
+        let drawStart = (SCREEN_H / 2) - (wallH / 2);
+        
+        // Depth shading
+        let shade = Math.max(0, 1 - (correctedDist / 800));
+        ctx.globalAlpha = shade;
+        ctx.fillStyle = color;
+        ctx.fillRect(x, drawStart, 1, wallH);
+        
+        // Add vein details
+        if(x % 10 === 0 && shade > 0.2) {
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(x, drawStart + wallH*0.2, 1, wallH*0.6);
+        }
+
+        ctx.globalAlpha = 1.0;
+        rayAngle += angleStep;
+    }
+
+    // Render Entities (Sprites) - Sort by distance (Painter's Alg)
+    let renderList = [];
+    
+    // Transform function
+    const pushToRender = (obj, type, objRadius, objColor, hit) => {
+        let dx = obj.x - player.x;
+        let dy = obj.y - player.y;
+        let dist = Math.hypot(dx, dy);
+        
+        // Angle relative to player view
+        let objAngle = Math.atan2(dy, dx) - player.dir;
+        // Normalize between -PI and PI
+        while (objAngle < -Math.PI) objAngle += 2 * Math.PI;
+        while (objAngle > Math.PI) objAngle -= 2 * Math.PI;
+        
+        // In front of player
+        if (Math.abs(objAngle) < HALF_FOV + 0.5) { 
+            let screenX = (0.5 * (objAngle / HALF_FOV + 1)) * SCREEN_W;
+            let screenScale = (CELL_SIZE / dist) * ((SCREEN_W / 2) / Math.tan(HALF_FOV));
+            renderList.push({dist, screenX, scale: screenScale, type, obj, radius: objRadius, color: objColor, hit});
+        }
+    };
+
+    entities.forEach(e => pushToRender(e, 'enemy', e.radius, e.template.color, e.hitTimer > 0));
+    projectiles.forEach(p => pushToRender(p, 'proj', p.radius, p.isPlayer ? '#0cf' : (p.type==='enemy_spiral'?'#f0f':'#0f0'), false));
+    particles.forEach(p => pushToRender(p, 'part', p.radius, p.color, false));
+
+    // Sort far to close
+    renderList.sort((a, b) => b.dist - a.dist);
+
+    renderList.forEach(item => {
+        // Simple occlusion check using zBuffer center
+        let cx = Math.floor(item.screenX);
+        if (cx >= 0 && cx < SCREEN_W && item.dist < zBuffer[cx]) {
+            let size = (item.radius / CELL_SIZE) * item.scale;
+            let drawY = (SCREEN_H / 2); // Center on horizon
+
+            ctx.save();
+            ctx.translate(item.screenX, drawY);
+            
+            if (item.type === 'enemy') {
+                // Bobbing effect
+                let bob = Math.sin(Date.now() / 200) * (size*0.1);
+                ctx.translate(0, bob);
+                
+                let spriteImg = sprites[item.obj.template.type];
+                
+                // Draw the real Image sprite
+                ctx.drawImage(spriteImg, -size/2, -size/2, size, size);
+                
+                // Hit flash effect (Tint sprite to white)
+                if (item.hit) {
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fillRect(-size/2, -size/2, size, size);
+                    ctx.globalCompositeOperation = 'source-over';
+                }
+
+            } else if (item.type === 'proj') {
+                ctx.fillStyle = item.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = item.color;
+                ctx.beginPath(); ctx.arc(0, 0, size, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (item.type === 'part') {
+                ctx.fillStyle = item.color;
+                ctx.globalAlpha = item.obj.life;
+                ctx.fillRect(-size/2, -size/2, size, size);
+                ctx.globalAlpha = 1.0;
+            }
+            
+            ctx.restore();
+        }
+    });
+
+    // --- DRAW WEAPON LAYER (Overlay) ---
+    ctx.save();
+    let cx = SCREEN_W / 2;
+    let cy = SCREEN_H;
+    let recoil = player.isShooting ? 20 : 0;
+    
+    // Weapon bobbing while moving
+    let isMoving = keys['w'] || keys['s'] || keys['a'] || keys['d'];
+    let bobX = isMoving ? Math.sin(Date.now() / 150) * 10 : 0;
+    let bobY = isMoving ? Math.abs(Math.sin(Date.now() / 150)) * 10 : 0;
+    
+    ctx.translate(cx + bobX, cy + bobY + recoil);
+    
+    if (player.weapon === 1) { // Peroxido
+        ctx.fillStyle = '#555'; ctx.fillRect(-15, -100, 30, 100);
+        ctx.fillStyle = '#0cf'; ctx.fillRect(-5, -90, 10, 80);
+        if(player.isShooting) { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(0, -110, 20, 0, Math.PI*2); ctx.fill(); }
+    } else if (player.weapon === 2) { // Anticorpos
+        ctx.fillStyle = '#333'; ctx.fillRect(-30, -120, 60, 120);
+        ctx.fillStyle = '#ff0'; ctx.fillRect(-20, -110, 10, 100); ctx.fillRect(10, -110, 10, 100);
+        if(player.isShooting) { ctx.fillStyle='#ff0'; ctx.fillRect(-40, -140, 80, 20); }
+    } else if (player.weapon === 3) { // Bomba
+        ctx.fillStyle = '#252'; ctx.fillRect(-40, -150, 80, 150);
+        ctx.fillStyle = '#0f0'; ctx.beginPath(); ctx.arc(0, -50, 30, 0, Math.PI*2); ctx.fill();
+    }
+    
+    // Crosshair
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, SCREEN_H/2); ctx.lineTo(cx + 10, SCREEN_H/2);
+    ctx.moveTo(cx, SCREEN_H/2 - 10); ctx.lineTo(cx, SCREEN_H/2 + 10);
+    ctx.stroke();
+}
+
+function drawDOOMFace() {
+    faceCtx.fillStyle = '#333';
+    faceCtx.fillRect(0,0,64,64);
+    
+    // Procedural Face
+    faceCtx.fillStyle = '#fcc'; // Skin
+    if (player.health < 40) faceCtx.fillStyle = '#daa';
+    if (player.painTimer > 0) faceCtx.fillStyle = '#f00';
+    
+    faceCtx.fillRect(16, 16, 32, 32); // Head
+    
+    faceCtx.fillStyle = '#000'; // Eyes
+    let lookX = (keys['ArrowRight'] || keys['d']) ? 2 : ((keys['ArrowLeft'] || keys['a']) ? -2 : 0);
+    faceCtx.fillRect(20 + lookX, 24, 6, 6);
+    faceCtx.fillRect(38 + lookX, 24, 6, 6);
+    
+    // Mouth
+    if (player.painTimer > 0) {
+        faceCtx.fillRect(26, 38, 12, 8); // Open pain mouth
+    } else if (player.isShooting) {
+        faceCtx.fillRect(28, 40, 8, 4); // Focused
+    } else {
+        faceCtx.fillRect(24, 42, 16, 2); // Neutral line
+    }
+}
+
+// --- HUD UPDATE ---
+function updateHUD() {
+    document.getElementById('ui-health').innerText = Math.max(0, player.health) + '%';
+    document.getElementById('ui-health').style.color = player.health < 30 ? '#f00' : 'var(--text-accent)';
+    document.getElementById('ui-ammo').innerText = player.ammo;
+    document.getElementById('ui-kills').innerText = player.kills;
+    document.getElementById('ui-score').innerText = player.score;
+    
+    for(let i=1; i<=3; i++) {
+        document.getElementById('w'+i).classList.remove('active');
+    }
+    document.getElementById('w'+player.weapon).classList.add('active');
+}
+
+// --- GAME LOOP ---
+function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    let dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+    
+    // Limit dt to prevent wall clipping on lag
+    if (dt > 0.1) dt = 0.1;
+
+    update(dt);
+    render3D();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// --- INPUTS & EVENTS ---
+
+window.addEventListener('keydown', e => {
+    keys[e.key] = true;
+    if (gameState === 'PLAY') {
+        if(e.key === '1') { player.weapon = 1; updateHUD(); }
+        if(e.key === '2') { player.weapon = 2; updateHUD(); }
+        if(e.key === '3') { player.weapon = 3; updateHUD(); }
+    }
+});
+
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Mouse Controls / Pointer Lock
+const viewport = document.getElementById('viewport');
+
+viewport.addEventListener('click', () => {
+    if (gameState === 'PLAY') {
+        if (document.pointerLockElement !== viewport) {
+            viewport.requestPointerLock();
+        } else {
+            playerShoot();
+        }
+    }
+});
+
+document.addEventListener('mousemove', e => {
+    if (gameState === 'PLAY' && document.pointerLockElement === viewport) {
+        player.dir += e.movementX * 0.005; // Mouse sensitivity
+    }
+});
+
+window.addEventListener('wheel', e => {
+    if (gameState === 'PLAY') {
+        if(e.deltaY > 0) player.weapon = player.weapon % 3 + 1;
+        else player.weapon = player.weapon === 1 ? 3 : player.weapon - 1;
+        updateHUD();
+    }
+});
+
+function initGame() {
+    player.health = 100;
+    player.ammo = 3;
+    player.score = 0;
+    player.kills = 0;
+    player.weapon = 1;
+    player.x = 3 * CELL_SIZE;
+    player.y = 3 * CELL_SIZE;
+    player.dir = 0;
+    
+    entities = [];
+    projectiles = [];
+    particles = [];
+    
+    updateHUD();
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('game-over-screen').classList.add('hidden');
+    
+    gameState = 'PLAY';
+    viewport.requestPointerLock();
+    lastTime = performance.now();
+}
+
+document.getElementById('start-btn').addEventListener('click', initGame);
+document.getElementById('restart-btn').addEventListener('click', initGame);
+
+// Render inicial
+render3D();
+drawDOOMFace();
+requestAnimationFrame(gameLoop);
+
+</script>
 </body>
 </html>
