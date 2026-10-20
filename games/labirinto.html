@@ -3,751 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimuLab: Labirinto Sequencial</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
+    <title>Aventura Kawaii do Código</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ----------------------------------- */
-        /* ESTILOS GERAIS E TOP-BAR */
-        /* ----------------------------------- */
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f8f8f8; 
-            color: #333; 
-        }
-        
-        .top-bar { 
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: stretch;
-            border-bottom: 1px solid #ddd;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .logo-link {
-            text-decoration: none;
-            color: #1E90FF; 
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            padding: 15px 25px;
-        }
-        
-        .nav-links {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #555;
-            font-size: 14px;
-            font-weight: bold;
-            padding: 15px 15px;
-            text-transform: uppercase;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .nav-link[href="recursos.html"] {
-            color: #1E90FF; 
-            border-bottom: 3px solid #1E90FF;
-            background-color: #f0f0f0;
-        }
-
-        /* ----------------------------------- */
-        /* ESTRUTURA E LAYOUT DO SIMULADOR */
-        /* ----------------------------------- */
-        
-        .simulador-container {
-            display: flex;
-            min-height: calc(100vh - 60px); 
-        }
-
-        .painel-blocos {
-            width: 280px;
-            background-color: #3a3f44;
-            color: white;
-            padding: 20px 10px;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto; /* Permite rolagem no painel de blocos */
-        }
-        
-        .area-programacao {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-            border-right: 1px solid #ddd;
-        }
-        
-        .area-visualizacao {
-            width: 450px; 
-            background-color: #fafafa;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Controles */
-        .controles {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .btn-executar, .btn-reset {
-            padding: 10px 20px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-executar { background-color: #4CAF50; color: white; }
-        .btn-reset { background-color: #f44336; color: white; }
-        
-        /* Workspace */
-        .workspace {
-            flex-grow: 1;
-            padding: 20px;
-            background-color: #e8e8e8;
-            overflow-y: auto;
-        }
-        
-        #workspace-blocos {
-            min-height: 400px; 
-            border: 2px dashed #a0a0a0; 
-            padding: 15px; 
-            background-color: #ffffff; 
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1); 
-            display: flex; 
-            flex-direction: column;
-            gap: 5px; 
-        }
-
-        /* ----------------------------------- */
-        /* ESTILOS DOS BLOCOS DE COMANDO */
-        /* ----------------------------------- */
-
-        .bloco {
-            margin: 0; 
-            border-radius: 8px; 
-            cursor: grab;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-            font-weight: bold;
-            font-size: 1em; 
-            text-align: left; 
-            padding: 10px 15px; 
-            color: white;
-            background-color: #1E90FF; 
-            border: 2px solid #1872CC;
-        }
-        
-        .bloco[data-type^="girar"] {
-             background-color: #FFD700; 
-             border: 2px solid #CCAA00;
-             color: #333;
-        }
-        
-        /* NOVO: Bloco de Loop */
-        .bloco-loop {
-            background-color: #3498db; /* Azul para loops */
-            border: 2px solid #2980b9;
-            padding: 10px 15px 5px 15px; 
-            display: flex;
-            flex-direction: column;
-        }
-
-        .loop-container {
-            background-color: rgba(0, 0, 0, 0.1);
-            border: 1px dashed rgba(255, 255, 255, 0.5);
-            border-radius: 5px;
-            padding: 10px;
-            margin-top: 5px;
-            min-height: 50px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            transition: all 0.2s;
-        }
-
-        .loop-placeholder {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.8em;
-            text-align: center;
-            font-weight: normal;
-            margin: 0;
-        }
-        
-        /* Indentação para blocos dentro do loop */
-        .loop-container > .bloco {
-            margin-left: 15px; 
-            width: auto; 
-        }
-
-
-        .passos-counter {
-            width: 40px; 
-            text-align: center;
-            border: 1px solid white;
-            border-radius: 3px;
-            background-color: rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 3px 5px;
-            font-weight: bold;
-        }
-        
-        /* CORREÇÃO: Cor dos inputs em blocos que não são azuis */
-        .bloco-loop .passos-counter,
-        .bloco[data-type^="girar"] .passos-counter { 
-             color: #333;
-             background-color: white;
-        }
-        
-        .drop-target {
-            border: 2px dashed #1E90FF !important;
-            box-shadow: 0 0 10px rgba(30, 144, 255, 0.5);
-        }
-
-        /* ----------------------------------- */
-        /* ESTILOS DO LABIRINTO E PLAYER */
-        /* ----------------------------------- */
-
-        .labirinto-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            width: 400px;
-            height: 400px;
-            border: 4px solid #333;
-            background-color: #555;
-            position: relative;
-        }
-        
-        .celula {
-            border: 1px solid #777;
-            background-color: #ccc; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.7em;
-            font-weight: bold;
-        }
-
-        .celula-parede {
-            background-color: #333; 
-            border: none;
-        }
-
-        .celula-inicio, .celula-fim {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .celula-inicio { background-color: #4CAF50; }
-        .celula-fim { background-color: #FF4500; color: white; }
-
-        .player {
-            width: 20%; 
-            height: 20%; 
-            background-color: #1E90FF;
-            border-radius: 5px;
-            position: absolute;
-            transition: all 0.5s ease-in-out; 
-            box-sizing: border-box;
+        /* --- ESTILOS KAWAII E VARIÁVEIS --- */
+        :root {
+            --bg-color: #fff0f5; /* LavenderBlush */
+            --path-color: #fffaf0; /* FloralWhite */
+            --wall-color: #a8e6cf; /* Soft Mint Green / Bush */
+            --wall-shadow: #88cfae;
+            --start-color: #b5ead7; /* Light Mint */
+            --goal-color: #ffdac1; /* Pastel Peach/Yellow */
+            --text-color: #6d6875; /* Soft Dark Violet */
             
+            --btn-fwd: #ff9aa2; /* Pastel Pink */
+            --btn-left: #c7ceea; /* Pastel Blue */
+            --btn-right: #e2f0cb; /* Pastel Green */
+            --btn-play: #ffb7b2; /* Melon */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            /* Fundo de bolinhas fofas */
+            background-image: radial-gradient(#ffb7b2 2px, transparent 2px);
+            background-size: 40px 40px;
+            margin: 0;
+            overflow-x: hidden;
             display: flex;
-            justify-content: center;
+            min-height: 100vh;
             align-items: center;
-            color: white;
-            transform-origin: center center;
-            z-index: 10;
+            justify-content: center;
         }
-        
-        .player i {
-            font-size: 24px; 
-            transition: transform 0.3s ease-in-out;
+
+        /* --- TABULEIRO --- */
+        #game-board-container {
+            background: white;
+            padding: 12px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(255, 183, 178, 0.4);
+            border: 4px solid #ffdac1;
+            position: relative;
         }
+
+        #game-board {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1 / 1;
+            display: grid;
+            background-color: var(--path-color);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #ffdac1;
+        }
+
+        /* Células */
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed rgba(255, 183, 178, 0.3);
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell-wall {
+            background-color: var(--wall-color);
+            border-radius: 30%;
+            transform: scale(0.85);
+            box-shadow: inset 0 -6px 0 var(--wall-shadow), 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .cell-start {
+            background-color: var(--start-color);
+            border: 2px dashed #8bcba7;
+        }
+
+        .cell-goal {
+            background-color: var(--goal-color);
+            border: 2px dashed #ffbda1;
+            animation: pulse-goal 2s infinite;
+        }
+
+        @keyframes pulse-goal {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- O PERSONAGEM --- */
+        #player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* Tamanho dinâmico ajustado via JS */
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* --- BOTÕES E UI --- */
+        .btn-kawaii {
+            border-radius: 9999px; /* Pill shape */
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .btn-kawaii:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+
+        .btn-kawaii:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+        }
+
+        .cmd-chip {
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.05);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- MODAIS --- */
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+            background: rgba(255, 240, 245, 0.7);
+        }
+
+        .modal-box {
+            animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 4px solid white;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Estrela fofa animada */
+        .cute-star {
+            animation: spin-slow 6s linear infinite;
+        }
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
 
     </style>
 </head>
-<body>
-    <header class="top-bar">
-        <a href="index.html" class="logo-link">
-            <i class="fas fa-route"></i> SIMULAB: LABIRINTO
-        </a>
-        <nav class="nav-links">
-            <a href="index.html" class="nav-link">SOBRE</a>
-            <a href="destaque.html" class="nav-link">DESTAQUE</a>
-            <a href="recursos.html" class="nav-link active">RECURSOS</a>
-            <a href="materias.html" class="nav-link">CONTEÚDO</a>
-        </nav>
-    </header>
+<body class="p-4 md:p-8">
 
-    <main class="simulador-container">
+    <div class="max-w-5xl w-full mx-auto flex flex-col md:flex-row gap-8 items-center md:items-start">
         
-        <section class="painel-blocos">
-            <h2><i class="fas fa-puzzle-piece"></i> Comandos de Movimento</h2>
+        <!-- ESQUERDA: JOGO E STATUS -->
+        <div class="w-full md:w-1/2 flex flex-col items-center">
+            <div class="bg-white px-6 py-3 rounded-full shadow-md border-2 border-pink-100 mb-6 flex justify-between w-full max-w-[450px]">
+                <span class="font-bold text-pink-400 text-lg">Nível <span id="level-display">1</span></span>
+                <span class="font-bold text-blue-400 text-lg">Grade: <span id="size-display">5x5</span></span>
+            </div>
+
+            <div id="game-board-container" class="w-full">
+                <div id="game-board">
+                    <!-- Gerado via JS -->
+                </div>
+                <!-- O Personagem: SVG Inline Fofinho -->
+                <div id="player">
+                    <svg viewBox="0 0 100 100" class="w-[80%] h-[80%] drop-shadow-md">
+                        <!-- Mãos para cima (apontando pro Norte) -->
+                        <circle cx="28" cy="20" r="10" fill="#ffc8a2" />
+                        <circle cx="72" cy="20" r="10" fill="#ffc8a2" />
+                        <!-- Corpo -->
+                        <rect x="25" y="40" width="50" height="35" rx="15" fill="#a0e8af" stroke="#7ad08e" stroke-width="3" />
+                        <path d="M 35 40 L 65 40 L 50 25 Z" fill="#7ad08e" opacity="0.5"/> <!-- Detalhe da roupa -->
+                        <!-- Cabeça -->
+                        <circle cx="50" cy="45" r="22" fill="#ffc8a2" />
+                        <!-- Cabelo fofo -->
+                        <path d="M 25 45 C 25 15, 75 15, 75 45 C 65 30, 35 30, 25 45 Z" fill="#8d5524" />
+                        <!-- Olhinhos e Bochechas -->
+                        <circle cx="41" cy="42" r="3" fill="#333" />
+                        <circle cx="59" cy="42" r="3" fill="#333" />
+                        <ellipse cx="34" cy="47" rx="5" ry="3" fill="#ff9999" opacity="0.7"/>
+                        <ellipse cx="66" cy="47" rx="5" ry="3" fill="#ff9999" opacity="0.7"/>
+                        <!-- Boquinha -->
+                        <path d="M 46 50 Q 50 54 54 50" stroke="#333" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIREITA: PAINEL DE PROGRAMAÇÃO -->
+        <div class="w-full md:w-1/2 bg-white rounded-3xl p-6 shadow-xl border-4 border-pink-50 flex flex-col gap-6 h-full max-h-[650px]">
             
-            <div class="bloco-paleta-wrapper">
-                <div class="bloco" draggable="true" data-type="mover-passos">
-                    MOVER <input type="number" value="1" min="1" max="5" class="passos-counter"> PASSOS
+            <div>
+                <h2 class="text-xl font-extrabold text-pink-400 mb-4 flex items-center gap-2">
+                    <span>✨</span> Ações Mágicas
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button onclick="addCmd('FORWARD')" class="btn-kawaii bg-[var(--btn-fwd)] hover:brightness-105 text-white py-3 px-2 text-sm sm:text-xs md:text-sm">
+                        ⬆️ Avançar
+                    </button>
+                    <button onclick="addCmd('LEFT')" class="btn-kawaii bg-[var(--btn-left)] hover:brightness-105 text-white py-3 px-2 text-sm sm:text-xs md:text-sm">
+                        ⬅️ Esq
+                    </button>
+                    <button onclick="addCmd('RIGHT')" class="btn-kawaii bg-[var(--btn-right)] hover:brightness-105 text-white py-3 px-2 text-sm sm:text-xs md:text-sm">
+                        Dir ➡️
+                    </button>
                 </div>
             </div>
 
-            <div class="bloco-paleta-wrapper">
-                <div class="bloco" draggable="true" data-type="girar-direita">GIRAR 90° DIREITA <i class="fas fa-angle-right"></i></div>
-            </div>
-            
-            <div class="bloco-paleta-wrapper">
-                <div class="bloco" draggable="true" data-type="girar-esquerda">GIRAR 90° ESQUERDA <i class="fas fa-angle-left"></i></div>
-            </div>
-
-            <h2><i class="fas fa-sync-alt"></i> Comandos de Controle</h2>
-            <div class="bloco-paleta-wrapper">
-                <div class="bloco bloco-loop" draggable="true" data-type="loop">
-                    REPETIR <input type="number" value="3" min="1" max="10" class="passos-counter loop-counter"> VEZES
-                    <div class="loop-container">
-                        <p class="loop-placeholder">Arraste comandos aqui</p>
-                    </div>
+            <div class="flex-1 flex flex-col min-h-[200px]">
+                <h2 class="text-xl font-extrabold text-blue-400 mb-3 flex items-center gap-2">
+                    <span>📝</span> Caminho
+                </h2>
+                <div id="queue-box" class="flex-1 bg-pink-50 rounded-2xl border-2 border-dashed border-pink-200 p-4 flex flex-wrap content-start gap-2 overflow-y-auto">
+                    <p id="empty-txt" class="text-pink-300 font-bold w-full text-center mt-8">O que eu devo fazer?</p>
                 </div>
             </div>
-            <p style="font-size: 0.8em; color: #ccc; margin-top: 20px;">
-                * Crie a sequência de movimentos para chegar ao ponto final.
-            </p>
-        </section>
 
-        <section class="area-programacao">
-            <div class="controles">
-                <button class="btn-executar" onclick="executarCodigo()"><i class="fas fa-play"></i> Executar Sequência</button>
-                <button class="btn-reset" onclick="resetSimulador()"><i class="fas fa-redo"></i> Resetar Mapa</button>
-                <span id="log-display" style="margin-left: 20px; color: #1E90FF;">Monte sua primeira rota!</span>
+            <div class="flex gap-3 mt-auto">
+                <button id="btn-clear" onclick="clearCmds()" class="btn-kawaii w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-500 py-4 text-sm">
+                    Limpar
+                </button>
+                <button id="btn-play" onclick="playTurn()" class="btn-kawaii w-2/3 bg-[var(--btn-play)] hover:brightness-105 text-white py-4 text-lg">
+                    ▶️ Play!
+                </button>
             </div>
-            
-            <div class="workspace">
-                <div class="workspace-titulo"><i class="fas fa-list-ol"></i> SEQUÊNCIA DE COMANDOS</div>
-                <div id="workspace-blocos">
-                    </div>
-            </div>
-        </section>
+        </div>
+    </div>
 
-        <section class="area-visualizacao">
-            <h2><i class="fas fa-map-marked-alt"></i> Labirinto - Desafio 1</h2>
-            <div class="labirinto-grid" id="labirinto-grid">
-                </div>
-            <div class="corredor-status" id="status-jogo" style="margin-top: 15px;">Objetivo: Chegar à célula FIM.</div>
-        </section>
+    <!-- MODAL: DERROTA / BATEU -->
+    <div id="modal-loss" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-box bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+            <div class="text-6xl mb-4">😵</div>
+            <h3 class="text-2xl font-black text-pink-400 mb-2">Oops!</h3>
+            <p class="text-gray-500 font-bold mb-6">Você bateu em uma moita ou saiu do mapa. Vamos tentar de novo?</p>
+            <button onclick="closeModal('modal-loss')" class="btn-kawaii bg-[var(--btn-fwd)] text-white w-full py-3 text-lg">
+                Tentar Novamente
+            </button>
+        </div>
+    </div>
 
-    </main>
+    <!-- MODAL: VITÓRIA -->
+    <div id="modal-win" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4">
+        <div class="modal-box bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+            <div class="text-6xl mb-4 cute-star">⭐</div>
+            <h3 class="text-3xl font-black text-yellow-400 mb-2">Ebaaa!</h3>
+            <p class="text-gray-500 font-bold mb-6">Você chegou na estrelinha e venceu o nível!</p>
+            <button onclick="nextLevel()" class="btn-kawaii bg-[var(--btn-right)] text-white w-full py-3 text-lg">
+                Próximo Nível ➡️
+            </button>
+        </div>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const painelBlocos = document.querySelector('.painel-blocos');
-            const workspace = document.getElementById('workspace-blocos');
-            const logDisplay = document.getElementById('log-display'); 
-            const labirintoGrid = document.getElementById('labirinto-grid');
-            const statusJogo = document.getElementById('status-jogo');
-            
-            let draggedBlock = null;
-            
-            // --- VARIÁVEIS DO JOGO E CONFIGURAÇÃO DE NÍVEIS ---
-            const GRID_SIZE = 5;
-            const CELL_SIZE = 80; 
-            
-            let playerState = {
-                x: 0, 
-                y: 4, 
-                direction: 0, // 0: Norte, 90: Leste, 180: Sul, 270: Oeste
-                isMoving: false,
-            };
+        // --- ESTADO GLOBAL ---
+        let level = 1;
+        let gridSize = 5;
+        let board = []; // 0: Caminho, 1: Parede, 2: Início, 3: Fim
+        let queue = [];
+        let isPlaying = false;
+        
+        let player = {
+            x: 0,
+            y: 0,
+            rot: 90 // 0=Norte, 90=Leste(Direita), 180=Sul, 270=Oeste. 
+        };
 
-            const LEVELS = [
-                // NÍVEL 1: Introdução ao Loop e Rotação. Solução: Girar D, Loop(4) [Mover 1]
-                {
-                    map: [
-                        [0, 0, 0, 0, 3],
-                        [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0],
-                        [2, 0, 0, 0, 0] 
-                    ],
-                    start: { x: 0, y: 4 },
-                    end: { x: 4, y: 0 },
-                    goal: "Chegue ao FIM (4,0). Use o bloco REPETIR para mover os 4 passos."
-                },
-                // NÍVEL 2: Sequência e Loop
-                {
-                    map: [
-                        [0, 0, 0, 3, 0],
-                        [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0],
-                        [2, 0, 0, 0, 0] 
-                    ],
-                    start: { x: 0, y: 4 },
-                    end: { x: 3, y: 0 },
-                    goal: "Chegue ao FIM (3,0). Sua solução exige rotação e loops aninhados."
-                },
-                // NÍVEL 3: Paredes e Loop
-                {
-                    map: [
-                        [1, 1, 0, 3, 1],
-                        [1, 0, 0, 0, 1],
-                        [1, 0, 1, 0, 1],
-                        [1, 0, 0, 0, 1],
-                        [2, 0, 1, 1, 1] 
-                    ],
-                    start: { x: 0, y: 4 },
-                    end: { x: 3, y: 0 },
-                    goal: "Chegue ao FIM (3,0). Cuidado com as paredes! Pense na sequência 'Mover, Girar, Mover'."
-                }
-            ];
-            
-            let currentLevel = 0; 
-            let MAPA = LEVELS[currentLevel].map;
-            let START_POS = LEVELS[currentLevel].start;
-            let END_POS = LEVELS[currentLevel].end;
-            
-            
-            // --- FUNÇÃO DE LOG ---
-            const log = (message, isError = false) => {
-                logDisplay.style.color = isError ? '#f44336' : '#1E90FF';
-                logDisplay.textContent = message;
-            };
+        // Elementos DOM
+        const boardEl = document.getElementById('game-board');
+        const playerEl = document.getElementById('player');
+        const queueBox = document.getElementById('queue-box');
+        const emptyTxt = document.getElementById('empty-txt');
+        const btnPlay = document.getElementById('btn-play');
+        const btnClear = document.getElementById('btn-clear');
+        const lvlDisplay = document.getElementById('level-display');
+        const sizeDisplay = document.getElementById('size-display');
 
-            // --- LÓGICA DE VISUALIZAÇÃO DO MAPA E PLAYER ---
+        // --- GERAÇÃO PROCEDURAL DO LABIRINTO ---
+        function generateMaze(size) {
+            board = Array(size).fill().map(() => Array(size).fill(0));
+            let isPath = Array(size).fill().map(() => Array(size).fill(false));
+
+            // 1. Criar um caminho garantido do (0,0) até (size-1, size-1)
+            let x = 0, y = 0;
+            isPath[y][x] = true;
             
-            const createMaze = () => {
-                labirintoGrid.innerHTML = '';
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    for (let x = 0; x < GRID_SIZE; x++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'celula';
-                        
-                        const cellType = MAPA[y][x];
-                        if (cellType === 1) cell.classList.add('celula-parede');
-                        if (cellType === 2) { cell.classList.add('celula-inicio'); cell.textContent = "INÍCIO"; }
-                        if (cellType === 3) { cell.classList.add('celula-fim'); cell.textContent = "FIM"; }
-                        
-                        labirintoGrid.appendChild(cell);
+            while (x < size - 1 || y < size - 1) {
+                if (x === size - 1) { y++; }
+                else if (y === size - 1) { x++; }
+                else { Math.random() < 0.5 ? x++ : y++; }
+                isPath[y][x] = true;
+            }
+
+            // 2. Preencher com paredes aleatórias as células que NÃO fazem parte do caminho garantido
+            // A densidade aumenta conforme o nível
+            let wallDensity = 0.2 + (level * 0.05);
+            if (wallDensity > 0.45) wallDensity = 0.45; // Limite máximo para não ficar impossível de feio
+
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (!isPath[r][c] && Math.random() < wallDensity) {
+                        board[r][c] = 1;
                     }
                 }
-                const playerElement = document.createElement('div');
-                playerElement.id = 'player';
-                playerElement.className = 'player';
-                playerElement.innerHTML = '<i class="fas fa-location-arrow"></i>';
-                labirintoGrid.appendChild(playerElement);
-            };
+            }
 
-            const updatePlayerVisuals = () => {
-                const playerElement = document.getElementById('player');
-                if (!playerElement) return; // Checagem de segurança
-                
-                // Posição: (Offset de 0.05 para centralizar o player de 90%)
-                const xOffset = playerState.x * CELL_SIZE + (CELL_SIZE * 0.05); 
-                const yOffset = playerState.y * CELL_SIZE + (CELL_SIZE * 0.05); 
+            // Definir Início e Fim visualmente na lógica (embora sejam caminhos válidos)
+            board[0][0] = 2; 
+            board[size - 1][size - 1] = 3;
+        }
 
-                playerElement.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
-                
-                // Rotação da Seta (Ajuste de -45deg para que 0deg seja o Norte)
-                const totalRotation = playerState.direction - 45; 
-                
-                playerElement.querySelector('i').style.transform = `rotate(${totalRotation}deg)`;
-            };
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            boardEl.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            boardEl.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
-            // --- LÓGICA DE NÍVEL E RESET ---
-            
-            const loadLevel = (levelIndex) => {
-                if (levelIndex >= LEVELS.length) {
-                    statusJogo.textContent = 'PARABÉNS! Você completou todos os desafios!';
-                    log("Todos os níveis concluídos!");
-                    currentLevel = 0; 
-                } else {
-                    currentLevel = levelIndex;
-                    MAPA = LEVELS[currentLevel].map;
-                    START_POS = LEVELS[currentLevel].start;
-                    END_POS = LEVELS[currentLevel].end;
+            // Ajustar tamanho do jogador
+            const cellSize = 100 / gridSize;
+            playerEl.style.width = `${cellSize}%`;
+            playerEl.style.height = `${cellSize}%`;
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
                     
-                    document.querySelector('.area-visualizacao h2').innerHTML = 
-                        `<i class="fas fa-map-marked-alt"></i> Labirinto - Desafio ${currentLevel + 1}`;
-                }
-            };
-
-            const resetSimulador = () => {
-                playerState.x = START_POS.x;
-                playerState.y = START_POS.y;
-                playerState.direction = 0; 
-                playerState.isMoving = false;
-                
-                const playerElement = document.getElementById('player');
-                if (playerElement) playerElement.remove();
-                
-                createMaze();
-                updatePlayerVisuals();
-                log(`Nível ${currentLevel + 1} carregado. Crie a sequência!`);
-                statusJogo.textContent = `Objetivo: ${LEVELS[currentLevel].goal}`;
-
-                // NÂO reseta o workspace para o usuário não perder a solução
-                // workspace.innerHTML = ''; 
-            };
-            window.resetSimulador = resetSimulador;
-
-            // --- LÓGICA DE DRAG AND DROP COM ANINHAMENTO ---
-            
-            const addLoopDropListeners = (container) => {
-                container.addEventListener('dragover', handleDragOver);
-                container.addEventListener('dragleave', handleDragLeave);
-                container.addEventListener('drop', handleDrop);
-            };
-
-            const createCopy = (original) => {
-                const clone = original.cloneNode(true);
-                clone.setAttribute('draggable', 'true');
-                clone.classList.remove('bloco-paleta-wrapper');
-                
-                const type = clone.getAttribute('data-type');
-                
-                // Lógica de manipulação de Input
-                if (type === 'mover-passos' || type === 'loop') {
-                    const originalInput = original.querySelector('.passos-counter');
-                    const cloneInput = clone.querySelector('.passos-counter');
-                    if (originalInput && cloneInput) {
-                        cloneInput.value = originalInput.value;
-                        // Previne que a interação com o input comece o drag
-                        cloneInput.addEventListener('change', (e) => { e.stopPropagation(); });
-                        cloneInput.addEventListener('mousedown', (e) => { e.stopPropagation(); });
+                    if (board[y][x] === 1) {
+                        cell.classList.add('cell-wall');
+                    } else if (board[y][x] === 2) {
+                        cell.classList.add('cell-start');
+                    } else if (board[y][x] === 3) {
+                        cell.classList.add('cell-goal');
+                        // Adicionar a estrelinha no objetivo
+                        cell.innerHTML = `
+                            <svg class="w-2/3 h-2/3 text-yellow-500 cute-star" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/>
+                            </svg>
+                        `;
                     }
+                    boardEl.appendChild(cell);
                 }
-                
-                // Lógica específica para o bloco de Loop
-                if (type === 'loop') {
-                    // Remove o placeholder da cópia da paleta
-                    const placeholder = clone.querySelector('.loop-placeholder');
-                    if (placeholder) placeholder.remove(); 
-                    
-                    // Adiciona os listeners de drop ao container interno do bloco clonado
-                    addLoopDropListeners(clone.querySelector('.loop-container'));
-                }
-                
-                return clone;
-            };
-            
-            // Handlers de Drag (Usando o `dragstart` da paleta, sem modificar)
-            painelBlocos.querySelectorAll('.bloco').forEach(bloco => {
-                bloco.addEventListener('dragstart', (e) => {
-                    // Só permite arrastar se não for um input (para não conflitar com a alteração do valor)
-                    if (e.target.tagName !== 'INPUT') { 
-                        draggedBlock = bloco;
-                        e.dataTransfer.setData('text/plain', 'dragging');
-                    } else {
-                         e.preventDefault();
-                    }
-                });
+            }
+        }
+
+        // --- CONTROLES DE PERSONAGEM ---
+        function initPlayer() {
+            player.x = 0;
+            player.y = 0;
+            player.rot = 90; // Começa olhando para a direita (Leste)
+            updatePlayerVisuals();
+        }
+
+        function updatePlayerVisuals() {
+            // translate no CSS usa a própria dimensão do elemento.
+            // Como o elemento tem o mesmo tamanho da célula, mover 100% é mover 1 célula.
+            playerEl.style.transform = `translate(${player.x * 100}%, ${player.y * 100}%) rotate(${player.rot}deg)`;
+        }
+
+        // --- SISTEMA DE FILA (PROGRAMAÇÃO) ---
+        const cmdIcons = {
+            'FORWARD': { text: '⬆️ Avançar', color: 'bg-[var(--btn-fwd)]' },
+            'LEFT': { text: '⬅️ Girar Esq', color: 'bg-[var(--btn-left)]' },
+            'RIGHT': { text: 'Girar Dir ➡️', color: 'bg-[var(--btn-right)]' }
+        };
+
+        function addCmd(cmd) {
+            if (isPlaying) return;
+            queue.push(cmd);
+            renderQueue();
+        }
+
+        function clearCmds() {
+            if (isPlaying) return;
+            queue = [];
+            renderQueue();
+            initPlayer(); // Reseta para a posição inicial ao limpar
+        }
+
+        function renderQueue() {
+            queueBox.innerHTML = '';
+            if (queue.length === 0) {
+                queueBox.appendChild(emptyTxt);
+                emptyTxt.style.display = 'block';
+                return;
+            }
+            emptyTxt.style.display = 'none';
+
+            queue.forEach((cmd, idx) => {
+                const div = document.createElement('div');
+                div.className = `cmd-chip text-white font-bold text-xs px-3 py-2 rounded-full ${cmdIcons[cmd].color}`;
+                div.innerText = cmdIcons[cmd].text;
+                div.id = `cmd-${idx}`;
+                queueBox.appendChild(div);
             });
+        }
 
-            // Handlers de Drop (Refatorados para permitir aninhamento)
-            const handleDragOver = (e) => {
-                e.preventDefault();
-                // Verifica se o bloco que está sendo arrastado não é o próprio loop se for arrastar para dentro de um loop
-                if (e.currentTarget.classList.contains('loop-container') && draggedBlock.getAttribute('data-type') === 'loop') {
-                    // Não permita loop dentro de loop por simplicidade
-                } else {
-                    e.currentTarget.classList.add('drop-target');
-                }
-            };
-            
-            const handleDragLeave = (e) => {
-                e.currentTarget.classList.remove('drop-target');
-            };
+        // --- MOTOR DE EXECUÇÃO ---
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-            const handleDrop = (e) => {
-                e.preventDefault();
-                e.currentTarget.classList.remove('drop-target');
+        async function playTurn() {
+            if (isPlaying || queue.length === 0) return;
+            isPlaying = true;
+            btnPlay.disabled = true;
+            btnClear.disabled = true;
+
+            // Garante que o jogador está na origem antes de rodar
+            initPlayer();
+            await sleep(400);
+
+            let crashed = false;
+
+            for (let i = 0; i < queue.length; i++) {
+                const cmd = queue[i];
                 
-                if (!draggedBlock) return;
-                
-                const dropTarget = e.currentTarget;
-                
-                // Impedir loop aninhado (loop dentro de loop)
-                if (dropTarget.classList.contains('loop-container') && draggedBlock.getAttribute('data-type') === 'loop') {
-                    log("Aviso: Não é permitido aninhar loops neste simulador.", true);
-                    draggedBlock = null;
-                    return;
-                }
-                
-                // Cria uma cópia nova da paleta
-                const clone = createCopy(draggedBlock);
-                dropTarget.appendChild(clone); 
-                
-                // Se o drop target for um loop container, remove o placeholder se ele existir
-                if (dropTarget.classList.contains('loop-container')) {
-                    const placeholder = dropTarget.querySelector('.loop-placeholder');
-                    if (placeholder) placeholder.remove();
+                // Highlight visual no comando atual
+                const chip = document.getElementById(`cmd-${i}`);
+                if (chip) chip.classList.add('ring-4', 'ring-white', 'scale-110');
+
+                if (cmd === 'LEFT') {
+                    player.rot -= 90;
+                } else if (cmd === 'RIGHT') {
+                    player.rot += 90;
+                } else if (cmd === 'FORWARD') {
+                    // Normalizar graus (0=Norte, 90=Leste, 180=Sul, 270=Oeste)
+                    let dir = ((player.rot % 360) + 360) % 360; 
+                    
+                    if (dir === 0) player.y -= 1;
+                    else if (dir === 90) player.x += 1;
+                    else if (dir === 180) player.y += 1;
+                    else if (dir === 270) player.x -= 1;
                 }
 
-
-                log(`Comando "${clone.textContent.trim().split('\n')[0].trim()}" adicionado à sequência.`);
-                
-                draggedBlock = null; 
-            };
-            
-            // Adiciona listeners ao workspace principal
-            addLoopDropListeners(workspace);
-
-            // --- LÓGICA DE EXECUÇÃO COM RECURSÃO (LOOP) ---
-            
-            const executeRotate = async (angle) => { 
-                playerState.direction = (playerState.direction + angle) % 360;
-                if (playerState.direction < 0) playerState.direction += 360; 
                 updatePlayerVisuals();
-                log(`GIRANDO para ${playerState.direction}°`);
-                await new Promise(r => setTimeout(r, 400)); 
-                return true;
-            };
+                await sleep(500); // Tempo para ver a animação acontecer
 
-            const executeMove = async (steps) => {
-                 for (let i = 0; i < steps; i++) {
-                    await new Promise(r => setTimeout(r, 400)); 
-                    
-                    let newX = playerState.x;
-                    let newY = playerState.y;
+                if (chip) chip.classList.remove('ring-4', 'ring-white', 'scale-110');
 
-                    // Mapeamento da Direção (0: Norte, 90: Leste, 180: Sul, 270: Oeste)
-                    if (playerState.direction === 0) newY--;
-                    else if (playerState.direction === 90) newX++;
-                    else if (playerState.direction === 180) newY++;
-                    else if (playerState.direction === 270) newX--;
-
-                    // 1. Checa Limites e Parede
-                    if (newX < 0 || newX >= GRID_SIZE || newY < 0 || newY >= GRID_SIZE) {
-                        log(`ERRO: Fora dos limites! Tentativa em (${newX}, ${newY})`, true);
-                        return false; 
-                    }
-                    if (MAPA[newY][newX] === 1) {
-                        log(`ERRO: Movimento bloqueado por PAREDE em (${newX}, ${newY})!`, true);
-                        return false;
-                    }
-
-                    // Move
-                    playerState.x = newX;
-                    playerState.y = newY;
-                    updatePlayerVisuals();
-                    log(`Moveu para a célula (${newX}, ${newY})`);
-                    
-                    // Checa Fim
-                    if (playerState.x === END_POS.x && playerState.y === END_POS.y) {
-                         return false; // Retorna false para interromper o loop de passos, mas sinaliza que o destino foi alcançado.
-                    }
+                // Checagem de Colisão (Saiu da grade ou bateu na parede)
+                if (
+                    player.x < 0 || player.x >= gridSize ||
+                    player.y < 0 || player.y >= gridSize ||
+                    board[player.y][player.x] === 1
+                ) {
+                    crashed = true;
+                    showModal('modal-loss');
+                    break;
                 }
-                return true; 
-            };
-            
-            // Novo: Função recursiva para executar uma lista de comandos
-            const executeProgram = async (commands) => {
-                let success = true;
+            }
 
-                for (let i = 0; i < commands.length; i++) {
-                    const bloco = commands[i];
-                    
-                    // Destaque do bloco em execução
-                    bloco.style.boxShadow = '0 0 15px yellow';
-                    
-                    // Condição de parada de emergência
-                    if (playerState.x === END_POS.x && playerState.y === END_POS.y) {
-                        bloco.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                        success = true; 
-                        break;
-                    }
-                    
-                    const type = bloco.getAttribute('data-type');
-                    
-                    if (type === 'mover-passos') {
-                        const stepsInput = bloco.querySelector('.passos-counter');
-                        const steps = parseInt(stepsInput ? stepsInput.value : 1);
-                        success = await executeMove(steps);
-                        if (!success && (playerState.x !== END_POS.x || playerState.y !== END_POS.y)) break; // Quebra se for erro (não fim)
-                    } else if (type === 'girar-direita') {
-                        success = await executeRotate(90);
-                    } else if (type === 'girar-esquerda') {
-                        success = await executeRotate(-90);
-                    } else if (type === 'loop') {
-                        const loopCounterInput = bloco.querySelector('.loop-counter');
-                        const repetitions = parseInt(loopCounterInput ? loopCounterInput.value : 1);
-                        const nestedCommands = Array.from(bloco.querySelector('.loop-container').children);
-
-                        if (nestedCommands.length === 0) {
-                             log(`Aviso: Bloco REPETIR está vazio. Pulando.`, false);
-                        } else {
-                            for (let r = 0; r < repetitions; r++) {
-                                log(`Loop: Executando repetição ${r + 1} de ${repetitions}`);
-                                // Chamada recursiva para os comandos internos
-                                success = await executeProgram(nestedCommands);
-                                if (!success || (playerState.x === END_POS.x && playerState.y === END_POS.y)) break;
-                            }
-                        }
-                        if (!success) break;
-                    }
-
-                    // Remove destaque
-                    bloco.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                }
-
-                return success;
-            };
-
-            window.executarCodigo = async () => {
-                const program = Array.from(workspace.children);
-                if (program.length === 0) { log("Arrastar blocos para iniciar a sequência.", true); return; }
-
-                if (playerState.isMoving) { log("Aguarde a execução atual terminar.", true); return; }
-                
-                // Reset de estado
-                playerState.x = START_POS.x;
-                playerState.y = START_POS.y;
-                playerState.direction = 0; 
-                playerState.isMoving = true;
-                updatePlayerVisuals(); 
-                
-                await new Promise(r => setTimeout(r, 500)); 
-                
-                let success = await executeProgram(program); // Chamada inicial
-
-                playerState.isMoving = false;
-                
-                // Lógica de Sucesso/Falha
-                if (playerState.x === END_POS.x && playerState.y === END_POS.y) {
-                    log(`SUCESSO! Nível ${currentLevel + 1} concluído!`, false);
-                    statusJogo.textContent = `SUCESSO: Nível ${currentLevel + 1} completo! Carregando próximo...`;
-                    await new Promise(r => setTimeout(r, 1500)); 
-                    
-                    loadLevel(currentLevel + 1);
-                    resetSimulador(); 
-                } else if (success) { 
-                    log("Sequência executada. Não chegou ao FIM.", true);
-                    statusJogo.textContent = 'FALHA: Não chegou ao destino. Tente outra sequência.';
+            // Fim da execução sem bater
+            if (!crashed) {
+                // Checa se está no bloco final (3)
+                if (board[player.y][player.x] === 3) {
+                    showModal('modal-win');
                 } else {
-                    statusJogo.textContent = 'FALHA: Movimento inválido ou colisão.';
+                    // Parou no meio do caminho sem bater
+                    // Não foi pedido alert específico para isso, então apenas reseto as flags para ele tentar novamente
                 }
-            };
+            }
+
+            isPlaying = false;
+            btnPlay.disabled = false;
+            btnClear.disabled = false;
+        }
+
+        // --- NÍVEIS E FLUXO ---
+        function loadLevel(lvl) {
+            level = lvl;
+            gridSize = 3 + (level * 2); // lvl 1 = 5x5, lvl 2 = 7x7, lvl 3 = 9x9...
             
-            // Inicializa o mapa
-            loadLevel(0);
-            resetSimulador(); 
-        });
+            lvlDisplay.innerText = level;
+            sizeDisplay.innerText = `${gridSize}x${gridSize}`;
+            
+            generateMaze(gridSize);
+            renderBoard();
+            
+            queue = [];
+            renderQueue();
+            initPlayer();
+        }
+
+        function nextLevel() {
+            closeModal('modal-win');
+            loadLevel(level + 1);
+        }
+
+        // --- MODAIS ---
+        function showModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add('hidden');
+            if (id === 'modal-loss') {
+                initPlayer(); // Volta o personagem pro começo
+            }
+        }
+
+        // --- INICIALIZAÇÃO DA PÁGINA ---
+        window.onload = () => {
+            loadLevel(1);
+        };
+
     </script>
 </body>
 </html>
