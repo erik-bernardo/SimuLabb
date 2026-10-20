@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Enzyme Smash: Digestive Slice</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        :root {
+            --color-protease: #ff4136;
+            --color-amylase: #ffdc00;
+            --color-lipase: #0074d9;
+            --color-toxin: #2ecc40;
+            --bg-color: #0b0c10;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 100%;
+            max-height: 1000px;
+            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+            border: 4px solid #45a29e;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(69, 162, 158, 0.4);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #hud-top {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .score-text {
+            font-size: 16px;
+            color: #66fcf1;
+        }
+
+        .timer-text {
+            font-size: 20px;
+            color: #fff;
+            transition: color 0.3s;
+        }
+        
+        .timer-danger {
+            color: #ff4136;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        #hud-bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .btn-enzyme {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #555;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-family: inherit;
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.6;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        .btn-enzyme.active {
+            opacity: 1;
+            transform: scale(1.15) translateY(-10px);
+            border-color: currentColor;
+            box-shadow: 0 0 20px currentColor, inset 0 0 10px currentColor;
+        }
+
+        .btn-enzyme span {
+            font-size: 16px;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        #btn-prot { color: var(--color-protease); }
+        #btn-amil { color: var(--color-amylase); }
+        #btn-lipa { color: var(--color-lipase); }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(11, 12, 16, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .hidden { display: none !important; }
+
+        h1 {
+            color: #66fcf1;
+            text-shadow: 0 0 10px #45a29e;
+            font-size: 28px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #c5c6c7;
+            margin-bottom: 30px;
+        }
+
+        .instructions {
+            font-size: 12px;
+            color: #fff;
+            margin-bottom: 15px;
+            line-height: 1.8;
+            max-width: 90%;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #45a29e;
+            text-align: left;
+        }
+
+        .color-legend { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: middle;}
+
+        .btn-start {
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: #45a29e;
+            color: #0b0c10;
+            border: 2px solid #66fcf1;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(102, 252, 241, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .btn-start:active { transform: scale(0.95); }
+
+        #flash-overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 15;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="flash-overlay"></div>
+
+        <div id="hud-top">
+            <div class="score-text">SCORE: <span id="score">0</span></div>
+            <div class="timer-text" id="timer">01:30</div>
+        </div>
+
+        <div id="hud-bottom">
+            <button class="btn-enzyme active" id="btn-prot" data-type="0">
+                <span>1</span>PROT
+            </button>
+            <button class="btn-enzyme" id="btn-amil" data-type="1">
+                <span>2</span>AMIL
+            </button>
+            <button class="btn-enzyme" id="btn-lipa" data-type="2">
+                <span>3</span>LIPA
+            </button>
+        </div>
+
+        <!-- Tela Inicial -->
+        <div id="start-screen" class="overlay">
+            <h1>ENZYME SMASH</h1>
+            <div class="subtitle">Digestive Slice - Time Attack</div>
+            
+            <div class="instructions">
+                <p>Arraste para digerir os alimentos antes que o tempo acabe!</p><br>
+                <p><span class="color-legend" style="background:var(--color-protease);"></span> Proteínas (Círculo) -> Protease (1)</p>
+                <p><span class="color-legend" style="background:var(--color-amylase); border-radius:3px;"></span> Carboidratos (Quadrado) -> Amilase (2)</p>
+                <p><span class="color-legend" style="background:var(--color-lipase); border-radius:0;"></span> Lipídios (Triângulo) -> Lipase (3)</p>
+                <p><span class="color-legend" style="background:var(--color-toxin);"></span> Toxinas (Espinhos) -> <b>PENALIDADE: -10s</b></p>
+                <br><p style="font-size:10px; color:#aaa; text-align:center;">Troque a Lâmina: Teclas 1, 2, 3 ou Toque.</p>
+            </div>
+            
+            <button class="btn-start" id="start-btn">JOGAR (90s)</button>
+        </div>
+
+        <!-- Tela Game Over -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 style="color: #ffdc00;">TEMPO ESGOTADO!</h1>
+            <p class="subtitle">A sua digestão terminou.</p>
+            <h2 style="margin: 20px 0; color: #66fcf1;">TOTAL DIGERIDO: <span id="final-score">0</span></h2>
+            <button class="btn-start" id="restart-btn">JOGAR NOVAMENTE</button>
+        </div>
+    </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+function resize() {
+    width = canvas.parentElement.clientWidth;
+    height = canvas.parentElement.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const TYPES = {
+    PROTEIN: { id: 0, color: '#ff4136', name: 'Proteína', shape: 'circle' },
+    CARB:    { id: 1, color: '#ffdc00', name: 'Carboidrato', shape: 'square' },
+    LIPID:   { id: 2, color: '#0074d9', name: 'Lipídio', shape: 'triangle' },
+    TOXIN:   { id: 3, color: '#2ecc40', name: 'Toxina', shape: 'spiky' }
+};
+const ENZYMES = [TYPES.PROTEIN, TYPES.CARB, TYPES.LIPID]; 
+
+let gameState = 'START';
+let score = 0;
+let timeRemaining = 90; // 90 segundos
+let lastTimeUpdate = 0;
+let activeEnzymeId = 0; 
+let gravity = 0.15;
+let frameCount = 0;
+let difficulty = 1;
+
+let targets = [];
+let particles = [];
+let trail = [];
+let floatingTexts = [];
+
+let isSwiping = false;
+let currentMousePos = { x: 0, y: 0 };
+
+const uiScore = document.getElementById('score');
+const uiTimer = document.getElementById('timer');
+const uiFinalScore = document.getElementById('final-score');
+const startScreen = document.getElementById('start-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
+const flashOverlay = document.getElementById('flash-overlay');
+const btnsEnzyme = document.querySelectorAll('.btn-enzyme');
+
+class FloatingText {
+    constructor(x, y, text, color) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.life = 1.0;
+        this.vy = -2;
+    }
+    update() {
+        this.y += this.vy;
+        this.life -= 0.02;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.font = '20px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 8;
+        this.vy = (Math.random() - 0.5) * 8;
+        this.color = color;
+        this.radius = Math.random() * 4 + 2;
+        this.life = 1.0;
+        this.decay = Math.random() * 0.02 + 0.02;
+    }
+    update() {
+        this.vy += gravity * 0.5;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= this.decay;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Target {
+    constructor() {
+        this.radius = Math.random() * 15 + 30;
+        this.x = Math.random() * (width - this.radius * 2) + this.radius;
+        this.y = height + this.radius;
+        
+        let isToxin = Math.random() < 0.15; 
+        if (isToxin) {
+            this.type = TYPES.TOXIN;
+        } else {
+            this.type = ENZYMES[Math.floor(Math.random() * ENZYMES.length)];
+        }
+
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = -(Math.random() * 3 + 12 + (difficulty * 0.5));
+        
+        this.rotation = 0;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+        
+        this.isCut = false;
+        this.markedForDeletion = false;
+        this.halves = [];
+    }
+
+    update() {
+        this.vy += gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotationSpeed;
+
+        if (!this.isCut) {
+            if (this.vy > 0 && this.y - this.radius > height) {
+                this.markedForDeletion = true; // Caiu, mas sem penalidade
+            }
+        } else {
+            this.halves.forEach(half => {
+                half.vy += gravity;
+                half.x += half.vx;
+                half.y += half.vy;
+                half.rotation += half.rotationSpeed;
+            });
+            if (this.halves[0].y > height + 100) {
+                this.markedForDeletion = true;
+            }
+        }
+    }
+
+    draw(ctx) {
+        if (!this.isCut) {
+            this.drawShape(ctx, this.x, this.y, this.rotation, true);
+        } else {
+            this.drawShape(ctx, this.halves[0].x, this.halves[0].y, this.halves[0].rotation, false, this.halves[0].cutAngle);
+            this.drawShape(ctx, this.halves[1].x, this.halves[1].y, this.halves[1].rotation, false, this.halves[1].cutAngle);
+        }
+    }
+
+    drawShapePath(ctx) {
+        // Define o path centralizado no 0,0 dependendo do tipo
+        if (this.type.shape === 'circle') {
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        } else if (this.type.shape === 'square') {
+            ctx.roundRect(-this.radius, -this.radius, this.radius*2, this.radius*2, 10);
+        } else if (this.type.shape === 'triangle') {
+            ctx.moveTo(0, -this.radius);
+            ctx.lineTo(this.radius, this.radius);
+            ctx.lineTo(-this.radius, this.radius);
+            ctx.closePath();
+        } else if (this.type.shape === 'spiky') {
+            let spikes = 8;
+            for(let i=0; i<spikes*2; i++) {
+                let r = (i%2===0) ? this.radius : this.radius * 0.5;
+                let a = (Math.PI * 2 / (spikes*2)) * i;
+                if(i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+                else ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+            }
+            ctx.closePath();
+        }
+    }
+
+    drawShape(ctx, x, y, rot, isFull, clipStartAngle = 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        
+        // Se for metade, aplica o clipping mask
+        if (!isFull) {
+            // Ajusta o angulo de corte relativo à rotação atual
+            let relStart = clipStartAngle - rot;
+            ctx.beginPath();
+            // Desenha um semi-círculo gigante para usar como máscara
+            ctx.arc(0, 0, this.radius * 3, relStart, relStart + Math.PI);
+            ctx.clip();
+        }
+
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.type.color;
+        ctx.fillStyle = this.type.color;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        
+        ctx.beginPath();
+        this.drawShapePath(ctx);
+        ctx.fill();
+        ctx.stroke();
+
+        // Detalhes internos
+        if (this.type.shape === 'spiky') {
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${this.radius*0.8}px sans-serif`;
+            ctx.shadowBlur = 0;
+            ctx.fillText('X', 0, 0);
+        } else {
+            ctx.beginPath();
+            ctx.arc(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.shadowBlur = 0;
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    cut(swipeAngle) {
+        this.isCut = true;
+        let separationSpeed = 3;
+        let perpAngle = swipeAngle + Math.PI / 2;
+
+        this.halves = [
+            {
+                x: this.x, y: this.y,
+                vx: this.vx + Math.cos(perpAngle) * separationSpeed,
+                vy: this.vy + Math.sin(perpAngle) * separationSpeed,
+                rotation: this.rotation,
+                rotationSpeed: this.rotationSpeed - 0.1,
+                cutAngle: swipeAngle
+            },
+            {
+                x: this.x, y: this.y,
+                vx: this.vx - Math.cos(perpAngle) * separationSpeed,
+                vy: this.vy - Math.sin(perpAngle) * separationSpeed,
+                rotation: this.rotation,
+                rotationSpeed: this.rotationSpeed + 0.1,
+                cutAngle: swipeAngle + Math.PI // Metade oposta
+            }
+        ];
+    }
+}
+
+// Distância segmento
+function distToSegmentSquared(p, v, w) {
+    let l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
+    if (l2 === 0) return (p.x - v.x) ** 2 + (p.y - v.y) ** 2;
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return (p.x - (v.x + t * (w.x - v.x))) ** 2 + (p.y - (v.y + t * (w.y - v.y))) ** 2;
+}
+
+function checkSwipeCollision(p1, p2) {
+    for (let target of targets) {
+        if (target.isCut || target.markedForDeletion) continue;
+
+        let center = { x: target.x, y: target.y };
+        let distSq = distToSegmentSquared(center, p1, p2);
+
+        if (distSq <= target.radius * target.radius) {
+            if (target.type === TYPES.TOXIN) {
+                // Toxina cortada! Penalidade de tempo
+                createParticles(target.x, target.y, target.type.color, 30);
+                floatingTexts.push(new FloatingText(target.x, target.y, "-10s", "#ff4136"));
+                target.markedForDeletion = true;
+                applyTimePenalty();
+            } 
+            else if (target.type.id === activeEnzymeId) {
+                let swipeAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                target.cut(swipeAngle);
+                createParticles(target.x, target.y, target.type.color, 15);
+                addScore(1);
+            } 
+            else {
+                // Errou a cor -> rebate levemente
+                target.vx += (p2.x - p1.x) * 0.05;
+                target.vy += (p2.y - p1.y) * 0.05;
+                createParticles(target.x, target.y, '#ffffff', 3);
+            }
+        }
+    }
+}
+
+function createParticles(x, y, color, amount) {
+    for (let i = 0; i < amount; i++) particles.push(new Particle(x, y, color));
+}
+
+function setEnzyme(id) {
+    activeEnzymeId = id;
+    btnsEnzyme.forEach(btn => {
+        if (parseInt(btn.getAttribute('data-type')) === id) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+function addScore(points) {
+    score += points;
+    uiScore.innerText = score;
+    if (score % 15 === 0) difficulty += 0.2; // Aumenta dificuldade
+}
+
+function applyTimePenalty() {
+    timeRemaining -= 10;
+    if(timeRemaining < 0) timeRemaining = 0;
+    
+    flashOverlay.style.background = 'rgba(255, 65, 54, 0.5)';
+    flashOverlay.style.opacity = '1';
+    setTimeout(() => flashOverlay.style.opacity = '0', 200);
+    
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    let s = Math.floor(timeRemaining % 60).toString().padStart(2, '0');
+    uiTimer.innerText = `${m}:${s}`;
+    
+    if(timeRemaining <= 10) uiTimer.classList.add('timer-danger');
+    else uiTimer.classList.remove('timer-danger');
+}
+
+function initGame() {
+    score = 0;
+    timeRemaining = 90;
+    difficulty = 1;
+    targets = [];
+    particles = [];
+    trail = [];
+    floatingTexts = [];
+    frameCount = 0;
+    lastTimeUpdate = performance.now();
+    
+    setEnzyme(0);
+    uiScore.innerText = score;
+    updateTimerDisplay();
+
+    gameState = 'PLAYING';
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+
+    requestAnimationFrame(gameLoop);
+}
+
+function endGame() {
+    gameState = 'GAMEOVER';
+    uiFinalScore.innerText = score;
+    gameOverScreen.classList.remove('hidden');
+    isSwiping = false;
+    trail = [];
+}
+
+function gameLoop(currentTime) {
+    if (gameState !== 'PLAYING') return;
+    
+    // Atualiza Tempo
+    if (currentTime - lastTimeUpdate >= 1000) {
+        timeRemaining--;
+        updateTimerDisplay();
+        lastTimeUpdate = currentTime;
+        
+        if(timeRemaining <= 0) {
+            endGame();
+            return;
+        }
+    }
+
+    ctx.clearRect(0, 0, width, height);
+    frameCount++;
+
+    // SPAWN
+    let spawnRate = Math.max(25, 60 - Math.floor(difficulty * 8));
+    if (frameCount % spawnRate === 0) {
+        let amount = Math.random() < (difficulty * 0.1) ? 2 : 1;
+        for(let i=0; i<amount; i++) targets.push(new Target());
+    }
+
+    // UPDATE & DRAW
+    targets.forEach(t => { t.update(); t.draw(ctx); });
+    particles.forEach(p => { p.update(); p.draw(ctx); });
+    floatingTexts.forEach(ft => { ft.update(); ft.draw(ctx); });
+
+    // TRAIL LOGIC
+    if (isSwiping && currentMousePos.x !== 0) {
+        trail.push({ x: currentMousePos.x, y: currentMousePos.y, age: 0 });
+        if (trail.length > 1) {
+            checkSwipeCollision(trail[trail.length - 2], trail[trail.length - 1]);
+        }
+    }
+
+    for (let i = 0; i < trail.length; i++) trail[i].age++;
+    trail = trail.filter(pt => pt.age < 15);
+
+    if (trail.length > 1) {
+        ctx.save();
+        let bladeColor = ENZYMES[activeEnzymeId].color;
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.shadowBlur = 15; ctx.shadowColor = bladeColor;
+        ctx.beginPath();
+        ctx.moveTo(trail[0].x, trail[0].y);
+        for (let i = 1; i < trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+        
+        ctx.lineWidth = 8; ctx.strokeStyle = bladeColor; ctx.stroke();
+        ctx.lineWidth = 3; ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+        ctx.restore();
+    }
+
+    // CLEANUP
+    targets = targets.filter(t => !t.markedForDeletion);
+    particles = particles.filter(p => p.life > 0);
+    floatingTexts = floatingTexts.filter(ft => ft.life > 0);
+
+    requestAnimationFrame(gameLoop);
+}
+
+// INPUTS
+function getPointerPos(e) {
+    let rect = canvas.getBoundingClientRect();
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+}
+
+canvas.addEventListener('mousedown', (e) => { isSwiping = true; currentMousePos = getPointerPos(e); trail = []; });
+canvas.addEventListener('mousemove', (e) => { if (isSwiping) currentMousePos = getPointerPos(e); });
+canvas.addEventListener('mouseup', () => { isSwiping = false; });
+canvas.addEventListener('mouseleave', () => { isSwiping = false; });
+
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isSwiping = true; currentMousePos = getPointerPos(e); trail = []; }, { passive: false });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (isSwiping) currentMousePos = getPointerPos(e); }, { passive: false });
+canvas.addEventListener('touchend', (e) => { e.preventDefault(); isSwiping = false; }, { passive: false });
+
+window.addEventListener('keydown', (e) => {
+    if (gameState !== 'PLAYING') return;
+    if (e.key === '1') setEnzyme(0);
+    if (e.key === '2') setEnzyme(1);
+    if (e.key === '3') setEnzyme(2);
+});
+
+btnsEnzyme.forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        setEnzyme(parseInt(btn.getAttribute('data-type')));
+    });
+});
+
+document.getElementById('start-btn').addEventListener('click', initGame);
+document.getElementById('restart-btn').addEventListener('click', initGame);
+
+ctx.fillStyle = '#0b0c10';
+ctx.fillRect(0, 0, width, height);
+
+</script>
+</body>
+</html>
