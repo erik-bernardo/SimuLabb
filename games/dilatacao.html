@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thermal Fit 2.0: Forja Térmica</title>
+    <style>
+        :root {
+            --bg-color: #1e272e;
+            --panel-color: #2f3640;
+            --text-color: #f5f6fa;
+            --accent: #e84118;
+            --cold: #00a8ff;
+            --success: #4cd137;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; touch-action: none;
+        }
+
+        #game-container { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+
+        /* HUD Superior */
+        #hud {
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: #111; padding: 10px 30px; height: 70px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 10;
+        }
+        .hud-item { display: flex; flex-direction: column; align-items: center; }
+        .hud-label { font-size: 11px; text-transform: uppercase; color: #7f8fa6; letter-spacing: 1px; }
+        .hud-value { font-size: 22px; font-weight: bold; font-family: monospace; }
+        
+        #instruction-panel {
+            background: rgba(0,0,0,0.6); text-align: center; padding: 10px;
+            font-size: 16px; color: #fbc531; border-bottom: 2px solid #fbc531;
+            z-index: 5;
+        }
+
+        /* Canvas Area */
+        #canvas-container { flex: 1; position: relative; width: 100%; background: radial-gradient(circle at center, #2f3640 0%, #1e272e 100%); }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Tool Palette */
+        #toolbox {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; background: rgba(17, 17, 17, 0.85);
+            padding: 15px 30px; border-radius: 40px; border: 2px solid #353b48;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+        }
+        .tool-btn {
+            width: 70px; height: 70px; border-radius: 50%; border: 3px solid #7f8fa6;
+            background-color: #2f3640; color: white; font-size: 30px;
+            cursor: pointer; transition: all 0.2s ease; outline: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .tool-btn.active {
+            border-color: #fbc531; background-color: #353b48;
+            box-shadow: 0 0 20px rgba(251, 197, 49, 0.5); transform: scale(1.15);
+        }
+
+        /* Mensagens de Feedback */
+        #message {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 32px; font-weight: bold; text-align: center; pointer-events: none;
+            opacity: 0; transition: opacity 0.3s; text-shadow: 2px 2px 0 #000, 0 0 10px rgba(0,0,0,0.5);
+            z-index: 20;
+        }
+        .show-msg { animation: popUp 2s ease-in-out forwards; }
+        @keyframes popUp {
+            0% { opacity: 0; transform: translate(-50%, -20px) scale(0.8); }
+            10% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -80px) scale(0.9); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="hud">
+        <div class="hud-item">
+            <span class="hud-label">Fase</span>
+            <span class="hud-value" id="hud-level">1</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Material</span>
+            <span class="hud-value" id="hud-material" style="color: #7f8c8d;">Ferro</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">Temperatura</span>
+            <span class="hud-value" id="hud-temp" style="color: #2ed573;">20 °C</span>
+        </div>
+    </div>
+    <div id="instruction-panel">Nível 1: A peça é pequena demais. Aqueça-a para expandir e encaixar!</div>
+
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="message">MENSAGEM</div>
+        
+        <div id="toolbox">
+            <button class="tool-btn active" id="btn-drag" title="Mão (Arrastar)">🖐️</button>
+            <button class="tool-btn" id="btn-heat" title="Maçarico (Esquentar)">🔥</button>
+            <button class="tool-btn" id="btn-cool" title="Nitrul (Esfriar)">❄️</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Elementos da UI
+    const elLevel = document.getElementById('hud-level');
+    const elMaterial = document.getElementById('hud-material');
+    const elTemp = document.getElementById('hud-temp');
+    const elMessage = document.getElementById('message');
+    const elInstruction = document.getElementById('instruction-panel');
+    const tools = {
+        drag: document.getElementById('btn-drag'),
+        heat: document.getElementById('btn-heat'),
+        cool: document.getElementById('btn-cool')
+    };
+
+    let cw, ch;
+    let currentTool = 'drag';
+    let level = 1;
+    let isLevelComplete = false;
+    const baseTemp = 20;
+    
+    // Coeficientes dos materiais e cores
+    const materials = [
+        { name: 'Ferro', alpha: 0.0010, colorBase: '#7f8c8d' },
+        { name: 'Bronze', alpha: 0.0015, colorBase: '#cd7f32' },
+        { name: 'Alumínio', alpha: 0.0020, colorBase: '#bdc3c7' }
+    ];
+    
+    const shapes = ['circle', 'star', 'gear'];
+    let particles = [];
+
+    const mold = { x: 0, y: 0, size: 100, shape: 'star' };
+    const piece = {
+        x: 0, y: 0, baseSize: 100, currentSize: 100, temp: 20, 
+        shape: 'star', material: materials[0], originX: 0, originY: 0,
+        isDragging: false, isInteracting: false, inMold: false,
+        // Variáveis de animação de Morphing
+        morphing: false, morphProgress: 0, targetShape: ''
+    };
+
+    let pointer = { x: 0, y: 0, isDown: false };
+
+    function resize() {
+        cw = canvas.width = canvas.parentElement.clientWidth;
+        ch = canvas.height = canvas.parentElement.clientHeight;
+        resetPositions();
+    }
+    window.addEventListener('resize', resize);
+
+    function resetPositions() {
+        mold.x = cw * 0.7; mold.y = ch * 0.45;
+        piece.originX = cw * 0.3; piece.originY = ch * 0.45;
+        if(!piece.isDragging && !piece.inMold) {
+            piece.x = piece.originX; piece.y = piece.originY;
+        } else if (piece.inMold) {
+            piece.x = mold.x; piece.y = mold.y;
+        }
+    }
+
+    function initLevel() {
+        isLevelComplete = false;
+        piece.inMold = false;
+        piece.morphing = false;
+        piece.morphProgress = 0;
+        piece.temp = baseTemp;
+        mold.size = Math.min(cw, ch) * 0.15;
+
+        // Fases
+        if (level === 1) {
+            piece.shape = 'star'; mold.shape = 'star';
+            piece.baseSize = mold.size * 0.6; 
+            piece.material = materials[0]; 
+            elInstruction.innerText = "Nível 1: A peça é pequena demais. Aqueça-a para expandir e encaixar!";
+        } else if (level === 2) {
+            piece.shape = 'gear'; mold.shape = 'gear';
+            piece.baseSize = mold.size * 1.25; 
+            piece.material = materials[1]; 
+            elInstruction.innerText = "Nível 2: A peça é muito grande! Use o Nitrogênio para encolher e encaixar.";
+        } else if (level === 3) {
+            piece.shape = 'circle'; mold.shape = 'star';
+            piece.baseSize = mold.size * 1.4; 
+            piece.material = materials[2]; 
+            elInstruction.innerText = "Nível 3: Formato errado! Esfrie para caber no molde, e então aqueça para FORJAR a estrela!";
+        } else {
+            // Fases infinitas geradas aleatoriamente
+            piece.shape = shapes[Math.floor(Math.random() * shapes.length)];
+            let possibleMolds = shapes.filter(s => s !== piece.shape);
+            mold.shape = possibleMolds[Math.floor(Math.random() * possibleMolds.length)];
+            piece.material = materials[Math.floor(Math.random() * materials.length)];
+            piece.baseSize = mold.size * (Math.random() > 0.5 ? 0.6 : 1.3);
+            elInstruction.innerText = `Nível ${level}: Forja livre! Adapte o tamanho e molde o formato.`;
+        }
+
+        piece.currentSize = piece.baseSize;
+        piece.x = piece.originX; piece.y = piece.originY;
+
+        elLevel.innerText = level;
+        elMaterial.innerText = piece.material.name;
+        elMaterial.style.color = piece.material.colorBase;
+        particles = [];
+    }
+
+    function showMessage(text, color) {
+        elMessage.innerText = text; elMessage.style.color = color;
+        elMessage.classList.remove('show-msg');
+        void elMessage.offsetWidth; // trigger reflow
+        elMessage.classList.add('show-msg');
+    }
+
+    function spawnParticles(x, y, color1, color2, count=3, speed=4) {
+        for(let i=0; i<count; i++){
+            particles.push({
+                x: x + (Math.random() * 40 - 20), y: y + (Math.random() * 40 - 20),
+                vx: (Math.random() - 0.5) * speed, vy: (Math.random() - 0.5) * speed - (speed/4),
+                life: 1.0, decay: 0.015 + Math.random() * 0.02,
+                color: Math.random() > 0.5 ? color1 : color2, size: Math.random() * 6 + 3
+            });
+        }
+    }
+
+    function updatePhysics() {
+        if(isLevelComplete) return;
+
+        // Dilatação normal enquanto não está deformando
+        if (!piece.morphing) {
+            let deltaT = piece.temp - baseTemp;
+            piece.currentSize = piece.baseSize * (1 + piece.material.alpha * deltaT);
+            
+            // Retorno MUITO LENTO para a temperatura ambiente (0.0001)
+            if (!piece.isInteracting) {
+                piece.temp -= (piece.temp - baseTemp) * 0.0001; 
+            }
+        }
+
+        // Interação com Ferramentas
+        if (piece.isInteracting && !piece.morphing) {
+            if (currentTool === 'heat') {
+                piece.temp += 3.0;
+                spawnParticles(pointer.x, pointer.y, '#ff4757', '#ffa502');
+            } else if (currentTool === 'cool') {
+                piece.temp -= 3.0;
+                spawnParticles(pointer.x, pointer.y, '#70a1ff', '#ffffff');
+            }
+        }
+
+        // Limites de Temperatura
+        if(piece.temp < -200) piece.temp = -200;
+        if(piece.temp > 1200) piece.temp = 1200;
+
+        // Atualizar HUD
+        elTemp.innerText = Math.round(piece.temp) + " °C";
+        if(piece.temp > 50) elTemp.style.color = '#ff4757';
+        else if (piece.temp < 0) elTemp.style.color = '#1e90ff';
+        else elTemp.style.color = '#2ed573';
+
+        // Lógica de Deformação (Morphing) e Vitória
+        if (piece.inMold && !piece.morphing) {
+            const sizeDiff = Math.abs(piece.currentSize - mold.size) / mold.size;
+            if (sizeDiff <= 0.02) { // 2% de tolerância
+                if (piece.shape !== mold.shape) {
+                    // INICIAR MORPHING
+                    piece.morphing = true;
+                    piece.targetShape = mold.shape;
+                    piece.morphProgress = 0;
+                    showMessage("FORJANDO...", "#fbc531");
+                } else {
+                    // ENCAIXE DIRETO
+                    showMessage("ENCAIXE PERFEITO!", "#2ed573");
+                    isLevelComplete = true;
+                    setTimeout(() => { level++; initLevel(); }, 2500);
+                }
+            }
+        }
+
+        // Executando Animação de Morphing
+        if (piece.morphing) {
+            piece.morphProgress += 0.01; // Velocidade da deformação (demora cerca de 1.5s)
+            
+            // Força a peça a manter o tamanho exato do molde e estar muito quente
+            piece.currentSize = mold.size;
+            if(piece.temp < 800) piece.temp += 10;
+
+            // Partículas de forja massiva
+            spawnParticles(piece.x, piece.y, '#fbc531', '#ff4757', 2, 8);
+            
+            if (piece.morphProgress >= 1.0) {
+                piece.morphing = false;
+                piece.shape = piece.targetShape;
+                piece.morphProgress = 0;
+                showMessage("FORJADO COM SUCESSO!", "#fbc531");
+                isLevelComplete = true;
+                setTimeout(() => { level++; initLevel(); }, 2500);
+            }
+        }
+
+        // Atualizar Partículas
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    // Função matemática que retorna o fator de raio baseando-se no ângulo e no formato
+    function getRadiusFactor(angle, type) {
+        if (type === 'circle') return 1.0;
+        
+        if (type === 'star') {
+            const step = Math.PI * 2 / 5;
+            const halfStep = step / 2;
+            const local = angle % step;
+            if (local < halfStep) return 1.0 - (local / halfStep) * 0.6; // 1 até 0.4
+            return 0.4 + ((local - halfStep) / halfStep) * 0.6; // 0.4 até 1
+        }
+        
+        if (type === 'gear') {
+            const step = Math.PI * 2 / 8;
+            const q = step / 4;
+            const local = angle % step;
+            if (local < q) return 1.0;
+            if (local < q * 2) return 1.0 - ((local - q) / q) * 0.2;
+            if (local < q * 3) return 0.8;
+            return 0.8 + ((local - q * 3) / q) * 0.2;
+        }
+        return 1.0;
+    }
+
+    // Função principal de desenho que aceita transição de vértices
+    function drawShape(x, y, radius, type, isMold = false, fillStyle = '', morphProgress = 0, targetType = '') {
+        ctx.save(); 
+        ctx.translate(x, y); 
+        ctx.beginPath();
+
+        const points = 120; // Resolução dos polígonos
+        for (let i = 0; i <= points; i++) {
+            const angle = i * (Math.PI * 2) / points;
+            
+            let r1 = getRadiusFactor(angle, type) * radius;
+            let finalR = r1;
+            
+            // Se estiver deformando, interpola (mistura) o raio do formato 1 com o formato 2
+            if (morphProgress > 0 && targetType) {
+                let r2 = getRadiusFactor(angle, targetType) * radius;
+                finalR = r1 * (1 - morphProgress) + r2 * morphProgress;
+            }
+
+            const px = Math.cos(angle) * finalR;
+            const py = Math.sin(angle) * finalR;
+            
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+
+        // Calculando a interpolação do buraco interno da engrenagem (Gear)
+        let holeR1 = (type === 'gear' ? 0.3 : 0) * radius;
+        let finalHole = holeR1;
+        if (morphProgress > 0 && targetType) {
+            let holeR2 = (targetType === 'gear' ? 0.3 : 0) * radius;
+            finalHole = holeR1 * (1 - morphProgress) + holeR2 * morphProgress;
+        }
+
+        // Desenhando o buraco em direção oposta para vazá-lo usando renderização padrão (winding rule)
+        if (finalHole > 0 && !isMold) {
+            for (let i = points; i >= 0; i--) {
+                const angle = i * (Math.PI * 2) / points;
+                const px = Math.cos(angle) * finalHole;
+                const py = Math.sin(angle) * finalHole;
+                if (i === points) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+        }
+
+        // Aplicação visual
+        if (isMold) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.lineWidth = 4;
+            ctx.setLineDash([8, 8]); ctx.stroke();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.fill();
+        } else {
+            ctx.fillStyle = fillStyle; ctx.fill('evenodd');
+            ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 3; ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+
+    function getPieceColor() {
+        const hex = (color) => [parseInt(color.substr(1,2),16), parseInt(color.substr(3,2),16), parseInt(color.substr(5,2),16)];
+        const interpolate = (c1, c2, factor) => `rgb(${c1.map((c,i)=>Math.round(c+factor*(c2[i]-c))).join(',')})`;
+        
+        let base = hex(piece.material.colorBase);
+        if (piece.temp > 20) {
+            let factor = Math.min((piece.temp - 20) / 500, 1);
+            return interpolate(base, hex('#ff4757'), factor);
+        } else if (piece.temp < 20) {
+            let factor = Math.min((20 - piece.temp) / 150, 1);
+            return interpolate(base, hex('#70a1ff'), factor);
+        }
+        return piece.material.colorBase;
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, cw, ch);
+
+        // Fio guia de arrastar
+        if(piece.isDragging) {
+            ctx.beginPath(); ctx.moveTo(piece.originX, piece.originY); ctx.lineTo(piece.x, piece.y);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Desenhar molde e peça
+        drawShape(mold.x, mold.y, mold.size, mold.shape, true);
+        drawShape(piece.x, piece.y, piece.currentSize, piece.shape, false, getPieceColor(), piece.morphProgress, piece.targetShape);
+
+        // Desenhar Partículas
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            ctx.fillStyle = p.color; ctx.fill(); ctx.globalAlpha = 1.0;
+        });
+    }
+
+    function loop() { updatePhysics(); render(); requestAnimationFrame(loop); }
+
+    // Interações de Mouse / Touch
+    Object.keys(tools).forEach(k => {
+        tools[k].addEventListener('click', () => {
+            currentTool = k;
+            Object.values(tools).forEach(btn => btn.classList.remove('active'));
+            tools[k].classList.add('active');
+            canvas.style.cursor = k === 'drag' ? 'grab' : 'crosshair';
+        });
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
+        if(isLevelComplete) return;
+        pointer.x = e.clientX - canvas.getBoundingClientRect().left;
+        pointer.y = e.clientY - canvas.getBoundingClientRect().top;
+        pointer.isDown = true;
+
+        if (Math.hypot(pointer.x - piece.x, pointer.y - piece.y) <= piece.currentSize) {
+            if (currentTool === 'drag') {
+                piece.isDragging = true; piece.inMold = false; canvas.style.cursor = 'grabbing';
+            } else {
+                piece.isInteracting = true;
+            }
+        }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+        pointer.x = e.clientX - canvas.getBoundingClientRect().left;
+        pointer.y = e.clientY - canvas.getBoundingClientRect().top;
+        if (piece.isDragging) { piece.x = pointer.x; piece.y = pointer.y; }
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+        pointer.isDown = false; piece.isInteracting = false;
+        if (piece.isDragging) {
+            piece.isDragging = false; canvas.style.cursor = 'grab';
+            
+            // Encaixando no molde
+            if (Math.hypot(piece.x - mold.x, piece.y - mold.y) < mold.size) {
+                if (piece.currentSize <= mold.size * 1.02) {
+                    piece.x = mold.x; piece.y = mold.y; piece.inMold = true;
+                    if (Math.abs(piece.currentSize - mold.size)/mold.size > 0.02 || piece.shape !== mold.shape) {
+                        showMessage("No molde! Aqueça para forjar.", "#fbc531");
+                    }
+                } else {
+                    showMessage("Muito grande! Esfrie primeiro.", "#ff4757");
+                    piece.x = piece.originX; piece.y = piece.originY;
+                }
+            } else {
+                piece.x = piece.originX; piece.y = piece.originY;
+            }
+        }
+    });
+    
+    canvas.addEventListener('pointerleave', () => {
+        if(piece.isDragging) { piece.isDragging = false; piece.x = piece.originX; piece.y = piece.originY; }
+        piece.isInteracting = false; pointer.isDown = false;
+    });
+
+    resize(); initLevel(); loop();
+</script>
+
+</body>
+</html>
