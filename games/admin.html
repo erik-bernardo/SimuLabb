@@ -1,781 +1,363 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Cards - SimuLab & Games</title>
-    <!-- Tailwind CSS CDN -->    <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#fff7ed',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            700: '#c2410c',
-                        },
-                        simulab: '#D2691E'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Exemplo de como é rápido carregar um seletor visual completo -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fontawesome-iconpicker/3.2.0/css/fontawesome-iconpicker.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fontawesome-iconpicker/3.2.0/js/fontawesome-iconpicker.min.js"></script>
-
-<script>
-  // Transforma qualquer input num seletor visual completo da galeria toda!
-  $('#meu-input-de-icone').iconpicker();
-</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - Gerador de Conteúdo | SimuLab</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  :root {
+    /* Admin Theme */
+    --admin-bg: #f3f4f6;
+    --admin-card: #ffffff;
+    --admin-text: #1f2937;
+    --admin-border: #e5e7eb;
+    --admin-primary: #ff6900;
+    --admin-primary-dark: #e85b00;
     
-    <!-- FontAwesome 6 CDN para ícones reais dos simuladores -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Lucide Icons para a UI da ferramenta -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-        }
+    /* Sim & Game Variables Fallbacks */
+    --orange: #ff6900;
+    --blue: #142b46;
+    --muted: #65758b;
+    --shadow: 0 5px 18px rgba(24, 49, 74, .07);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body { 
+    background: var(--admin-bg); 
+    color: var(--admin-text); 
+    font-family: 'Poppins', sans-serif;
+    padding: 20px;
+  }
+  
+  .container { max-width: 1280px; margin: 0 auto; }
+  
+  /* Header & Tabs */
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { font-weight: 800; color: var(--admin-primary); display: flex; align-items: center; justify-content: center; gap: 10px;}
+  
+  .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+  .tab-btn {
+    padding: 12px 24px; border: none; border-radius: 8px; background: #e5e7eb;
+    color: #4b5563; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; font-size: 14px;
+  }
+  .tab-btn:hover { background: #d1d5db; }
+  .tab-btn.active { background: var(--admin-primary); color: white; box-shadow: 0 4px 12px #ff690040; }
 
-        /* ----------------------------------- */
-        /* ESTILOS DOS GAME CARDS (DETALHADOS) */
-        /* ----------------------------------- */
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 1.25rem;
-            width: 100%;
-        }
+  /* Layout */
+  .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .panel {
+    background: var(--admin-card); border: 1px solid var(--admin-border);
+    border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  .panel h2 { font-size: 18px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--admin-border); }
+  
+  /* Form Elements */
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #4b5563; }
+  .form-control {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-family: inherit; font-size: 14px; transition: 0.2s;
+  }
+  textarea.form-control { resize: vertical; min-height: 80px; }
+  .form-control:focus { outline: none; border-color: var(--admin-primary); box-shadow: 0 0 0 3px #ff690020; }
+  
+  /* Output Area */
+  .code-output {
+    width: 100%; height: 180px; padding: 15px; background: #1e1e1e; color: #d4d4d4; 
+    font-family: 'Consolas', monospace; border-radius: 8px; border: none; resize: none; margin-bottom: 15px;
+    font-size: 13px; line-height: 1.5; white-space: pre;
+  }
+  .copy-btn {
+    width: 100%; background: var(--admin-primary); color: white; border: none; padding: 12px; 
+    border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px;
+    display: flex; justify-content: center; align-items: center; gap: 8px;
+  }
+  .copy-btn:hover { background: var(--admin-primary-dark); }
+  
+  /* Preview Container */
+  .preview-container {
+    display: flex; justify-content: center; align-items: center; 
+    padding: 30px; background: var(--admin-bg); border-radius: 8px; border: 1px dashed #9ca3af;
+    margin-bottom: 20px; min-height: 250px;
+  }
 
-        .game-card {
-            background-color: #1e293b;
-            border-radius: 0.75rem;
-            border: 1px solid #334155;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            text-align: left;
-        }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
-        .game-card:hover {
-            transform: translateY(-4px);
-            border-color: #3b82f6;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
-        }
+  /* =========================================
+     CSS DOS COMPONENTES VISUAIS PARA PREVIEW
+     ========================================= */
+  
+  /* 1. JOGOS (Herdado do site original, usa Nunito Sans) */
+  .game-card {
+    font-family: "Nunito Sans", sans-serif;
+    width: 250px; background: #fff; border: 1px solid #dfe6ee; border-radius: 11px;
+    overflow: hidden; box-shadow: 0 2px 5px #14233d04; transition: transform .18s;
+  }
+  .game-thumb { height: 120px; position: relative; overflow: hidden; background: #e8eef5; }
+  .game-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .game-tag {
+    position: absolute; left: 8px; bottom: 7px; border-radius: 6px; padding: 4px 7px;
+    background: #fff; box-shadow: 0 1px 5px #10203020; font-size: 10px; font-weight: 900; color: #1765cf;
+  }
+  .game-tag.physics { color: #b96b00; }
+  .game-tag.chemistry { color: #0d9a4c; }
+  .game-tag.biology { color: #378b22; }
+  .game-tag.programming { color: #8a42d7; }
+  .game-tag.other { color: #c04d9b; }
+  .game-info { padding: 10px 10px 11px; }
+  .game-info h3 { font-size: 13px; line-height: 1.25; margin: 0 0 6px; font-weight: 900; color:#14233d; }
+  .game-info p { font-size: 11.5px; color: #56657b; line-height: 1.38; margin: 0 0 10px; min-height: 46px; }
+  .play-btn {
+    background: #ff690b; color: white; border: 0; border-radius: 7px; padding: 8px 13px;
+    font-size: 12px; font-weight: 900; display: inline-flex; align-items: center; gap: 7px; text-decoration: none;
+  }
 
-        .game-content {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.75rem;
-            flex-grow: 1;
-        }
+  /* 2. SIMULADORES (Herdado de simulacoes.html, usa Poppins) */
+  .sim-card {
+    font-family: "Poppins", sans-serif;
+    width: 250px; /* Fixado para o preview */
+    position: relative; min-height: 175px; display: flex; flex-direction: column; 
+    background: white; border: 1px solid #e8edf3; border-radius: 13px; 
+    padding: 18px 17px 15px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .sim-card::before {
+    content: ""; position: absolute; height: 3px; top: 0; left: 0; right: 0; 
+    background: var(--subject-color, var(--orange)); opacity: 1; 
+  }
+  .card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+  .card-icon {
+    width: 43px; height: 43px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; 
+    border-radius: 13px; background: var(--subject-bg, #fff0df); color: var(--subject-color, var(--orange)); font-size: 20px;
+  }
+  .card-top h3 { font-size: 13px; line-height: 1.4; color: var(--blue); font-weight: 700; margin:0;}
+  .subject-tag {
+    display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; border-radius: 6px; 
+    padding: 4px 8px; font-size: 10px; font-weight: 600; margin-bottom: 9px; 
+    color: var(--subject-color, var(--orange)); background: var(--subject-bg, #fff0df);
+  }
+  .sim-card p { color: var(--muted); font-size: 11px; line-height: 1.65; margin: 0 0 15px; flex: 1; }
+  .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+  .open-sim {
+    display: inline-flex; justify-content: center; align-items: center; gap: 8px; border-radius: 8px; 
+    padding: 9px 13px; background: var(--orange); color: white; font-size: 11px; font-weight: 600; text-decoration: none;
+  }
+  .card-arrow {
+    display: flex; align-items: center; justify-content: center; width: 29px; height: 29px; 
+    border-radius: 50%; color: var(--orange); background: #fff0df; font-size: 12px;
+  }
 
-        .game-status {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.625rem;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: inline-block;
-        }
-
-        .status-ready {
-            background-color: rgba(34, 197, 94, 0.15);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .status-dev {
-            background-color: rgba(234, 179, 8, 0.15);
-            color: #facc15;
-            border: 1px solid rgba(234, 179, 8, 0.3);
-        }
-
-        .status-coming {
-            background-color: rgba(168, 85, 247, 0.15);
-            color: #c084fc;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-        }
-
-        .status-maintenance {
-            background-color: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .game-content h3 {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #f8fafc;
-            margin: 0;
-            line-height: 1.375;
-        }
-
-        .game-content p {
-            font-size: 0.875rem;
-            color: #94a3b8;
-            margin: 0;
-            line-height: 1.5;
-            flex-grow: 1;
-        }
-
-        .access-button {
-            display: inline-block;
-            width: 100%;
-            text-align: center;
-            background-color: #2563eb;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 0.875rem;
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            transition: background-color 0.2s ease;
-            margin-top: 0.5rem;
-        }
-
-        .access-button:hover {
-            background-color: #1d4ed8;
-        }
-
-        .game-tech {
-            background-color: #0f172a;
-            padding: 0.75rem 1.25rem;
-            border-top: 1px solid #334155;
-            font-size: 0.75rem;
-            color: #cbd5e1;
-        }
-
-        .game-tech b {
-            color: #38bdf8;
-            font-weight: 600;
-        }
-
-        /* ----------------------------------- */
-        /* ESTILOS DOS SIMULADORES (SIMULAB)  */
-        /* ----------------------------------- */
-        .simulab-preview-area {
-            background-color: #f8f8f8;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .card-container-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            width: 100%;
-            justify-content: flex-start;
-        }
-
-        .card-link {
-            flex: 1 1 190px;
-            max-width: 190px;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .content-card {
-            width: 100%;
-            height: 180px;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        .content-card:hover {
-            transform: scale(1.02);
-            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .card-icon {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #D2691E;
-        }
-
-        .card-title {
-            text-align: center;
-            color: #555;
-            font-weight: bold;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0 5px;
-            font-size: 1rem;
-            line-height: 1.2;
-        }
-
-        /* Scrollbars */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-    </style>
+</style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-orange-600/20 text-orange-500 rounded-lg border border-orange-500/30">
-                    <i data-lucide="layers" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">Gerador de Cards SimuLab</h1>
-                    <p class="text-xs text-slate-400">Crie componentes HTML para Game Cards ou Simuladores</p>
-                </div>
+<div class="container">
+  <div class="header">
+    <h1><i class="fa-solid fa-layer-group"></i> SimuLab Admin</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tabGames')"><i class="fa-solid fa-gamepad"></i> Gerador de Jogos</button>
+    <button class="tab-btn" onclick="switchTab('tabSimulators')"><i class="fa-solid fa-calculator"></i> Gerador de Simuladores</button>
+  </div>
+
+  <!-- ABA 1: JOGOS -->
+  <div id="tabGames" class="tab-content active grid-layout">
+    <div class="panel">
+      <h2>Dados do Jogo</h2>
+      <form id="formGame">
+        <div class="form-group">
+          <label>Título (title)</label>
+          <input type="text" class="form-control" id="gTitle" value="Doom">
+        </div>
+        <div class="form-group">
+          <label>Matéria (subject)</label>
+          <select class="form-control" id="gSubject">
+            <option value="Matemática">Matemática</option>
+            <option value="Física">Física</option>
+            <option value="Química">Química</option>
+            <option value="Biologia">Biologia</option>
+            <option value="Programação">Programação</option>
+            <option value="Outros" selected>Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descrição (desc)</label>
+          <textarea class="form-control" id="gDesc">Nossa versão do clássico jogo doom</textarea>
+        </div>
+        <div class="form-group">
+          <label>URL da Imagem (img)</label>
+          <input type="text" class="form-control" id="gImg" value="https://s2-techtudo.glbimg.com/toCnwVRV3FWISWTVbxrkVN-lJow=/0x0:695x390/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_08fbf48bc0524877943fe86e43087e7a/internal_photos/bs/2021/m/8/yAUPwzTJW2BFGalBElQQ/doom-twitter-bot-tweet2doom-1993.jpg">
+        </div>
+        <div class="form-group">
+          <label>Caminho do Arquivo (href)</label>
+          <input type="text" class="form-control" id="gHref" value="games/noeduational_games/doom.html">
+        </div>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Preview e Código JSON</h2>
+      <div class="preview-container" id="previewGame"></div>
+      <textarea class="code-output" id="outGame" readonly></textarea>
+      <button class="copy-btn" onclick="copyCode('outGame', this)"><i class="fa-regular fa-copy"></i> Copiar Código JSON</button>
+    </div>
+  </div>
+
+  <!-- ABA 2: SIMULADORES -->
+  <div id="tabSimulators" class="tab-content grid-layout">
+    <div class="panel">
+      <h2>Dados do Simulador</h2>
+      <form id="formSim">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" class="form-control" id="sTitle" value="Geometria Plana">
+        </div>
+        <div class="form-group">
+          <label>Matéria</label>
+          <select class="form-control" id="sSubject">
+            <option value="matematica">Matemática</option>
+            <option value="fisica">Física</option>
+            <option value="quimica">Química</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Descrição</label>
+          <textarea class="form-control" id="sDesc">Explore formas geométricas, áreas, perímetros e suas propriedades.</textarea>
+        </div>
+        <div class="form-group">
+          <label>Link (href)</label>
+          <input type="text" class="form-control" id="sHref" value="simulacoes/geometria_plana.html">
+        </div>
+        <div style="display:flex; gap:15px;">
+            <div class="form-group" style="flex:1;">
+            <label>Ícone Principal <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" style="font-size:10px; color:#ff6900;">(Procurar)</a></label>
+            <input type="text" class="form-control" id="sIcon1" value="fa-chart-area" placeholder="Ex: fa-chart-area">
             </div>
-
-            <!-- Abas Modos de Gerador -->
-            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-                <button id="tabSimuladoresBtn" onclick="switchTab('simuladores')" 
-                    class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
-                    <i class="fas fa-flask text-amber-500"></i>
-                    <span>Simuladores (SimuLab)</span>
-                </button>
-                <button id="tabGameCardsBtn" onclick="switchTab('game-cards')" 
-                    class="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">
-                    <i data-lucide="gamepad-2" class="w-4 h-4 text-blue-400"></i>
-                    <span>Game Cards</span>
-                </button>
+            <div class="form-group" style="flex:1;">
+            <label>Ícone Secundário (Seta)</label>
+            <input type="text" class="form-control" id="sIcon2" value="fa-shapes" placeholder="Ex: fa-shapes">
             </div>
         </div>
-    </header>
-
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        <!-- Formulário de Entrada -->
-        <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col gap-5 h-fit shadow-xl">
-            
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h2 class="font-semibold text-slate-100 flex items-center gap-2" id="formHeaderTitle">
-                    <i data-lucide="sliders" class="w-4 h-4 text-orange-400"></i>
-                    Configuração do Simulador
-                </h2>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">Modo Ativo</span>
-            </div>
-
-            <!-- FORMULÁRIO 1: SIMULADORES COMPACTOS (SIMULAB) -->
-            <form id="simulabForm" onsubmit="event.preventDefault();" class="space-y-4">
-                <!-- Título -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Título do Simulador</label>
-                    <input type="text" id="simTitle" value="Sistemas Lineares" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition"
-                        placeholder="Ex: Sistemas Lineares, Tabela Periódica..." oninput="updatePreview()">
-                </div>
-
-                <!-- Link da Simulação -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Link / Arquivo HTML</label>
-                    <input type="text" id="simLink" value="simulacoes/sistema-linear.html" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition"
-                        placeholder="Ex: simulacoes/sistema-linear.html" oninput="updatePreview()">
-                </div>
-
-                <!-- Matéria / Categoria -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Matéria (data-subject)</label>
-                    <select id="simSubject" onchange="updatePreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition">
-                        <option value="matematica" selected>Matemática (matematica)</option>
-                        <option value="fisica">Física (fisica)</option>
-                        <option value="quimica">Química (quimica)</option>
-                        <option value="matematica financeira">Matemática Financeira</option>
-                        <option value="geral">Geral / Outros</option>
-                    </select>
-                </div>
-
-                <!-- Seletor de Ícone FontAwesome -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Ícone FontAwesome</label>
-                    
-                    <!-- Picker rápido de ícones populares -->
-                    <div class="grid grid-cols-6 gap-2 mb-2 p-2 bg-slate-950 border border-slate-800 rounded-lg">
-                        <button type="button" onclick="selectIcon('fas fa-divide')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-divide"><i class="fas fa-divide"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-calculator')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-calculator"><i class="fas fa-calculator"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-chart-area')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-chart-area"><i class="fas fa-chart-area"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-atom')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-atom"><i class="fas fa-atom"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-bolt')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-bolt"><i class="fas fa-bolt"></i></button>
-                        <button type="button" onclick="selectIcon('fa-solid fa-flask')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fa-solid fa-flask"><i class="fa-solid fa-flask"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-dice-six')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-dice-six"><i class="fas fa-dice-six"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-infinity')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-infinity"><i class="fas fa-infinity"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-car-side')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-car-side"><i class="fas fa-car-side"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-percent')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-percent"><i class="fas fa-percent"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-drafting-compass')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-drafting-compass"><i class="fas fa-drafting-compass"></i></button>
-                        <button type="button" onclick="selectIcon('fas fa-battery-full')" class="p-2 text-slate-300 hover:text-orange-400 hover:bg-slate-900 rounded transition text-center" title="fas fa-battery-full"><i class="fas fa-battery-full"></i></button>
-                    </div>
-
-                    <input type="text" id="simIcon" value="fas fa-divide" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-orange-500 transition"
-                        placeholder="Ex: fas fa-calculator ou fa-solid fa-flask" oninput="updatePreview()">
-                </div>
-
-                <div class="pt-2 flex flex-col gap-2">
-                    <button onclick="addItemToList()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition shadow-lg shadow-orange-600/20">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        <span>Adicionar Simulador à Coleção</span>
-                    </button>
-                </div>
-            </form>
-
-            <!-- FORMULÁRIO 2: GAME CARDS DETALHADOS -->
-            <form id="gameCardForm" onsubmit="event.preventDefault();" class="space-y-4 hidden">
-                <!-- Nome do Jogo -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Nome do Jogo</label>
-                    <input type="text" id="gameTitle" value="Voa-Palavra: Sinônimos Perfeitos" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition"
-                        placeholder="Ex: Voa-Palavra: Sinônimos Perfeitos" oninput="updatePreview()">
-                </div>
-
-                <!-- Descrição -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Descrição</label>
-                    <textarea id="gameDesc" rows="3" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition resize-none"
-                        placeholder="Descreva o jogo..." oninput="updatePreview()">Controle o pássaro e colete o sinônimo perfeito da palavra-chave. Um desafio de reflexo e vocabulário para dominar a semântica.</textarea>
-                </div>
-
-                <!-- Link do Jogo -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Link / URL do Jogo</label>
-                    <input type="text" id="gameLink" value="games/flappy-words/index.html" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition"
-                        placeholder="Ex: games/flappy-words/index.html" oninput="updatePreview()">
-                </div>
-
-                <!-- Status & Texto do Status -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Classe de Status</label>
-                        <select id="gameStatusClass" onchange="updatePreview()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition">
-                            <option value="status-ready" selected>Disponível (.status-ready)</option>
-                            <option value="status-dev">Em Desenv. (.status-dev)</option>
-                            <option value="status-coming">Em Breve (.status-coming)</option>
-                            <option value="status-maintenance">Manutenção (.status-maintenance)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Rótulo do Status</label>
-                        <input type="text" id="gameStatusText" value="Disponível" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition"
-                            placeholder="Ex: Disponível" oninput="updatePreview()">
-                    </div>
-                </div>
-
-                <!-- Foco Pedagógico -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Foco / Tecnologia / Detalhe</label>
-                    <input type="text" id="gameTech" value="Foco: Semântica (Sinônimos Perfeitos)" 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition"
-                        placeholder="Ex: Foco: Semântica (Sinônimos Perfeitos)" oninput="updatePreview()">
-                </div>
-
-                <!-- Botão de Ação -->
-                <div class="pt-2 flex flex-col gap-2">
-                    <button onclick="addItemToList()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition shadow-lg shadow-blue-600/20">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        <span>Adicionar Game Card à Coleção</span>
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <!-- Seção de Previews e Coleção -->
-        <section class="lg:col-span-7 flex flex-col gap-6">
-            
-            <!-- Pré-visualização do Item Único -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h2 class="font-semibold text-slate-100 flex items-center gap-2">
-                        <i data-lucide="eye" class="w-4 h-4 text-emerald-400"></i>
-                        Pré-visualização em Tempo Real
-                    </h2>
-                    <span class="text-xs text-slate-500">Com estilos originais</span>
-                </div>
-
-                <!-- Área de Renderização Fiel -->
-                <div id="previewContainerWrapper" class="simulab-preview-area flex justify-center items-center min-h-[200px]">
-                    <div id="livePreviewCard">
-                        <!-- Card renderizado dinamicamente aqui -->
-                    </div>
-                </div>
-
-                <!-- Botão Copiar Item Único -->
-                <div class="flex gap-2">
-                    <button onclick="copySingleItemCode()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-600/20">
-                        <i data-lucide="copy" class="w-4 h-4"></i>
-                        <span>Copiar Código do Card Atual</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Coleção de Múltiplos Cards -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div class="flex items-center gap-2">
-                        <h2 class="font-semibold text-slate-100 flex items-center gap-2">
-                            <i data-lucide="layout-grid" class="w-4 h-4 text-amber-400"></i>
-                            Coleção Acumulada
-                        </h2>
-                        <span id="collectionBadge" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs px-2 py-0.5 rounded-full font-medium">0 itens</span>
-                    </div>
-                    <button onclick="clearCollection()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        Limpar Coleção
-                    </button>
-                </div>
-
-                <!-- Renderização da Grade / Container Acumulado -->
-                <div id="gridDisplayWrapper" class="simulab-preview-area max-h-[350px] overflow-y-auto">
-                    <div id="collectionGrid" class="card-container-wrapper">
-                        <!-- Cards acumulados entram aqui -->
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-1">
-                    <button onclick="copyCollectionCode()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs py-2.5 px-4 rounded-lg flex items-center gap-2 transition">
-                        <i data-lucide="code-2" class="w-4 h-4 text-blue-400"></i>
-                        <span id="copyCollectionBtnText">Copiar HTML de Todos os Simuladores</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Visualizador do Código Gerado -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-3">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h2 class="font-semibold text-slate-100 flex items-center gap-2 text-sm">
-                        <i data-lucide="file-code" class="w-4 h-4 text-sky-400"></i>
-                        Código HTML Gerado
-                    </h2>
-                </div>
-                <pre class="bg-slate-950 text-slate-300 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800/80 leading-relaxed"><code id="codeViewer"></code></pre>
-            </div>
-
-        </section>
-
-    </main>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-emerald-500 text-slate-950 font-semibold text-sm px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-        <span id="toastMessage">Copiado com sucesso!</span>
+      </form>
     </div>
-
-    <script>
-        // Estado da aplicação
-        let currentMode = 'simuladores'; // 'simuladores' ou 'game-cards'
-        let simuladoresList = [];
-        let gamesList = [];
-
-        window.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-
-            // Adiciona item inicial de exemplo no SimuLab
-            simuladoresList.push({
-                id: Date.now(),
-                title: "Sistemas Lineares",
-                link: "simulacoes/sistema-linear.html",
-                subject: "matematica",
-                icon: "fas fa-divide"
-            });
-
-            // Adiciona item inicial de exemplo no Game Cards
-            gamesList.push({
-                id: Date.now() + 1,
-                title: "Voa-Palavra: Sinônimos Perfeitos",
-                desc: "Controle o pássaro e colete o sinônimo perfeito da palavra-chave. Um desafio de reflexo e vocabulário para dominar a semântica.",
-                link: "games/flappy-words/index.html",
-                statusClass: "status-ready",
-                statusText: "Disponível",
-                tech: "Foco: Semântica (Sinônimos Perfeitos)",
-                btnText: "Jogar Agora"
-            });
-
-            switchTab('simuladores');
-        });
-
-        // Alternar entre Simuladores e Game-Cards
-        function switchTab(mode) {
-            currentMode = mode;
-            
-            const simBtn = document.getElementById('tabSimuladoresBtn');
-            const gameBtn = document.getElementById('tabGameCardsBtn');
-            const simForm = document.getElementById('simulabForm');
-            const gameForm = document.getElementById('gameCardForm');
-            const previewWrapper = document.getElementById('previewContainerWrapper');
-            const gridWrapper = document.getElementById('gridDisplayWrapper');
-            const titleHeader = document.getElementById('formHeaderTitle');
-            const copyCollBtn = document.getElementById('copyCollectionBtnText');
-
-            if (mode === 'simuladores') {
-                simBtn.className = "flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition bg-orange-600 text-white shadow-md shadow-orange-600/30";
-                gameBtn.className = "flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white";
-                
-                simForm.classList.remove('hidden');
-                gameForm.classList.add('hidden');
-
-                previewWrapper.className = "simulab-preview-area flex justify-center items-center min-h-[200px]";
-                gridWrapper.className = "simulab-preview-area max-h-[350px] overflow-y-auto";
-
-                titleHeader.innerHTML = `<i data-lucide="sliders" class="w-4 h-4 text-orange-400"></i> Configuração do Simulador`;
-                copyCollBtn.textContent = 'Copiar Container de Simuladores (<div class="card-container-wrapper">)';
-            } else {
-                gameBtn.className = "flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition bg-blue-600 text-white shadow-md shadow-blue-600/30";
-                simBtn.className = "flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white";
-                
-                gameForm.classList.remove('hidden');
-                simForm.classList.add('hidden');
-
-                previewWrapper.className = "p-6 bg-slate-950/80 rounded-xl border border-slate-800/80 flex justify-center items-center min-h-[200px]";
-                gridWrapper.className = "p-4 bg-slate-950/80 rounded-xl border border-slate-800/80 max-h-[350px] overflow-y-auto";
-
-                titleHeader.innerHTML = `<i data-lucide="sliders" class="w-4 h-4 text-blue-400"></i> Configuração do Game Card`;
-                copyCollBtn.textContent = 'Copiar Grid de Jogos (<div class="games-grid">)';
-            }
-
-            lucide.createIcons();
-            updatePreview();
-            renderCollection();
-        }
-
-        // Seleção de Ícone Rápida
-        function selectIcon(iconClass) {
-            document.getElementById('simIcon').value = iconClass;
-            updatePreview();
-        }
-
-        // Obtém Dados Atuais do Formulário
-        function getCurrentFormData() {
-            if (currentMode === 'simuladores') {
-                return {
-                    title: document.getElementById('simTitle').value || 'Título da Simulação',
-                    link: document.getElementById('simLink').value || 'simulacoes/exemplo.html',
-                    subject: document.getElementById('simSubject').value,
-                    icon: document.getElementById('simIcon').value || 'fas fa-flask'
-                };
-            } else {
-                return {
-                    title: document.getElementById('gameTitle').value || 'Nome do Jogo',
-                    desc: document.getElementById('gameDesc').value || 'Descrição do jogo...',
-                    link: document.getElementById('gameLink').value || 'games/exemplo/index.html',
-                    statusClass: document.getElementById('gameStatusClass').value,
-                    statusText: document.getElementById('gameStatusText').value || 'Disponível',
-                    tech: document.getElementById('gameTech').value || 'Foco: Geral',
-                    btnText: 'Jogar Agora'
-                };
-            }
-        }
-
-        // Geradores de HTML
-        function generateSimulabHTML(data) {
-            return `<a href="${escapeHTML(data.link)}" class="card-link" data-subject="${escapeHTML(data.subject)}">
-    <div class="content-card">
-        <i class="${escapeHTML(data.icon)} card-icon"></i> <p class="card-title">${escapeHTML(data.title)}</p>
+    <div class="panel">
+      <h2>Preview e Código HTML</h2>
+      <div class="preview-container" id="previewSim"></div>
+      <textarea class="code-output" id="outSim" readonly></textarea>
+      <button class="copy-btn" onclick="copyCode('outSim', this)"><i class="fa-regular fa-copy"></i> Copiar HTML do Card</button>
     </div>
-</a>`;
-        }
+  </div>
 
-        function generateGameCardHTML(data) {
-            return `<div class="game-card">
-    <div class="game-content">
-        <span class="game-status ${data.statusClass}">${escapeHTML(data.statusText)}</span>
-        <h3>${escapeHTML(data.title)}</h3>
-        <p>
-            ${escapeHTML(data.desc)}
-        </p>
-        <a href="${escapeHTML(data.link)}" class="access-button">${escapeHTML(data.btnText)}</a>
+</div>
+
+<script>
+  // ================= TABS =================
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ================= UTILS =================
+  function copyCode(elementId, btnElement) {
+    const el = document.getElementById(elementId);
+    el.select();
+    document.execCommand('copy');
+    
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+    btnElement.style.background = '#10b981';
+    setTimeout(() => {
+      btnElement.innerHTML = originalText;
+      btnElement.style.background = 'var(--admin-primary)';
+    }, 2000);
+  }
+
+  // ================= GERADOR DE JOGOS =================
+  const gameSubjectClass = {
+    "Matemática": "", "Física": "physics", "Química": "chemistry", 
+    "Biologia": "biology", "Programação": "programming", "Outros": "other"
+  };
+
+  function updateGame() {
+    const title = document.getElementById('gTitle').value.trim();
+    const subject = document.getElementById('gSubject').value;
+    const desc = document.getElementById('gDesc').value.trim();
+    const img = document.getElementById('gImg').value.trim();
+    const href = document.getElementById('gHref').value.trim();
+
+    // Atualiza JSON
+    const codeString = `{title:"${title}",subject:"${subject}",desc:"${desc}",img:"${img}",href:"${href}"}`;
+    document.getElementById('outGame').value = codeString + ",";
+
+    // Atualiza Preview
+    const cls = gameSubjectClass[subject] || "other";
+    document.getElementById('previewGame').innerHTML = `
+      <article class="game-card">
+        <div class="game-thumb">
+          <img src="${img}" onerror="this.style.display='none';">
+          <span class="game-tag ${cls}">${subject}</span>
+        </div>
+        <div class="game-info">
+          <h3>${title || 'Título'}</h3>
+          <p>${desc || 'Descrição'}</p>
+          <a href="#" class="play-btn" onclick="event.preventDefault()">🎮 Jogar <span>→</span></a>
+        </div>
+      </article>
+    `;
+  }
+
+  // ================= GERADOR DE SIMULADORES =================
+  const simSubjectsData = {
+    "matematica": { color: "#1685e8", bg: "#e8f3ff", tag: "∑ Matemática" },
+    "fisica": { color: "#d9910b", bg: "#fff4d8", tag: "⚛ Física" },
+    "quimica": { color: "#19a568", bg: "#e3f8ed", tag: "⚗ Química" }
+  };
+
+  function updateSim() {
+    const title = document.getElementById('sTitle').value.trim();
+    const subjectKey = document.getElementById('sSubject').value;
+    const desc = document.getElementById('sDesc').value.trim();
+    const href = document.getElementById('sHref').value.trim();
+    const icon1 = document.getElementById('sIcon1').value.trim();
+    const icon2 = document.getElementById('sIcon2').value.trim();
+
+    const data = simSubjectsData[subjectKey];
+
+    // Monta o HTML string formatado corretamente para copiar
+    const htmlCode = `<article class="sim-card" data-subject="${subjectKey}" data-name="${title}" style="--subject-color:${data.color};--subject-bg:${data.bg}">
+    <div class="card-top">
+        <div class="card-icon"><i class="fa-solid ${icon1}"></i></div>
+        <h3>${title}</h3>
     </div>
-    <div class="game-tech">
-        <b>${escapeHTML(data.tech)}</b>
+    <span class="subject-tag">${data.tag}</span>
+    <p>${desc}</p>
+    <div class="card-bottom">
+        <a href="${href}" class="open-sim">Explorar <i class="fa-solid fa-arrow-right"></i></a>
+        <span class="card-arrow"><i class="fa-solid ${icon2}"></i></span>
     </div>
-</div>`;
-        }
+</article>`;
 
-        function escapeHTML(str) {
-            return (str || '')
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+    document.getElementById('outSim').value = htmlCode;
+    document.getElementById('previewSim').innerHTML = htmlCode;
+    
+    // Pequena correção pro botão não navegar no admin
+    const linkPreview = document.querySelector('#previewSim .open-sim');
+    if(linkPreview) linkPreview.onclick = (e) => e.preventDefault();
+  }
 
-        // Atualização em Tempo Real
-        function updatePreview() {
-            const data = getCurrentFormData();
-            let html = '';
+  // Registra Listeners
+  document.querySelectorAll('#formGame input, #formGame select, #formGame textarea').forEach(el => el.addEventListener('input', updateGame));
+  document.querySelectorAll('#formSim input, #formSim select, #formSim textarea').forEach(el => el.addEventListener('input', updateSim));
 
-            if (currentMode === 'simuladores') {
-                html = generateSimulabHTML(data);
-            } else {
-                html = generateGameCardHTML(data);
-            }
+  // Initialize
+  updateGame();
+  updateSim();
+</script>
 
-            document.getElementById('livePreviewCard').innerHTML = html;
-            document.getElementById('codeViewer').textContent = html;
-        }
-
-        // Renderiza Coleção Acumulada
-        function renderCollection() {
-            const grid = document.getElementById('collectionGrid');
-            grid.innerHTML = '';
-
-            if (currentMode === 'simuladores') {
-                grid.className = "card-container-wrapper";
-                simuladoresList.forEach(item => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "relative group";
-                    wrapper.style.flex = "1 1 190px";
-                    wrapper.style.maxWidth = "190px";
-                    wrapper.innerHTML = `
-                        ${generateSimulabHTML(item)}
-                        <button onclick="removeItem(${item.id})" class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition shadow-lg text-xs z-10" title="Remover">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                        </button>
-                    `;
-                    grid.appendChild(wrapper);
-                });
-                document.getElementById('collectionBadge').textContent = `${simuladoresList.length} ${simuladoresList.length === 1 ? 'simulador' : 'simuladores'}`;
-            } else {
-                grid.className = "games-grid";
-                gamesList.forEach(item => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "relative group";
-                    wrapper.innerHTML = `
-                        ${generateGameCardHTML(item)}
-                        <button onclick="removeItem(${item.id})" class="absolute top-2 right-2 bg-rose-600 hover:bg-rose-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition shadow-lg text-xs z-10" title="Remover">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                        </button>
-                    `;
-                    grid.appendChild(wrapper);
-                });
-                document.getElementById('collectionBadge').textContent = `${gamesList.length} ${gamesList.length === 1 ? 'game card' : 'game cards'}`;
-            }
-
-            lucide.createIcons();
-        }
-
-        // Adiciona Item
-        function addItemToList() {
-            const data = getCurrentFormData();
-            data.id = Date.now();
-
-            if (currentMode === 'simuladores') {
-                simuladoresList.push(data);
-            } else {
-                gamesList.push(data);
-            }
-
-            renderCollection();
-            showToast('Item adicionado à coleção!');
-        }
-
-        // Remove Item
-        function removeItem(id) {
-            if (currentMode === 'simuladores') {
-                simuladoresList = simuladoresList.filter(i => i.id !== id);
-            } else {
-                gamesList = gamesList.filter(i => i.id !== id);
-            }
-            renderCollection();
-            showToast('Item removido.');
-        }
-
-        function clearCollection() {
-            if (currentMode === 'simuladores') {
-                simuladoresList = [];
-            } else {
-                gamesList = [];
-            }
-            renderCollection();
-            showToast('Coleção limpa.');
-        }
-
-        // Utilitários de Cópia
-        function copyToClipboard(text, message) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToast(message);
-        }
-
-        function copySingleItemCode() {
-            const data = getCurrentFormData();
-            const code = currentMode === 'simuladores' ? generateSimulabHTML(data) : generateGameCardHTML(data);
-            copyToClipboard(code, 'Código do card individual copiado!');
-        }
-
-        function copyCollectionCode() {
-            const list = currentMode === 'simuladores' ? simuladoresList : gamesList;
-            if (list.length === 0) {
-                showToast('Adicione pelo menos um item à coleção primeiro!');
-                return;
-            }
-
-            let inner = '';
-            let fullHTML = '';
-
-            if (currentMode === 'simuladores') {
-                inner = list.map(item => generateSimulabHTML(item)).join('\n\n');
-                fullHTML = `<div class="card-container-wrapper">\n${inner.split('\n').map(l => '    ' + l).join('\n')}\n</div>`;
-            } else {
-                inner = list.map(item => generateGameCardHTML(item)).join('\n\n');
-                fullHTML = `<div class="games-grid">\n${inner.split('\n').map(l => '    ' + l).join('\n')}\n</div>`;
-            }
-
-            copyToClipboard(fullHTML, 'Código do container completo copiado!');
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
 </body>
 </html>
