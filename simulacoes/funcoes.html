@@ -1,229 +1,750 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratório de Polinômios</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <title>Simulador Interativo de Funções Matemáticas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & Math fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root {
-            --primary: #4a90e2;
-            --secondary: #2c3e50;
-            --bg: #f5f7fa;
-            --white: #ffffff;
-            --accent: #e74c3c;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a; /* Slate 900 background */
+            color: #f8fafc;
         }
-
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        
-        .main-container {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            max-width: 1200px;
-            margin: auto;
+        .font-mono-math {
+            font-family: 'Fira Code', monospace;
         }
-
-        /* Estilo da Calculadora */
-        .calculator {
-            background: var(--white);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-
-        .screen {
-            background: #ecf0f1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            min-height: 50px;
-            font-size: 1.2rem;
-            word-wrap: break-word;
-            border: 2px solid #ddd;
-            color: var(--secondary);
-            font-weight: bold;
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
         }
-
-        .keypad {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
         }
-
-        button {
-            padding: 15px 5px;
-            border: none;
-            border-radius: 8px;
-            background: #f8f9fa;
-            font-size: 1rem;
-            font-weight: 600;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Glassmorphism panel styling */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #334155;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
             cursor: pointer;
-            transition: all 0.2s;
-            color: var(--secondary);
-            border-bottom: 3px solid #ddd;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            transition: transform 0.1s ease;
         }
-
-        button:hover { background: #e9ecef; transform: translateY(-2px); }
-        button:active { transform: translateY(0); border-bottom: 1px solid #ddd; }
-
-        .btn-op { background: #d1d8e0; }
-        .btn-var { background: #ffeaa7; color: #d35400; }
-        .btn-action { background: var(--primary); color: white; grid-column: span 2; border-bottom: 3px solid #357abd; }
-        .btn-clear { background: var(--accent); color: white; grid-column: span 2; border-bottom: 3px solid #c0392b; }
-
-        /* Estilo do Gráfico */
-        .display-area {
-            background: var(--white);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
-
-        .chart-container { flex-grow: 1; min-height: 400px; }
-
-        h2 { margin-top: 0; color: var(--secondary); font-size: 1.2rem; }
-
-        @media (max-width: 800px) {
-            .main-container { grid-template-columns: 1fr; }
+        /* Step pulse animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-step {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col p-3 md:p-6 text-slate-100">
 
-      <script src="https://erik-bernardo.github.io/SimuLab/dados/head.js"></script>
-    
-<div class="main-container">
-    <div class="calculator">
-        <h2>Montar Polinômio</h2>
-        <div class="screen" id="display">0</div>
+    <!-- Top Header Navigation -->
+    <header class="max-w-7xl mx-auto w-full mb-4 flex flex-col md:flex-row justify-between items-center gap-3 glass-panel p-4 rounded-2xl shadow-xl">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl shadow-lg shadow-cyan-500/20">
+                <i class="fa-solid fa-chart-line text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                    Simulador de Funções
+                </h1>
+                <p class="text-xs text-slate-400">Explore gráficos, coeficientes e o cálculo exato de cada ponto em tempo real</p>
+            </div>
+        </div>
         
-        <div class="keypad">
-            <button onclick="addChar('7')">7</button>
-            <button onclick="addChar('8')">8</button>
-            <button onclick="addChar('9')">9</button>
-            <button class="btn-op" onclick="addChar('/')">÷</button>
-
-            <button onclick="addChar('4')">4</button>
-            <button onclick="addChar('5')">5</button>
-            <button onclick="addChar('6')">6</button>
-            <button class="btn-op" onclick="addChar('*')">×</button>
-
-            <button onclick="addChar('1')">1</button>
-            <button onclick="addChar('2')">2</button>
-            <button onclick="addChar('3')">3</button>
-            <button class="btn-op" onclick="addChar('-')">-</button>
-
-            <button onclick="addChar('0')">0</button>
-            <button onclick="addChar('.')">.</button>
-            <button onclick="addChar('(')">(</button>
-            <button class="btn-op" onclick="addChar('+')">+</button>
-
-            <button class="btn-var" onclick="addChar('x')">x</button>
-            <button class="btn-var" onclick="addChar('^2')">x²</button>
-            <button class="btn-var" onclick="addChar('^3')">x³</button>
-            <button class="btn-var" onclick="addChar('^')">xⁿ</button>
-
-            <button class="btn-clear" onclick="clearDisplay()">Limpar</button>
-            <button class="btn-action" onclick="updateGraph()">Gerar Gráfico</button>
+        <!-- Preset Quick Switcher -->
+        <div class="flex flex-wrap gap-2 justify-center">
+            <button onclick="setDegree(1)" id="tab-deg1" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
+                <span>1º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Lineares)</span>
+            </button>
+            <button onclick="setDegree(2)" id="tab-deg2" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
+                <span>2º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Quadráticas)</span>
+            </button>
+            <button onclick="setDegree(3)" id="tab-deg3" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
+                <span>3º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Cúbicas)</span>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <div class="display-area">
-        <h2>Visualização Gráfica</h2>
-        <div class="chart-container">
-            <canvas id="polyChart"></canvas>
+    <!-- Main Workspace Grid -->
+    <main class="max-w-7xl mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- Left Sidebar: Controls & Parameters (4 cols on lg) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Equation & Dynamic Sliders Card -->
+            <div class="glass-panel p-5 rounded-2xl shadow-lg flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm uppercase tracking-wider font-bold text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> Coeficientes da Função
+                    </h2>
+                    <button onclick="resetCoefficients()" class="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> Redefinir
+                    </button>
+                </div>
+
+                <!-- Main Formula Display -->
+                <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
+                    <span class="text-xs text-slate-500 block mb-1">Fórmula Atual:</span>
+                    <div id="formula-display" class="font-mono-math text-lg md:text-xl font-bold text-cyan-300">
+                        f(x) = 2x - 4
+                    </div>
+                </div>
+
+                <!-- Presets selection -->
+                <div>
+                    <label class="text-xs font-medium text-slate-400 block mb-2">Exemplos Práticos Prontos:</label>
+                    <div id="preset-buttons" class="grid grid-cols-2 gap-1.5">
+                        <!-- Buttons populated dynamically -->
+                    </div>
+                </div>
+
+                <hr class="border-slate-800">
+
+                <!-- Sliders Container -->
+                <div id="sliders-container" class="space-y-3">
+                    <!-- Dynamic range inputs generated by JS -->
+                </div>
+            </div>
+
+            <!-- Key Points Summary Card -->
+            <div class="glass-panel p-5 rounded-2xl shadow-lg flex flex-col gap-3">
+                <h2 class="text-sm uppercase tracking-wider font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye"></i> Pontos Notáveis Encontrados
+                </h2>
+                <div id="key-points-list" class="space-y-2 text-xs">
+                    <!-- Key points dynamically rendered here -->
+                </div>
+            </div>
+
         </div>
-        <div id="info" style="margin-top:15px; font-size: 0.9rem; color: #666;">
-            Dica: Polinômios de grau par (como x²) têm as pontas para o mesmo lado. Grau ímpar (como x³) têm pontas em lados opostos.
+
+        <!-- Middle / Main Area: Canvas Graph (5 cols on lg) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+            
+            <div class="glass-panel p-4 md:p-5 rounded-2xl shadow-lg flex-1 flex flex-col relative min-h-[420px] lg:min-h-[500px]">
+                <!-- Graph Header Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></span>
+                        <h3 class="font-semibold text-sm md:text-base text-slate-200">Plano Cartesiano Interativo</h3>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-400">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Raízes (Y=0)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Eixo Y (X=0)</span>
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Vértices/Extremos</span>
+                    </div>
+                </div>
+
+                <!-- Canvas Container -->
+                <div class="relative flex-1 w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 cursor-crosshair group">
+                    <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+                    
+                    <!-- Zoom & Pan Controls Overlay -->
+                    <div class="absolute bottom-3 right-3 flex gap-1.5 bg-slate-900/90 backdrop-blur-md p-1 rounded-lg border border-slate-800 text-xs">
+                        <button onclick="zoomGraph(1.2)" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Aumentar Zoom">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <button onclick="zoomGraph(0.8)" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Diminuir Zoom">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button onclick="resetZoom()" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Centralizar Origem">
+                            <i class="fa-solid fa-compress"></i>
+                        </button>
+                    </div>
+
+                    <!-- Instruction overlay banner -->
+                    <div class="absolute top-3 left-3 pointer-events-none bg-slate-900/80 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg text-[11px] text-slate-400">
+                        <i class="fa-solid fa-hand-pointer text-cyan-400 mr-1"></i> Clique em qualquer ponto da linha para ver o cálculo
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Calculation Step-by-Step Breakdown Panel -->
+            <div id="calc-panel" class="glass-panel p-5 rounded-2xl shadow-lg border-l-4 border-l-cyan-400 transition-all duration-300">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Detalhamento Numérico</span>
+                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-cyan-400"></i> Passo a Passo da Substituição de X
+                        </h2>
+                    </div>
+                    <div id="calc-point-badge" class="px-3 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800/60 rounded-full text-xs font-mono-math font-bold">
+                        Ponto Selecionado: X = 2, Y = 0
+                    </div>
+                </div>
+
+                <!-- Calculation Steps Grid -->
+                <div id="calc-steps-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Dynamically populated calculation steps -->
+                </div>
+
+                <!-- Context explanation box -->
+                <div id="calc-explanation" class="mt-4 p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                    <span id="explanation-text">
+                        Clique em uma das bolinhas marcadas para entender o significado desse ponto na função.
+                    </span>
+                </div>
+            </div>
+
         </div>
-    </div>
-</div>
 
-<script>
-    let currentExpr = "x^2";
-    let myChart;
-    const displayElement = document.getElementById('display');
+    </main>
 
-    function addChar(char) {
-        if (displayElement.innerText === "0" && char !== '.') {
-            currentExpr = char;
-        } else {
-            currentExpr += char;
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto w-full mt-4 text-center text-xs text-slate-500 py-2">
+        Simulador Visual de Funções Matemáticas &bull; Desenvolvido para Aprendizado Interativo
+    </footer>
+
+    <!-- Interactive Logic JavaScript -->
+    <script>
+        // Global State
+        let degree = 1; // 1: linear, 2: quadratic, 3: cubic
+        let coeffs = { a: 0, b: 0, c: 2, d: -4 }; // Default for f(x) = 2x - 4 (degree 1 uses c & d or a & b mapped)
+        let selectedX = 2;
+        let viewScale = 35; // Pixels per grid unit
+        let originOffset = { x: 0, y: 0 }; // Canvas center offset
+
+        // Presets for quick switching
+        const presets = {
+            1: [
+                { name: 'f(x) = 2x - 4', coeffs: { a: 0, b: 0, c: 2, d: -4 }, x: 2 },
+                { name: 'f(x) = -x + 3', coeffs: { a: 0, b: 0, c: -1, d: 3 }, x: 3 },
+                { name: 'f(x) = 0.5x + 1', coeffs: { a: 0, b: 0, c: 0.5, d: 1 }, x: -2 }
+            ],
+            2: [
+                { name: 'f(x) = x² - 4', coeffs: { a: 0, b: 1, c: 0, d: -4 }, x: 2 },
+                { name: 'f(x) = -x² + 9', coeffs: { a: 0, b: -1, c: 0, d: 9 }, x: 3 },
+                { name: 'f(x) = x² - 2x - 3', coeffs: { a: 0, b: 1, c: -2, d: -3 }, x: 3 }
+            ],
+            3: [
+                { name: 'f(x) = x³ - 4x', coeffs: { a: 1, b: 0, c: -4, d: 0 }, x: 2 },
+                { name: 'f(x) = x³ - 3x + 2', coeffs: { a: 1, b: 0, c: -3, d: 2 }, x: 1 },
+                { name: 'f(x) = -x³ + 4x', coeffs: { a: -1, b: 0, c: 4, d: 0 }, x: 2 }
+            ]
+        };
+
+        // Canvas element setup
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Evaluate f(x) = ax³ + bx² + cx + d
+        function evaluateY(x) {
+            return (coeffs.a * Math.pow(x, 3)) + (coeffs.b * Math.pow(x, 2)) + (coeffs.c * x) + coeffs.d;
         }
-        displayElement.innerText = currentExpr.replace(/\*/g, '×').replace(/\//g, '÷');
-    }
 
-    function clearDisplay() {
-        currentExpr = "0";
-        displayElement.innerText = "0";
-    }
+        // Initialize App
+        function initApp() {
+            window.addEventListener('resize', resizeCanvas);
+            setupCanvasInteraction();
+            setDegree(1);
+        }
 
-    function updateGraph() {
-        const ctx = document.getElementById('polyChart').getContext('2d');
-        
-        try {
-            const node = math.parse(currentExpr);
-            const expr = node.compile();
-
-            const xValues = [];
-            const yValues = [];
-
-            // Gerar pontos de -10 a 10
-            for (let x = -10; x <= 10; x += 0.5) {
-                xValues.push(x);
-                try {
-                    const y = expr.evaluate({x: x});
-                    yValues.push(y);
-                } catch(e) {
-                    yValues.push(null);
+        // Switch degree tab (1º, 2º, 3º grau)
+        function setDegree(deg) {
+            degree = deg;
+            
+            // Update tab button styles
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`tab-deg${i}`);
+                if (i === deg) {
+                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25';
+                } else {
+                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white';
                 }
             }
 
-            if (myChart) myChart.destroy();
+            // Load default preset for this degree
+            loadPreset(0);
+        }
 
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: xValues,
-                    datasets: [{
-                        label: `f(x) = ${currentExpr}`,
-                        data: yValues,
-                        borderColor: '#4a90e2',
-                        backgroundColor: 'rgba(74, 144, 226, 0.1)',
-                        borderWidth: 3,
-                        pointRadius: 2,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { type: 'linear', position: 'bottom', title: {display: true, text: 'Eixo X'} },
-                        y: { title: {display: true, text: 'Eixo Y'} }
-                    },
-                    plugins: {
-                        legend: { labels: { font: { size: 14, weight: 'bold' } } }
+        function loadPreset(index) {
+            const preset = presets[degree][index];
+            coeffs = { ...preset.coeffs };
+            selectedX = preset.x;
+            renderSliders();
+            renderPresetButtons();
+            updateAll();
+        }
+
+        function renderPresetButtons() {
+            const container = document.getElementById('preset-buttons');
+            container.innerHTML = '';
+            presets[degree].forEach((p, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-mono-math bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 hover:border-slate-500 transition-all text-left truncate';
+                btn.innerText = p.name;
+                btn.onclick = () => loadPreset(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderSliders() {
+            const container = document.getElementById('sliders-container');
+            container.innerHTML = '';
+
+            const activeCoeffs = [];
+            if (degree === 3) activeCoeffs.push({ key: 'a', label: 'Coeficiente A (x³)', step: 0.1, min: -3, max: 3 });
+            if (degree >= 2) activeCoeffs.push({ key: 'b', label: degree === 2 ? 'Coeficiente A (x²)' : 'Coeficiente B (x²)', step: 0.1, min: -5, max: 5 });
+            activeCoeffs.push({ key: 'c', label: degree === 1 ? 'Inclinação (a em ax)' : (degree === 2 ? 'Coeficiente B (x)' : 'Coeficiente C (x)'), step: 0.5, min: -6, max: 6 });
+            activeCoeffs.push({ key: 'd', label: 'Termo Independente (Constante d)', step: 0.5, min: -10, max: 10 });
+
+            activeCoeffs.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'space-y-1';
+                
+                const val = coeffs[item.key];
+                wrapper.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300">${item.label}</span>
+                        <span class="font-mono-math font-bold text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800" id="val-${item.key}">${val}</span>
+                    </div>
+                    <input type="range" min="${item.min}" max="${item.max}" step="${item.step}" value="${val}" 
+                           oninput="onSliderChange('${item.key}', this.value)" class="w-full">
+                `;
+                container.appendChild(wrapper);
+            });
+        }
+
+        function onSliderChange(key, value) {
+            coeffs[key] = parseFloat(value);
+            document.getElementById(`val-${key}`).innerText = value;
+            updateAll();
+        }
+
+        function resetCoefficients() {
+            loadPreset(0);
+        }
+
+        // Format math formula text string
+        function getFormulaString() {
+            let parts = [];
+            if (degree === 3 && coeffs.a !== 0) {
+                let aStr = coeffs.a === 1 ? '' : (coeffs.a === -1 ? '-' : coeffs.a);
+                parts.push(`${aStr}x³`);
+            }
+            if (degree >= 2 && coeffs.b !== 0) {
+                let bVal = coeffs.b;
+                let sign = (parts.length > 0) ? (bVal > 0 ? ' + ' : ' - ') : (bVal < 0 ? '-' : '');
+                let absB = Math.abs(bVal);
+                let bStr = absB === 1 ? '' : absB;
+                parts.push(`${sign}${bStr}x²`);
+            }
+            if (coeffs.c !== 0) {
+                let cVal = coeffs.c;
+                let sign = (parts.length > 0) ? (cVal > 0 ? ' + ' : ' - ') : (cVal < 0 ? '-' : '');
+                let absC = Math.abs(cVal);
+                let cStr = absC === 1 ? '' : absC;
+                parts.push(`${sign}${cStr}x`);
+            }
+            if (coeffs.d !== 0 || parts.length === 0) {
+                let dVal = coeffs.d;
+                let sign = (parts.length > 0) ? (dVal > 0 ? ' + ' : ' - ') : '';
+                parts.push(`${sign}${Math.abs(dVal)}`);
+            }
+
+            return 'f(x) = ' + parts.join('');
+        }
+
+        // Find mathematical roots, y-intercept, and extrema
+        function calculateKeyPoints() {
+            let points = [];
+
+            // Y-intercept (x = 0)
+            const yIntercept = evaluateY(0);
+            points.push({ type: 'y-intercept', x: 0, y: yIntercept, label: 'Eixo Y (x = 0)', color: '#c084fc' });
+
+            // Numerical root finder in interval [-10, 10]
+            const step = 0.05;
+            for (let x = -12; x <= 12; x += step) {
+                let y1 = evaluateY(x);
+                let y2 = evaluateY(x + step);
+
+                // Exact root or sign change
+                if (Math.abs(y1) < 0.001) {
+                    addRootPoint(points, Math.round(x * 100) / 100);
+                } else if (y1 * y2 < 0) {
+                    // Linear interpolation for closer estimate
+                    let rootX = x - y1 * (step / (y2 - y1));
+                    addRootPoint(points, Math.round(rootX * 100) / 100);
+                }
+            }
+
+            // Extrema / Vertices for degree 2 or 3
+            if (degree === 2 && coeffs.b !== 0) {
+                // Vertex of parabola x = -b / (2a)
+                let vx = -coeffs.c / (2 * coeffs.b);
+                let vy = evaluateY(vx);
+                points.push({ type: 'vertex', x: Math.round(vx * 100) / 100, y: Math.round(vy * 100) / 100, label: 'Vértice Parábola', color: '#f59e0b' });
+            }
+
+            return points;
+        }
+
+        function addRootPoint(pointsList, xVal) {
+            if (!pointsList.some(p => p.type === 'root' && Math.abs(p.x - xVal) < 0.2)) {
+                pointsList.push({ type: 'root', x: xVal, y: 0, label: `Raiz (y = 0)`, color: '#34d399' });
+            }
+        }
+
+        // Render Canvas
+        function drawGraph() {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const originX = width / 2 + originOffset.x;
+            const originY = height / 2 + originOffset.y;
+
+            // Draw Cartesian Grid
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+
+            const minX = Math.floor((-originX) / viewScale);
+            const maxX = Math.ceil((width - originX) / viewScale);
+            const minY = Math.floor((originY - height) / viewScale);
+            const maxY = Math.ceil(originY / viewScale);
+
+            // Vertical grid lines
+            for (let x = minX; x <= maxX; x++) {
+                let px = originX + x * viewScale;
+                ctx.beginPath();
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, height);
+                ctx.stroke();
+
+                // Axis numbers
+                if (x !== 0 && x % 2 === 0) {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '10px Inter';
+                    ctx.fillText(x.toString(), px - 4, originY + 14);
+                }
+            }
+
+            // Horizontal grid lines
+            for (let y = minY; y <= maxY; y++) {
+                let py = originY - y * viewScale;
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(width, py);
+                ctx.stroke();
+
+                if (y !== 0 && y % 2 === 0) {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '10px Inter';
+                    ctx.fillText(y.toString(), originX + 6, py + 3);
+                }
+            }
+
+            // Main X and Y Axes
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 2;
+
+            // X Axis
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(width, originY);
+            ctx.stroke();
+
+            // Y Axis
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, height);
+            ctx.stroke();
+
+            // Draw Function Curve
+            ctx.strokeStyle = '#38bdf8'; // Bright Cyan curve
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            let firstPoint = true;
+            for (let px = 0; px <= width; px += 2) {
+                let x = (px - originX) / viewScale;
+                let y = evaluateY(x);
+                let py = originY - y * viewScale;
+
+                if (firstPoint) {
+                    ctx.moveTo(px, py);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+
+            // Draw Key Markers (Roots, Y-Intercepts, Vertices)
+            const keyPoints = calculateKeyPoints();
+            keyPoints.forEach(pt => {
+                let px = originX + pt.x * viewScale;
+                let py = originY - pt.y * viewScale;
+
+                // Pulsing outer halo
+                ctx.beginPath();
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.fillStyle = pt.color + '33';
+                ctx.fill();
+
+                // Solid marker
+                ctx.beginPath();
+                ctx.arc(px, py, 5, 0, Math.PI * 2);
+                ctx.fillStyle = pt.color;
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            });
+
+            // Draw Active Selected Point Marker
+            let selPx = originX + selectedX * viewScale;
+            let selY = evaluateY(selectedX);
+            let selPy = originY - selY * viewScale;
+
+            ctx.beginPath();
+            ctx.arc(selPx, selPy, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#f43f5e'; // Rose Pink active cursor
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Active point coordinate label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '600 11px Fira Code';
+            ctx.fillText(`(${selectedX.toFixed(1)}, ${selY.toFixed(1)})`, selPx + 10, selPy - 10);
+        }
+
+        // Update All UI Components
+        function updateAll() {
+            document.getElementById('formula-display').innerText = getFormulaString();
+            drawGraph();
+            updateKeyPointsList();
+            updateCalculationSteps();
+        }
+
+        function updateKeyPointsList() {
+            const list = document.getElementById('key-points-list');
+            list.innerHTML = '';
+            const points = calculateKeyPoints();
+
+            if (points.length === 0) {
+                list.innerHTML = `<span class="text-slate-500">Nenhum ponto notável no intervalo visível.</span>`;
+                return;
+            }
+
+            points.forEach(pt => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-slate-900/90 p-2 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-600 transition-all';
+                item.onclick = () => {
+                    selectedX = pt.x;
+                    updateAll();
+                };
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${pt.color}"></span>
+                        <span class="text-slate-300 font-medium">${pt.label}</span>
+                    </div>
+                    <span class="font-mono-math font-bold text-white">(${pt.x}, ${pt.y})</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // Detailed Step-by-Step Numerical Breakdown
+        function updateCalculationSteps() {
+            const x = Math.round(selectedX * 10) / 10;
+            const y = Math.round(evaluateY(x) * 100) / 100;
+
+            document.getElementById('calc-point-badge').innerText = `Ponto Selecionado: X = ${x}, Y = ${y}`;
+
+            const container = document.getElementById('calc-steps-list');
+            container.innerHTML = '';
+
+            let steps = [];
+
+            // Step 1: Write Formula
+            steps.push({
+                title: '1. Equação Original',
+                code: getFormulaString(),
+                desc: 'Identificando a lei de formação da função.'
+            });
+
+            // Step 2: Substitution
+            let formulaSub = getFormulaString().replace('f(x) = ', 'f(' + x + ') = ');
+            // Replace x variables with (x_val)
+            if (degree === 3) formulaSub = formulaSub.replace('x³', `(${x})³`).replace('x²', `(${x})²`).replace('x', `(${x})`);
+            else if (degree === 2) formulaSub = formulaSub.replace('x²', `(${x})²`).replace('x', `(${x})`);
+            else formulaSub = formulaSub.replace('x', `(${x})`);
+
+            steps.push({
+                title: `2. Substituição de X = ${x}`,
+                code: formulaSub,
+                desc: `Substituímos a variável x pelo valor ${x}.`
+            });
+
+            // Step 3: Evaluate powers & multiplication
+            let step3Code = '';
+            if (degree === 3) {
+                let cubeVal = Math.round(Math.pow(x, 3) * 100) / 100;
+                let sqVal = Math.round(Math.pow(x, 2) * 100) / 100;
+                step3Code = `f(${x}) = ${coeffs.a ? coeffs.a * cubeVal : 0} + ${coeffs.b ? coeffs.b * sqVal : 0} + (${coeffs.c * x}) + (${coeffs.d})`;
+            } else if (degree === 2) {
+                let sqVal = Math.round(Math.pow(x, 2) * 100) / 100;
+                step3Code = `f(${x}) = ${coeffs.b * sqVal} + (${coeffs.c * x}) + (${coeffs.d})`;
+            } else {
+                step3Code = `f(${x}) = ${coeffs.c * x} + (${coeffs.d})`;
+            }
+
+            steps.push({
+                title: '3. Resolução de Potências/Aritmética',
+                code: step3Code,
+                desc: 'Efetuando os cálculos das potências e multiplicações.'
+            });
+
+            // Step 4: Final Value
+            steps.push({
+                title: '4. Resultado Final (Valor de Y)',
+                code: `f(${x}) = ${y}`,
+                desc: `Portanto, quando x = ${x}, o valor do Y correspondente é ${y}.`
+            });
+
+            // Render step cards
+            steps.forEach((s, idx) => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col justify-between animate-step';
+                card.style.animationDelay = `${idx * 0.08}s`;
+                card.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">${s.title}</span>
+                        <div class="font-mono-math text-xs md:text-sm text-slate-100 font-semibold bg-slate-950 p-2 rounded border border-slate-800/80 mb-2 overflow-x-auto">
+                            ${s.code}
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">${s.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+
+            // Educational Context Box Message
+            const explanation = document.getElementById('explanation-text');
+            if (Math.abs(y) < 0.05) {
+                explanation.innerHTML = `<strong class="text-emerald-400 font-semibold">Este ponto é uma RAIZ DA FUNÇÃO (onde Y = 0)!</strong> O valor x = ${x} é a solução da equação f(x) = 0, indicando exatamente onde a curva corta o eixo horizontal X.`;
+            } else if (Math.abs(x) < 0.05) {
+                explanation.innerHTML = `<strong class="text-purple-400 font-semibold">Este ponto é a INTERSEÇÃO COM O EIXO Y (onde X = 0)!</strong> Quando zeramos a variável X, o valor obtido Y = ${y} é sempre igual ao termo independente da função.`;
+            } else {
+                explanation.innerHTML = `O par ordenado <strong>(${x}, ${y})</strong> representa uma coordenada no plano onde a função passa. Qualquer valor de X inserido produzirá exatamente um Y equivalente.`;
+            }
+        }
+
+        // Canvas Setup & Interactivity
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawGraph();
+        }
+
+        function setupCanvasInteraction() {
+            let isDragging = false;
+            let startMouse = { x: 0, y: 0 };
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startMouse = { x: e.clientX, y: e.clientY };
+                selectPointFromMouse(e);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const dx = e.clientX - startMouse.x;
+                    const dy = e.clientY - startMouse.y;
+                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                        originOffset.x += dx;
+                        originOffset.y += dy;
+                        startMouse = { x: e.clientX, y: e.clientY };
+                        drawGraph();
                     }
                 }
             });
 
-        } catch (error) {
-            alert("Erro na expressão! Verifique se os sinais estão corretos.");
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Touch support
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    selectPointFromMouse(e.touches[0]);
+                }
+            });
         }
-    }
 
-    // Inicializa com x^2
-    window.onload = () => {
-        displayElement.innerText = "x^2";
-        updateGraph();
-    };
-</script>
+        function selectPointFromMouse(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const originX = canvas.width / 2 + originOffset.x;
 
+            let mathX = (clickX - originX) / viewScale;
+            // Round to nearest 0.5 for clean user interaction
+            selectedX = Math.round(mathX * 2) / 2;
+            updateAll();
+        }
+
+        function zoomGraph(factor) {
+            viewScale *= factor;
+            if (viewScale < 10) viewScale = 10;
+            if (viewScale > 150) viewScale = 150;
+            drawGraph();
+        }
+
+        function resetZoom() {
+            viewScale = 35;
+            originOffset = { x: 0, y: 0 };
+            drawGraph();
+        }
+
+        // On document ready
+        window.onload = () => {
+            initApp();
+            resizeCanvas();
+        };
+    </script>
 </body>
 </html>
