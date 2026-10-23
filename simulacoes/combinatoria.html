@@ -3,92 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora PFC com Vitrine Visual</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>SimuLabb - Calculadora Combinatória</title>
+
+    <!-- FontAwesome 6 para os ícones da sidebar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MathJax para as fórmulas matemáticas -->
     <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
+
     <style>
+        /* ====== Variáveis Globais ====== */
         :root {
-            --coca-red: #fe001a;
-            --dark-blue: #2c3e50;
-            --bg-gray: #f8f9fa;
+            /* Cores Calculadora */
+            --primary-blue: #2563eb;
+            --dark-bg: #1e293b;
+            --light-bg: #f1f5f9;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --coca-red: #ef4444;
+            
+            /* Cores Sidebar */
+            --orange: #ff6900;
+            --orange-dark: #e85b00;
+            --orange-light: #fff0df;
+            --blue: #142b46;
+            --text: #172a42;
+            --muted: #65758b;
+            --background: #f7f9fb;
+            --white: #fff;
+            --border: #e2e8ef;
+            --shadow: 0 5px 18px rgba(24, 49, 74, .07);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-gray); overflow: hidden; }
-
-        /* Sidebar */
-        .sidebar { width: 350px; background: var(--dark-blue); color: white; padding: 20px; overflow-y: auto; z-index: 10; }
-        .slot-card { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-        .slot-card input { width: 100%; border: none; border-radius: 4px; padding: 5px; margin-top: 5px; box-sizing: border-box; }
-
-        /* Centro */
-        .main-content { flex-grow: 1; padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
-        .result-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        .big-number { font-size: 3rem; color: var(--coca-red); font-weight: bold; margin: 10px 0; }
-
-        /* Painel de Vitrine */
-        .showcase-panel { 
-            width: 400px; background: white; border-left: 2px solid #ddd; 
-            display: flex; flex-direction: column; transition: transform 0.3s ease;
+        /* ====== Reset e Base ====== */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            background: var(--background); 
+            overflow: hidden; 
         }
-        .showcase-panel.collapsed { transform: translateX(100%); width: 0; display: none; }
-        .showcase-header { padding: 15px; background: #eee; display: flex; justify-content: space-between; align-items: center; }
-        .showcase-grid { flex-grow: 1; overflow-y: auto; padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+
+        a { color: inherit; text-decoration: none; }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+
+        /* ====== Estilos da Sidebar ====== */
+        .sidebar {
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 22px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            z-index: 100;
+        }
+
+        .side-label {
+            font-size: 10px;
+            color: #96a1b0;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            padding: 12px 12px 6px;
+            text-transform: uppercase;
+        }
+
+        .side-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 13px;
+            border: 0;
+            border-radius: 9px;
+            color: var(--text);
+            background: transparent;
+            font-size: 12px;
+            text-align: left;
+            transition: .2s;
+        }
+
+        .side-link i { width: 20px; text-align: center; font-size: 16px; }
+        .side-link:hover { background: #fff4e9; color: var(--orange); }
+        .side-link.active {
+            background: var(--orange);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px #ff69002b;
+        }
+
+        .side-divider { height: 1px; background: var(--border); margin: 10px 2px; }
+
+        .subject-icon {
+            display: inline-flex;
+            width: 25px;
+            height: 25px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .math-color { background:#1683ee; }
+        .physics-color { background: #f6ae28; }
+        .chemistry-color { background:#92ff16; }
+
+        .mascot-note {
+            margin-top: auto;
+            padding: 13px 10px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #fff0df, #fffaf4);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #40536a;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .mascot-note img { width: 56px; height: 65px; object-fit: contain; }
+
+        /* ====== Workspace e Painel de Configuração ====== */
+        .workspace { display: flex; flex: 1; overflow: hidden; position: relative; }
         
-        .possibility-item { 
-            background: #f1f1f1; border: 1px solid #ddd; padding: 8px; border-radius: 5px; 
-            font-size: 0.75rem; text-align: center; font-family: monospace;
+        .config-panel { 
+            width: 320px; 
+            background: #ffffff; 
+            border-right: 1px solid var(--border-color); 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto; 
+            flex-shrink: 0; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02); 
+            z-index: 10; 
         }
-        .filter-box { padding: 15px; border-bottom: 1px solid #ddd; background: #fafafa; }
+        .config-panel h2 { margin-top: 0; font-size: 1.3rem; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        
+        /* Abas de Modo */
+        .mode-tabs { display: flex; background: var(--light-bg); border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+        .mode-btn { flex: 1; padding: 10px; text-align: center; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: 0.2s; font-size: 0.9rem; }
+        .mode-btn.active { background: #ffffff; color: var(--primary-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-        .btn { cursor: pointer; border: none; padding: 10px; border-radius: 5px; font-weight: bold; transition: 0.2s; }
-        .btn-red { background: var(--coca-red); color: white; width: 100%; margin-top: 10px; }
-        .btn-toggle { position: absolute; top: 20px; right: 20px; background: var(--dark-blue); color: white; z-index: 100; }
+        .slot-card { background: var(--light-bg); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 12px; position: relative; }
+        .slot-card input { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-top: 8px; box-sizing: border-box; font-family: inherit; }
+        .slot-card input:focus { outline: none; border-color: var(--primary-blue); }
+        .btn-trash { color: var(--coca-red); cursor: pointer; float: right; border: none; background: none; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: var(--text-main); }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 1rem;}
+
+        /* ====== Main Content (Resultados) ====== */
+        .main-content { flex: 1; padding: 40px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .result-box { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 100%; max-width: 600px; border: 1px solid var(--border-color); }
+        .big-number { font-size: 3.5rem; color: var(--primary-blue); font-weight: 800; margin: 15px 0; letter-spacing: -1px; }
+        
+        .btn { cursor: pointer; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
+        .btn-blue { background: var(--primary-blue); color: white; width: 100%; margin-top: 10px; }
+        .btn-blue:hover { background: #1d4ed8; }
+        .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: var(--text-main); width: 100%; margin-top: 5px; }
+        .btn-outline:hover { background: #f8fafc; }
+        
+        .btn-toggle { position: absolute; top: 20px; right: 20px; background: white; color: var(--text-main); border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 100; border-radius: 20px; padding: 10px 20px; display: flex; gap: 8px; align-items: center; }
+
+        /* ====== Vitrine Visual ====== */
+        .showcase-panel { 
+            position: absolute; right: 0; top: 0; bottom: 0; width: 380px; 
+            background: white; border-left: 1px solid var(--border-color); box-shadow: -5px 0 25px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50;
+        }
+        .showcase-panel.collapsed { transform: translateX(100%); }
+        .showcase-header { padding: 20px; background: var(--light-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .showcase-header h3 { margin: 0; font-size: 1.1rem; color: var(--text-main); }
+        
+        .showcase-grid { flex: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; align-content: flex-start; }
+        .possibility-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-size: 0.8rem; text-align: center; font-family: 'Courier New', monospace; font-weight: bold; color: var(--primary-blue); }
+        
+        .limit-warning { background: #fffbeb; color: #b45309; padding: 10px; margin: 15px 20px 0; border-radius: 6px; font-size: 0.8rem; border: 1px solid #fde68a; display: none; }
+
+        /* ====== Responsividade ====== */
+        @media (max-width: 950px) {
+            .sidebar { padding: 18px 9px; align-items: center; }
+            .side-link { justify-content: center; padding: 13px 5px; }
+            .side-link span:not(.subject-icon),
+            .side-label,
+            .mascot-note,
+            .side-divider + .side-label { display: none; }
+            .side-link i { font-size: 19px; }
+            .side-link .subject-icon { width: 30px; height: 30px; }
+        }
+
+        @media (max-width: 600px) {
+            body { flex-direction: column; } /* Ajuste importante para o mobile */
+            
+            .sidebar {
+                flex-direction: row;
+                overflow-x: auto;
+                border-right: 0;
+                border-bottom: 1px solid var(--border);
+                padding: 9px 12px;
+                gap: 7px;
+            }
+            .sidebar .side-link {
+                flex: 0 0 auto;
+                width: auto;
+                padding: 9px 12px;
+                gap: 8px;
+                white-space: nowrap;
+            }
+            .sidebar .side-link span:not(.subject-icon) { display: inline; font-size: 11px; }
+            .sidebar .side-link i { font-size: 14px; }
+            .sidebar .side-link .subject-icon { width: 22px; height: 22px; }
+            .sidebar .side-divider,
+            .sidebar .side-label,
+            .sidebar .mascot-note { display: none; }
+            
+            .workspace { flex-direction: column; }
+            .config-panel { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .showcase-panel { width: 100%; z-index: 200; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2><i class="fas fa-cog"></i> Configurações</h2>
+    <!-- SIDEBAR GLOBAL DE NAVEGAÇÃO -->
+    <aside class="sidebar">
+        <span class="side-label">Navegação</span>
+
+        <a href="https://erik-bernardo.github.io/SimuLabb/" class="side-link">
+            <i class="fa-solid fa-house"></i><span>Início</span>
+        </a>
+
+        <a href="https://erik-bernardo.github.io/SimuLabb/games.html" class="side-link">
+            <i class="fa-solid fa-gamepad"></i><span>Jogos</span>
+        </a>
+
+        <a href="https://erik-bernardo.github.io/SimuLabb/simulacoes.html" class="side-link active">
+            <i class="fa-solid fa-calculator"></i><span>Simuladores</span>
+        </a>
+
+        <a href="https://erik-bernardo.github.io/SimuLabb/sobre.html" class="side-link">
+            <i class="fa-solid fa-circle-info"></i><span>Sobre Nós</span>
+        </a>
         
-        <div id="slot-list"></div>
+        <div class="side-divider"></div>
+        <span class="side-label">Matérias</span>
 
-        <button class="btn btn-red" onclick="addSlot()"><i class="fas fa-plus"></i> Adicionar Item</button>
-        <button class="btn" style="width:100%; margin-top:5px;" onclick="resetSlots()">Resetar</button>
+        <button class="side-link subject-filter" data-filter="matematica">
+            <span class="subject-icon math-color"><i class="fa-solid fa-square-root-variable"></i></span>
+            <span>Matemática</span>
+        </button>
+
+        <button class="side-link subject-filter" data-filter="quimica">
+            <span class="subject-icon chemistry-color"><i class="fa-solid fa-flask"></i></span>
+            <span>Química</span>
+        </button>
+
+        <button class="side-link subject-filter" data-filter="fisica">
+            <span class="subject-icon physics-color"><i class="fa-solid fa-atom"></i></span>
+            <span>Física</span>
+        </button>
+
+        <div class="side-divider"></div>
+        <span class="side-label">Plataformas Externas</span>
+
+        <a href="https://www.geogebra.org/calculator" class="side-link">
+            <i class="fa-solid fa-square-root-variable"></i><span>Geogebra</span>
+        </a>
+
+        <a href="https://phet.colorado.edu/pt_BR/simulations/filter?type=html" class="side-link">
+            <i class="fa-solid fa-meteor"></i><span>PHET</span>
+        </a>
+
+        <a href="https://molview.org/" class="side-link">
+            <i class="fa-solid fa-atom"></i><span>MoldView</span>
+        </a>
         
-        <div style="margin-top: 20px; padding: 10px; border: 1px dashed #ffffff55; font-size: 0.85rem;">
-            <label><input type="checkbox" id="rep-check" checked onchange="calculate()"> Permitir Repetição</label>
+        <div class="mascot-note">
+            <img src="../assets/mascote.png" alt="Mascote do SimuLab" onerror="this.style.display='none'" style="display: none;">
+            <p>Explorando novos mundos do conhecimento!</p>
         </div>
-    </div>
+    </aside>
 
-    <div class="main-content">
-        <div class="result-box">
-            <span style="color: #7f8c8d; font-weight: bold; text-transform: uppercase;">Total de Combinações</span>
-            <div id="res-val" class="big-number">0</div>
-            <div id="formula-tex" style="font-size: 1.2rem;"></div>
+    <!-- ÁREA DE TRABALHO DA CALCULADORA -->
+    <div class="workspace">
+        
+        <!-- PAINEL DE CONFIGURAÇÕES (LATERAL INTERNA) -->
+        <div class="config-panel">
+            <h2><i class="fas fa-sliders-h"></i> Parâmetros</h2>
+            
+            <!-- Seletor de Modo -->
+            <div class="mode-tabs">
+                <button class="mode-btn active" id="btn-mode-pfc" onclick="setMode('pfc')">Modo PFC</button>
+                <button class="mode-btn" id="btn-mode-fat" onclick="setMode('fat')">Fatorial / Arranjo</button>
+            </div>
+
+            <!-- MODO 1: Princípio Fundamental da Contagem (Eventos independentes) -->
+            <div id="panel-pfc">
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0;">Multiplica eventos independentes (Ex: 3 blusas e 2 calças).</p>
+                <div id="slot-list"></div>
+                <button class="btn btn-blue" onclick="addSlot()"><i class="fas fa-plus"></i> Adicionar Evento</button>
+                <button class="btn btn-outline" onclick="resetSlots()">Resetar</button>
+            </div>
+
+            <!-- MODO 2: Fatorial e Arranjo (Extração de conjunto único) -->
+            <div id="panel-fat" style="display: none;">
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0;">Usado para permutar itens de um mesmo conjunto sem repetição.</p>
+                
+                <div class="input-group">
+                    <label>Total de Elementos Disponíveis (N)</label>
+                    <input type="number" id="fat-n" min="1" value="5" oninput="calculate()">
+                </div>
+                <div class="input-group">
+                    <label>Quantos serão escolhidos? (K)</label>
+                    <input type="number" id="fat-k" min="1" value="5" oninput="calculate()">
+                </div>
+                <div style="font-size: 0.8rem; color: var(--primary-blue); background: #eff6ff; padding: 10px; border-radius: 6px;">
+                    <i class="fas fa-info-circle"></i> Se N for igual a K, calcularemos a Permutação Simples <b>(N!)</b>.
+                </div>
+            </div>
         </div>
 
-      
+        <!-- CONTEÚDO PRINCIPAL (RESULTADO) -->
+        <div class="main-content">
+            <button class="btn btn-toggle" onclick="toggleShowcase()">
+                <i class="fas fa-border-all"></i> <span id="toggle-text">Abrir Vitrine</span>
+            </button>
 
-    <button class="btn btn-toggle" onclick="toggleShowcase()"><i class="fas fa-th"></i> Ver Vitrine</button>
+            <div class="result-box">
+                <span style="color: var(--text-muted); font-weight: bold; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Possibilidades Totais</span>
+                <div id="res-val" class="big-number">0</div>
+                
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 25px 0;">
+                
+                <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">FÓRMULA MATEMÁTICA</span>
+                <div id="formula-tex" style="font-size: 1.3rem; margin-top: 15px; color: var(--text-main);"></div>
+            </div>
+        </div>
 
-    <div id="showcase" class="showcase-panel collapsed">
-        <div class="showcase-header">
-            <h3><i class="fas fa-eye"></i> Vitrine Visual</h3>
-            <i class="fas fa-times" style="cursor:pointer" onclick="toggleShowcase()"></i>
+        <!-- VITRINE VISUAL (LATERAL DIREITA) -->
+        <div id="showcase" class="showcase-panel collapsed">
+            <div class="showcase-header">
+                <h3><i class="fas fa-eye"></i> Vitrine de Resultados</h3>
+                <i class="fas fa-times" style="cursor:pointer; color: #64748b;" onclick="toggleShowcase()"></i>
+            </div>
+            
+            <div id="limit-msg" class="limit-warning">
+                <i class="fas fa-exclamation-triangle"></i> Exibindo apenas as primeiras 500 combinações para evitar lentidão.
+            </div>
+
+            <div id="showcase-grid" class="showcase-grid"></div>
         </div>
-        <div class="filter-box">
-            <label style="font-size: 0.8rem; font-weight: bold;">Filtrar por valor na posição 1:</label>
-            <input type="number" id="filter-p1" placeholder="Ex: 3" style="width: 100%; padding: 5px; margin-top:5px;" oninput="updateShowcase()">
-            <div id="showcase-info" style="font-size: 0.7rem; color: #666; margin-top: 5px;"></div>
-        </div>
-        <div id="showcase-grid" class="showcase-grid"></div>
     </div>
 
     <script>
-        let slots = [{name: 'Lata', val: 3}, {name: 'Copo', val: 2}];
-        const LIMIT_RENDER = 500; // Evita travar o navegador
+        // ESTADO GLOBAL
+        let currentMode = 'pfc'; // 'pfc' ou 'fat'
+        let slots = [{name: 'Blusa', val: 3}, {name: 'Calça', val: 2}];
+        const LIMIT_RENDER = 500;
 
+        // Controle de Abas
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-mode-pfc').classList.toggle('active', mode === 'pfc');
+            document.getElementById('btn-mode-fat').classList.toggle('active', mode === 'fat');
+            
+            document.getElementById('panel-pfc').style.display = (mode === 'pfc') ? 'block' : 'none';
+            document.getElementById('panel-fat').style.display = (mode === 'fat') ? 'block' : 'none';
+            
+            calculate();
+        }
+
+        /* ====== FUNÇÕES DO MODO PFC ====== */
         function renderSlots() {
             const list = document.getElementById('slot-list');
             list.innerHTML = '';
@@ -96,81 +386,141 @@
                 const div = document.createElement('div');
                 div.className = 'slot-card';
                 div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between">
-                        <strong>#${i+1}</strong>
-                        <i class="fas fa-trash" style="cursor:pointer" onclick="removeSlot(${i})"></i>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                        <strong style="font-size: 0.85rem; color: #64748b;">Etapa ${i+1}</strong>
+                        <button class="btn-trash" onclick="removeSlot(${i})" title="Remover"><i class="fas fa-trash"></i></button>
                     </div>
-                    <input type="text" value="${s.name}" oninput="slots[${i}].name = this.value" placeholder="Nome (ex: Copo)">
-                    <input type="number" min="1" value="${s.val}" oninput="updateVal(${i}, this.value)">
+                    <div style="display:flex; gap: 8px;">
+                        <input type="text" value="${s.name}" oninput="slots[${i}].name = this.value" placeholder="Nome (Ex: Sapato)" style="flex:2">
+                        <input type="number" min="1" value="${s.val}" oninput="updateVal(${i}, this.value)" style="flex:1">
+                    </div>
                 `;
                 list.appendChild(div);
             });
             calculate();
         }
 
-        function updateVal(i, v) { slots[i].val = parseInt(v) || 1; calculate(); }
-        function addSlot() { slots.push({name: 'Item', val: 1}); renderSlots(); }
+        function updateVal(i, v) { slots[i].val = Math.max(1, parseInt(v) || 1); calculate(); }
+        function addSlot() { slots.push({name: 'Item', val: 2}); renderSlots(); }
         function removeSlot(i) { if(slots.length > 1) { slots.splice(i, 1); renderSlots(); } }
-        function resetSlots() { slots = [{name: 'Lata', val: 3}, {name: 'Copo', val: 2}]; renderSlots(); }
-        function toggleShowcase() { document.getElementById('showcase').classList.toggle('collapsed'); updateShowcase(); }
+        function resetSlots() { slots = [{name: 'Blusa', val: 3}, {name: 'Calça', val: 2}]; renderSlots(); }
+
+        /* ====== LÓGICA MATEMÁTICA E RENDERIZAÇÃO ====== */
+        function calcFatorialLogica(n) {
+            if (n <= 1) return 1n;
+            let res = 1n;
+            for(let i = 2n; i <= BigInt(n); i++) res *= i;
+            return res;
+        }
 
         function calculate() {
-            let total = 1n;
-            let parts = [];
-            let isRep = document.getElementById('rep-check').checked;
+            let total = 0n;
+            let texFormula = "";
 
-            slots.forEach((s, i) => {
-                let v = BigInt(isRep ? s.val : Math.max(1, s.val - i));
-                total *= v;
-                parts.push(v.toString());
-            });
+            if (currentMode === 'pfc') {
+                total = 1n;
+                let parts = [];
+                slots.forEach(s => {
+                    total *= BigInt(s.val);
+                    parts.push(s.val);
+                });
+                texFormula = `$$ ${parts.join(' \\times ')} = ${total.toLocaleString('pt-BR')} $$`;
+                
+            } else if (currentMode === 'fat') {
+                let n = parseInt(document.getElementById('fat-n').value) || 1;
+                let k = parseInt(document.getElementById('fat-k').value) || 1;
+                
+                // Previne K maior que N (Impossível extrair 6 itens de um conjunto de 5)
+                if (k > n) { k = n; document.getElementById('fat-k').value = n; }
 
+                if (n === k) {
+                    // Permutação Simples
+                    total = calcFatorialLogica(n);
+                    texFormula = `$$ P_{${n}} = ${n}! = ${total.toLocaleString('pt-BR')} $$`;
+                } else {
+                    // Arranjo Simples
+                    total = calcFatorialLogica(n) / calcFatorialLogica(n - k);
+                    texFormula = `$$ A_{${n},${k}} = \\frac{${n}!}{(${n}-${k})!} = ${total.toLocaleString('pt-BR')} $$`;
+                }
+            }
+
+            // Atualiza tela Principal
             document.getElementById('res-val').innerText = total.toLocaleString('pt-BR');
-            document.getElementById('formula-tex').innerHTML = `$$ ${parts.join(' \\times ')} = ${total.toLocaleString('pt-BR')} $$`;
+            document.getElementById('formula-tex').innerHTML = texFormula;
             if (window.MathJax) MathJax.typesetPromise();
+
+            // Atualiza Vitrine
             updateShowcase();
         }
 
         function updateShowcase() {
             const grid = document.getElementById('showcase-grid');
-            const info = document.getElementById('showcase-info');
-            const filterVal = parseInt(document.getElementById('filter-p1').value);
+            const limitMsg = document.getElementById('limit-msg');
             grid.innerHTML = '';
+            
+            let possibilities = [];
+            let hitLimit = false;
 
-            let possibilities = [[]];
-            let isRep = document.getElementById('rep-check').checked;
-
-            // Gera combinações (apenas o necessário para visualização)
-            for (let i = 0; i < slots.length; i++) {
-                let next = [];
-                let nOptions = isRep ? slots[i].val : Math.max(1, slots[i].val - i);
-                
-                possibilities.forEach(p => {
-                    for (let opt = 1; opt <= nOptions; opt++) {
-                        // Aplica o filtro na primeira posição se houver
-                        if (i === 0 && !isNaN(filterVal) && opt !== filterVal) continue;
-                        
-                        next.push([...p, opt]);
-                        if (next.length > LIMIT_RENDER) break;
+            if (currentMode === 'pfc') {
+                // Algoritmo de cruzamento PFC
+                possibilities = [[]];
+                for (let i = 0; i < slots.length; i++) {
+                    let next = [];
+                    for (let p of possibilities) {
+                        for (let opt = 1; opt <= slots[i].val; opt++) {
+                            next.push([...p, opt]);
+                            if (next.length > LIMIT_RENDER) { hitLimit = true; break; }
+                        }
+                        if (hitLimit) break;
                     }
-                });
-                possibilities = next;
-                if (possibilities.length > LIMIT_RENDER) break;
+                    possibilities = next;
+                    if (hitLimit) break;
+                }
+            } else {
+                // Algoritmo de Arranjo/Fatorial (Backtracking sem repetição)
+                let n = parseInt(document.getElementById('fat-n').value) || 1;
+                let k = parseInt(document.getElementById('fat-k').value) || 1;
+                
+                function backtrack(currentPath) {
+                    if (hitLimit) return;
+                    if (currentPath.length === k) {
+                        possibilities.push([...currentPath]);
+                        if (possibilities.length >= LIMIT_RENDER) hitLimit = true;
+                        return;
+                    }
+                    for (let i = 1; i <= n; i++) {
+                        if (!currentPath.includes(i)) {
+                            currentPath.push(i);
+                            backtrack(currentPath);
+                            currentPath.pop();
+                        }
+                    }
+                }
+                backtrack([]);
             }
 
+            // Renderiza na tela
             possibilities.forEach(p => {
                 const item = document.createElement('div');
                 item.className = 'possibility-item';
-                item.innerText = p.join(' | ');
+                item.innerText = p.join(' - ');
                 grid.appendChild(item);
             });
 
-            info.innerText = isNaN(filterVal) 
-                ? `Mostrando as primeiras ${possibilities.length} combinações.`
-                : `Mostrando combinações onde o primeiro termo é ${filterVal}.`;
+            limitMsg.style.display = hitLimit ? 'block' : 'none';
         }
 
-        document.addEventListener('DOMContentLoaded', renderSlots);
+        function toggleShowcase() { 
+            const panel = document.getElementById('showcase');
+            panel.classList.toggle('collapsed'); 
+            const isClosed = panel.classList.contains('collapsed');
+            document.getElementById('toggle-text').innerText = isClosed ? "Abrir Vitrine" : "Fechar Vitrine";
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSlots();
+        });
     </script>
 </body>
 </html>
