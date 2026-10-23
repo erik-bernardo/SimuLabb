@@ -73,7 +73,7 @@
             width: 100%;
             max-width: 900px;
             display: grid;
-            grid-template-cols: 1fr;
+            grid-template-columns: 1fr;
             gap: 16px;
         }
 
@@ -379,6 +379,7 @@
         <!-- Interactive Board Canvas Area -->
         <section class="board-wrapper">
             <canvas id="gameCanvas" width="560" height="560"></canvas>
+            <p style="position:absolute;bottom:-28px;left:0;right:0;text-align:center;color:#94a3b8;font-size:.78rem;">Arraste entre átomos vizinhos: passe uma vez para ligação simples, volte pela mesma conexão para dupla e passe novamente para tripla. Solte quando todos completarem a valência.</p>
         </section>
 
     </main>
@@ -409,709 +410,84 @@
     </footer>
 
     <script>
-        // Organic Elements Configuration
-        const ELEMENTS = {
-            'C': { symbol: 'C', name: 'Carbono', atomicNum: 6, valence: 4, color: '#1e293b', border: '#475569', text: '#f8fafc', glow: '#64748b' },
-            'O': { symbol: 'O', name: 'Oxigênio', atomicNum: 8, valence: 2, color: '#dc2626', border: '#f87171', text: '#ffffff', glow: '#ef4444' },
-            'H': { symbol: 'H', name: 'Hidrogênio', atomicNum: 1, valence: 1, color: '#e2e8f0', border: '#ffffff', text: '#0f172a', glow: '#f8fafc' },
-            'N': { symbol: 'N', name: 'Nitrogênio', atomicNum: 7, valence: 3, color: '#2563eb', border: '#60a5fa', text: '#ffffff', glow: '#3b82f6' }
-        };
-
-        const ELEMENT_KEYS = ['C', 'O', 'H', 'N'];
-        const GRID_SIZE = 8;
-        const GOAL_SCORE = 2000000;
-        const INITIAL_MOVES = 20;
-
-        // Canvas Settings
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const CELL_SIZE = canvas.width / GRID_SIZE;
-
-        // Sound Synthesis Engine using Web Audio API
-        class WebAudioFX {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
-            }
-
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }
-
-            playSwap() {
-                if (this.muted) return;
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(250, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(500, this.ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.08);
-            }
-
-            playInvalid() {
-                if (this.muted) return;
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.15);
-            }
-
-            playMatch(comboLevel = 1) {
-                if (this.muted) return;
-                this.init();
-                const baseFreq = 320 + (comboLevel * 80);
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.6, this.ctx.currentTime + 0.14);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.14);
-            }
-
-            playWin() {
-                if (this.muted) return;
-                this.init();
-                const notes = [440, 554.37, 659.25, 880];
-                notes.forEach((freq, i) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.1);
-                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.1);
-                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + i * 0.1 + 0.3);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(this.ctx.currentTime + i * 0.1);
-                    osc.stop(this.ctx.currentTime + i * 0.1 + 0.3);
-                });
-            }
-        }
-
-        const audioFX = new WebAudioFX();
-
-        let grid = [];
-        let score = 0;
-        let moves = INITIAL_MOVES;
-        let highScore = parseInt(localStorage.getItem('organic_crush_highscore') || '0', 10);
-        let isProcessing = false;
-
-        // Interactive States
-        let selectedCell = null; // { r, c }
-        let dragStartCell = null; // { r, c }
-        let touchStartPos = null;
-
-        // Visual Particles Engine
-        let particles = [];
-        let animations = []; // Active tile movement animations
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.radius = Math.random() * 5 + 2;
-                this.vx = (Math.random() - 0.5) * 8;
-                this.vy = (Math.random() - 0.5) * 8;
-                this.alpha = 1;
-                this.decay = Math.random() * 0.03 + 0.02;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.alpha -= this.decay;
-            }
-
-            draw(ctx) {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, this.alpha);
-                ctx.fillStyle = this.color;
-                ctx.shadowColor = this.color;
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        function spawnExplosion(x, y, color, count = 16) {
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        function initBoard() {
-            let valid = false;
-            while (!valid) {
-                // Fill random elements
-                grid = [];
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    grid[r] = [];
-                    for (let c = 0; c < GRID_SIZE; c++) {
-                        grid[r][c] = getRandomElementKey();
-                    }
-                }
-
-                // Remove matches if any exist
-                let matches = checkMatchesOnGrid(grid);
-                while (matches.length > 0) {
-                    matches.forEach(({ r, c }) => {
-                        grid[r][c] = getRandomElementKey();
-                    });
-                    matches = checkMatchesOnGrid(grid);
-                }
-
-                // Check if at least 1 valid swap move exists
-                if (hasPossibleMoves(grid)) {
-                    valid = true;
-                }
-            }
-        }
-
-        function getRandomElementKey() {
-            return ELEMENT_KEYS[Math.floor(Math.random() * ELEMENT_KEYS.length)];
-        }
-
-        function checkMatchesOnGrid(boardState) {
-            const matched = new Set();
-
-            // Horizontal Matches
-            for (let r = 0; r < GRID_SIZE; r++) {
-                let matchLen = 1;
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    const current = boardState[r][c];
-                    const next = c < GRID_SIZE - 1 ? boardState[r][c + 1] : null;
-
-                    if (current && current === next) {
-                        matchLen++;
-                    } else {
-                        if (matchLen >= 3) {
-                            for (let k = 0; k < matchLen; k++) {
-                                matched.add(`${r},${c - k}`);
-                            }
-                        }
-                        matchLen = 1;
-                    }
-                }
-            }
-
-            // Vertical Matches
-            for (let c = 0; c < GRID_SIZE; c++) {
-                let matchLen = 1;
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    const current = boardState[r][c];
-                    const next = r < GRID_SIZE - 1 ? boardState[r + 1][c] : null;
-
-                    if (current && current === next) {
-                        matchLen++;
-                    } else {
-                        if (matchLen >= 3) {
-                            for (let k = k0 = 0; k0 < matchLen; k0++) {
-                                matched.add(`${r - k0},${c}`);
-                            }
-                        }
-                        matchLen = 1;
-                    }
-                }
-            }
-
-            return Array.from(matched).map(coord => {
-                const [r, c] = coord.split(',').map(Number);
-                return { r, c };
-            });
-        }
-
-        function hasPossibleMoves(boardState) {
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    // Try Right Swap
-                    if (c < GRID_SIZE - 1) {
-                        swap(boardState, r, c, r, c + 1);
-                        if (checkMatchesOnGrid(boardState).length > 0) {
-                            swap(boardState, r, c, r, c + 1);
-                            return true;
-                        }
-                        swap(boardState, r, c, r, c + 1);
-                    }
-                    // Try Down Swap
-                    if (r < GRID_SIZE - 1) {
-                        swap(boardState, r, c, r + 1, c);
-                        if (checkMatchesOnGrid(boardState).length > 0) {
-                            swap(boardState, r, c, r + 1, c);
-                            return true;
-                        }
-                        swap(boardState, r, c, r + 1, c);
-                    }
-                }
-            }
-            return false;
-        }
-
-        function swap(boardState, r1, c1, r2, c2) {
-            const temp = boardState[r1][c1];
-            boardState[r1][c1] = boardState[r2][c2];
-            boardState[r2][c2] = temp;
-        }
-
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Background Grid
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    const x = c * CELL_SIZE;
-                    const y = r * CELL_SIZE;
-
-                    ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.15)';
-                    ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-                    ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
-                }
-            }
-
-            // Draw Selected Tile Highlight Ring
-            if (selectedCell) {
-                const x = selectedCell.c * CELL_SIZE;
-                const y = selectedCell.r * CELL_SIZE;
-                ctx.save();
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#38bdf8';
-                ctx.shadowBlur = 12;
-                ctx.strokeRect(x + 3, y + 3, CELL_SIZE - 6, CELL_SIZE - 6);
-                ctx.restore();
-            }
-
-            // Render Tiles
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    const key = grid[r][c];
-                    if (!key) continue;
-
-                    // Check for active animation displacement
-                    const anim = animations.find(a => a.r === r && a.c === c);
-                    let drawX = c * CELL_SIZE + CELL_SIZE / 2;
-                    let drawY = r * CELL_SIZE + CELL_SIZE / 2;
-
-                    if (anim) {
-                        drawX = anim.currentX;
-                        drawY = anim.currentY;
-                    }
-
-                    drawElementTile(ctx, drawX, drawY, key, anim ? anim.scale : 1);
-                }
-            }
-
-            // Render Particle Effects
-            particles.forEach(p => p.draw(ctx));
-        }
-
-        function drawElementTile(ctx, x, y, elemKey, scale = 1) {
-            const data = ELEMENTS[elemKey];
-            if (!data) return;
-
-            const radius = (CELL_SIZE * 0.38) * scale;
-
-            ctx.save();
-            ctx.translate(x, y);
-
-            // Glowing Radial Background
-            const grad = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, radius * 0.1, 0, 0, radius);
-            grad.addColorStop(0, data.border);
-            grad.addColorStop(0.75, data.color);
-            grad.addColorStop(1, '#020617');
-
-            ctx.beginPath();
-            ctx.arc(0, 0, radius, 0, Math.PI * 2);
-            ctx.fillStyle = grad;
-            ctx.shadowColor = data.glow;
-            ctx.shadowBlur = 10;
-            ctx.fill();
-
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = data.border;
-            ctx.stroke();
-
-            // Valence Rings / Dots Visual representation
-            const valenceCount = data.valence;
-            const orbitRadius = radius + 4;
-            for (let i = 0; i < valenceCount; i++) {
-                const angle = (i * (2 * Math.PI / valenceCount)) - Math.PI / 2;
-                const dotX = Math.cos(angle) * orbitRadius;
-                const dotY = Math.sin(angle) * orbitRadius;
-
-                ctx.beginPath();
-                ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
-                ctx.fillStyle = data.border;
-                ctx.fill();
-            }
-
-            // Atomic Number Badge (Top-left inside tile)
-            ctx.fillStyle = data.text;
-            ctx.font = '700 10px Rajdhani';
-            ctx.textAlign = 'center';
-            ctx.fillText(data.atomicNum, -radius * 0.45, -radius * 0.35);
-
-            // Element Symbol
-            ctx.font = '900 22px Orbitron';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = '#000';
-            ctx.fillText(data.symbol, 0, 2);
-
-            ctx.restore();
-        }
-
-        function gameLoop() {
-            // Update Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update();
-                if (particles[i].alpha <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-
-            // Update Tile Movement Animations
-            for (let i = animations.length - 1; i >= 0; i--) {
-                const a = animations[i];
-                a.progress += a.speed;
-                if (a.progress >= 1) {
-                    a.currentX = a.targetX;
-                    a.currentY = a.targetY;
-                    animations.splice(i, 1);
-                } else {
-                    a.currentX = a.startX + (a.targetX - a.startX) * easeOutCubic(a.progress);
-                    a.currentY = a.startY + (a.targetY - a.startY) * easeOutCubic(a.progress);
-                }
-            }
-
-            render();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function easeOutCubic(x) {
-            return 1 - Math.pow(1 - x, 3);
-        }
-
-        function getCellFromCoords(x, y) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-
-            const canvasX = (x - rect.left) * scaleX;
-            const canvasY = (y - rect.top) * scaleY;
-
-            const col = Math.floor(canvasX / CELL_SIZE);
-            const row = Math.floor(canvasY / CELL_SIZE);
-
-            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
-                return { r: row, c: col };
-            }
-            return null;
-        }
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (isProcessing) return;
-            const cell = getCellFromCoords(e.clientX, e.clientY);
-            if (cell) {
-                dragStartCell = cell;
-            }
-        });
-
-        canvas.addEventListener('mouseup', (e) => {
-            if (isProcessing || !dragStartCell) return;
-            const cell = getCellFromCoords(e.clientX, e.clientY);
-            
-            if (cell) {
-                if (dragStartCell.r === cell.r && dragStartCell.c === cell.c) {
-                    // Single click selection
-                    handleCellClick(cell);
-                } else {
-                    // Drag/Swipe
-                    const dr = cell.r - dragStartCell.r;
-                    const dc = cell.c - dragStartCell.c;
-                    if (Math.abs(dr) + Math.abs(dc) === 1) {
-                        attemptSwap(dragStartCell, cell);
-                        selectedCell = null;
-                    }
-                }
-            }
-            dragStartCell = null;
-        });
-
-        // Touch Swipe Support for Mobile
-        canvas.addEventListener('touchstart', (e) => {
-            if (isProcessing) return;
-            const touch = e.touches[0];
-            touchStartPos = { x: touch.clientX, y: touch.clientY };
-            dragStartCell = getCellFromCoords(touch.clientX, touch.clientY);
-        }, { passive: true });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (isProcessing || !dragStartCell || !touchStartPos) return;
-            const touch = e.changedTouches[0];
-            const dx = touch.clientX - touchStartPos.x;
-            const dy = touch.clientY - touchStartPos.y;
-
-            if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
-                let targetR = dragStartCell.r;
-                let targetC = dragStartCell.c;
-
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    targetC += dx > 0 ? 1 : -1;
-                } else {
-                    targetR += dy > 0 ? 1 : -1;
-                }
-
-                if (targetR >= 0 && targetR < GRID_SIZE && targetC >= 0 && targetC < GRID_SIZE) {
-                    attemptSwap(dragStartCell, { r: targetR, c: targetC });
-                    selectedCell = null;
-                }
-            } else {
-                handleCellClick(dragStartCell);
-            }
-
-            dragStartCell = null;
-            touchStartPos = null;
-        }, { passive: true });
-
-        function handleCellClick(cell) {
-            if (!selectedCell) {
-                selectedCell = cell;
-                audioFX.playSwap();
-            } else {
-                if (selectedCell.r === cell.r && selectedCell.c === cell.c) {
-                    selectedCell = null;
-                } else {
-                    const isAdjacent = Math.abs(selectedCell.r - cell.r) + Math.abs(selectedCell.c - cell.c) === 1;
-                    if (isAdjacent) {
-                        attemptSwap(selectedCell, cell);
-                        selectedCell = null;
-                    } else {
-                        selectedCell = cell;
-                        audioFX.playSwap();
-                    }
-                }
-            }
-        }
-
-        async function attemptSwap(cell1, cell2) {
-            isProcessing = true;
-            audioFX.playSwap();
-
-            // Animate Swap Forward
-            await animateSwap(cell1, cell2);
-            swap(grid, cell1.r, cell1.c, cell2.r, cell2.c);
-
-            const matches = checkMatchesOnGrid(grid);
-            if (matches.length > 0) {
-                moves--;
-                updateUI();
-                await processCascades();
-            } else {
-                // Revert swap if no match formed
-                audioFX.playInvalid();
-                await animateSwap(cell1, cell2);
-                swap(grid, cell1.r, cell1.c, cell2.r, cell2.c);
-            }
-
-            isProcessing = false;
-            checkGameEndStatus();
-        }
-
-        function animateSwap(cell1, cell2) {
-            return new Promise(resolve => {
-                const startX1 = cell1.c * CELL_SIZE + CELL_SIZE / 2;
-                const startY1 = cell1.r * CELL_SIZE + CELL_SIZE / 2;
-                const targetX1 = cell2.c * CELL_SIZE + CELL_SIZE / 2;
-                const targetY1 = cell2.r * CELL_SIZE + CELL_SIZE / 2;
-
-                animations.push({
-                    r: cell1.r, c: cell1.c,
-                    startX: startX1, startY: startY1,
-                    targetX: targetX1, targetY: targetY1,
-                    currentX: startX1, currentY: startY1,
-                    progress: 0, speed: 0.12, scale: 1
-                });
-
-                animations.push({
-                    r: cell2.r, c: cell2.c,
-                    startX: targetX1, startY: targetY1,
-                    targetX: startX1, targetY: startY1,
-                    currentX: targetX1, currentY: targetY1,
-                    progress: 0, speed: 0.12, scale: 1
-                });
-
-                setTimeout(resolve, 180);
-            });
-        }
-
-        async function processCascades() {
-            let comboLevel = 1;
-
-            while (true) {
-                const matches = checkMatchesOnGrid(grid);
-                if (matches.length === 0) break;
-
-                audioFX.playMatch(comboLevel);
-
-                // Calculate Score & Spawn Reaction Particles
-                matches.forEach(({ r, c }) => {
-                    const key = grid[r][c];
-                    if (key && ELEMENTS[key]) {
-                        const centerX = c * CELL_SIZE + CELL_SIZE / 2;
-                        const centerY = r * CELL_SIZE + CELL_SIZE / 2;
-                        spawnExplosion(centerX, centerY, ELEMENTS[key].glow, 14);
-                    }
-                });
-
-                const pointsGained = matches.length * 50 * comboLevel;
-                score += pointsGained;
-                if (score > highScore) {
-                    highScore = score;
-                    localStorage.setItem('organic_crush_highscore', highScore);
-                }
-                updateUI(true);
-
-                // Clear Matched Cells
-                matches.forEach(({ r, c }) => {
-                    grid[r][c] = null;
-                });
-
-                await sleep(220);
-
-                // Apply Gravity & Drop New Elements
-                await applyGravityAndFill();
-                comboLevel++;
-            }
-        }
-
-        function applyGravityAndFill() {
-            return new Promise(async (resolve) => {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    let emptySpot = GRID_SIZE - 1;
-                    for (let r = GRID_SIZE - 1; r >= 0; r--) {
-                        if (grid[r][c] !== null) {
-                            if (r !== emptySpot) {
-                                grid[emptySpot][c] = grid[r][c];
-                                grid[r][c] = null;
-                            }
-                            emptySpot--;
-                        }
-                    }
-
-                    // Fill top empty spots with new elements
-                    for (let r = emptySpot; r >= 0; r--) {
-                        grid[r][c] = getRandomElementKey();
-                    }
-                }
-
-                await sleep(180);
-                resolve();
-            });
-        }
-
-        function updateUI(bumpScore = false) {
-            const scoreEl = document.getElementById('scoreDisplay');
-            scoreEl.innerText = score.toLocaleString('pt-BR');
-
-            if (bumpScore) {
-                scoreEl.classList.add('bump');
-                setTimeout(() => scoreEl.classList.remove('bump'), 200);
-            }
-
-            document.getElementById('movesDisplay').innerText = moves;
-
-            const progressPct = Math.min(100, (score / GOAL_SCORE) * 100);
-            document.getElementById('progressBar').style.width = `${progressPct}%`;
-        }
-
-        function checkGameEndStatus() {
-            if (score >= GOAL_SCORE) {
-                audioFX.playWin();
-                showEndModal(true);
-            } else if (moves <= 0) {
-                showEndModal(false);
-            }
-        }
-
-        function showEndModal(isWin) {
-            const modal = document.getElementById('gameOverModal');
-            const title = document.getElementById('modalTitle');
-            const subtitle = document.getElementById('modalSubtitle');
-
-            if (isWin) {
-                title.innerText = "SÍNTESE CONCLUÍDA!";
-                title.style.color = "#10b981";
-                subtitle.innerText = "Você atingiu a estabilidade molecular perfeita!";
-            } else {
-                title.innerText = "MOVIMENTOS ESGOTADOS";
-                title.style.color = "#ef4444";
-            }
-
-            document.getElementById('modalScore').innerText = score.toLocaleString('pt-BR');
-            document.getElementById('modalHighScore').innerText = highScore.toLocaleString('pt-BR');
-
-            modal.classList.add('active');
-        }
-
-        function resetGame() {
-            score = 0;
-            moves = INITIAL_MOVES;
-            selectedCell = null;
-            dragStartCell = null;
-            isProcessing = false;
-            particles = [];
-            animations = [];
-
-            document.getElementById('gameOverModal').classList.remove('active');
-            initBoard();
-            updateUI();
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Initialize & Bind Control Listeners
-        window.onload = () => {
-            initBoard();
-            updateUI();
-            gameLoop();
-
-            document.getElementById('resetBtn').addEventListener('click', resetGame);
-            document.getElementById('restartHeaderBtn').addEventListener('click', resetGame);
-            document.getElementById('modalPlayBtn').addEventListener('click', resetGame);
-
-            document.getElementById('soundToggleBtn').addEventListener('click', () => {
-                audioFX.muted = !audioFX.muted;
-                document.getElementById('soundToggleBtn').innerText = audioFX.muted ? '🔇' : '🔊';
-            });
-        };
-    </script>
+const ELEMENTS = {
+  C:{symbol:'C',name:'Carbono',atomicNum:6,valence:4,color:'#1e293b',border:'#94a3b8',text:'#f8fafc',glow:'#64748b'},
+  O:{symbol:'O',name:'Oxigênio',atomicNum:8,valence:2,color:'#dc2626',border:'#f87171',text:'#fff',glow:'#ef4444'},
+  H:{symbol:'H',name:'Hidrogênio',atomicNum:1,valence:1,color:'#e2e8f0',border:'#fff',text:'#0f172a',glow:'#f8fafc'},
+  N:{symbol:'N',name:'Nitrogênio',atomicNum:7,valence:3,color:'#2563eb',border:'#60a5fa',text:'#fff',glow:'#3b82f6'}
+};
+const ELEMENT_KEYS=['C','O','H','N'], GRID_SIZE=8, GOAL_SCORE=2000, INITIAL_MOVES=20;
+const canvas=document.getElementById('gameCanvas'), ctx=canvas.getContext('2d'), CELL_SIZE=canvas.width/GRID_SIZE;
+class WebAudioFX {
+  constructor(){this.ctx=null;this.muted=false}
+  init(){if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)()}
+  tone(freq1,freq2,duration=.1,type='sine'){
+    if(this.muted)return; try{this.init();const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq1,this.ctx.currentTime);o.frequency.linearRampToValueAtTime(freq2,this.ctx.currentTime+duration);g.gain.setValueAtTime(.12,this.ctx.currentTime);g.gain.linearRampToValueAtTime(.001,this.ctx.currentTime+duration);o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+duration)}catch(e){}
+  }
+  playSwap(){this.tone(250,500,.08)} playInvalid(){this.tone(180,100,.15,'sawtooth')} playMatch(n=1){this.tone(320+n*70,650+n*80,.14,'triangle')}
+  playWin(){[440,554,659,880].forEach((f,i)=>setTimeout(()=>this.tone(f,f+80,.22),i*100))}
+}
+const audioFX=new WebAudioFX();
+let grid=[],score=0,moves=INITIAL_MOVES,highScore=Number(localStorage.getItem('organic_crush_highscore')||0),isProcessing=false;
+let dragPath=[],selected=new Set(),bondOrders=new Map(),isDragging=false,particles=[];
+class Particle{
+  constructor(x,y,color){this.x=x;this.y=y;this.color=color;this.radius=Math.random()*5+2;this.vx=(Math.random()-.5)*7;this.vy=(Math.random()-.5)*7;this.alpha=1;this.decay=Math.random()*.035+.02}
+  update(){this.x+=this.vx;this.y+=this.vy;this.alpha-=this.decay}
+  draw(){ctx.save();ctx.globalAlpha=Math.max(0,this.alpha);ctx.fillStyle=this.color;ctx.shadowColor=this.color;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.fill();ctx.restore()}
+}
+function spawnExplosion(x,y,color,count=16){for(let i=0;i<count;i++)particles.push(new Particle(x,y,color))}
+// Distribuição balanceada: carbono é menos frequente porque exige 4 ligações.
+function getRandomElementKey(){
+  const roll=Math.random();
+  if(roll<0.12)return 'C';       // 12% Carbono
+  if(roll<0.42)return 'O';       // 30% Oxigênio
+  if(roll<0.80)return 'H';       // 38% Hidrogênio
+  return 'N';                    // 20% Nitrogênio
+}
+function initBoard(){grid=Array.from({length:GRID_SIZE},()=>Array.from({length:GRID_SIZE},getRandomElementKey));dragPath=[];selected.clear();bondOrders.clear();particles=[];render()}
+function getCellFromCoords(x,y){const rect=canvas.getBoundingClientRect(),cx=(x-rect.left)*canvas.width/rect.width,cy=(y-rect.top)*canvas.height/rect.height,c=Math.floor(cx/CELL_SIZE),r=Math.floor(cy/CELL_SIZE);return r>=0&&r<GRID_SIZE&&c>=0&&c<GRID_SIZE?{r,c}:null}
+const idOf=({r,c})=>`${r},${c}`;
+function areAdjacent(a,b){return Math.abs(a.r-b.r)+Math.abs(a.c-b.c)===1}
+function edgeKey(a,b){return [idOf(a),idOf(b)].sort().join('|')}
+function startDrag(cell){if(isProcessing||!cell||!grid[cell.r][cell.c])return;isDragging=true;dragPath=[cell];selected=new Set([idOf(cell)]);bondOrders=new Map();audioFX.playSwap();render()}
+function moveDrag(cell){if(!isDragging||isProcessing||!cell||!grid[cell.r][cell.c])return;const last=dragPath[dragPath.length-1];if(!areAdjacent(last,cell))return;
+  // A primeira passagem cria ligação simples; voltar pela mesma ligação aumenta para dupla e depois tripla.
+  const key=edgeKey(last,cell),current=bondOrders.get(key)||0;bondOrders.set(key,current===0?1:current===1?2:current===2?3:1);
+  dragPath.push(cell);selected.add(idOf(cell));render();
+}
+async function endDrag(){if(!isDragging)return;isDragging=false;if(isProcessing)return;const unique=[...selected].map(s=>{const [r,c]=s.split(',').map(Number);return {r,c}});dragPath=[];
+  if(unique.length<2){selected.clear();bondOrders.clear();render();return}
+  const usedBonds=[...bondOrders.entries()].map(([key,order])=>({ids:key.split('|'),order}));
+  const valenceUsed=new Map(unique.map(cell=>[idOf(cell),0]));
+  usedBonds.forEach(({ids,order})=>ids.forEach(id=>{if(valenceUsed.has(id))valenceUsed.set(id,valenceUsed.get(id)+order)}));
+  const invalid=unique.filter(cell=>valenceUsed.get(idOf(cell))!==ELEMENTS[grid[cell.r][cell.c]].valence);
+  if(invalid.length){audioFX.playInvalid();selected.clear();bondOrders.clear();render();return}
+  isProcessing=true;moves--;audioFX.playMatch(unique.length/3);unique.forEach(({r,c})=>{const key=grid[r][c];spawnExplosion(c*CELL_SIZE+CELL_SIZE/2,r*CELL_SIZE+CELL_SIZE/2,ELEMENTS[key].glow,18);grid[r][c]=null});
+  score += unique.length * 100; // 100 pontos por átomo removido
+  if(score>highScore){highScore=score;localStorage.setItem('organic_crush_highscore',String(highScore))}
+  selected.clear();bondOrders.clear();updateUI();render();await sleep(220);applyGravityAndFill();await sleep(180);isProcessing=false;render();checkGameEndStatus();
+}
+function applyGravityAndFill(){for(let c=0;c<GRID_SIZE;c++){let write=GRID_SIZE-1;for(let r=GRID_SIZE-1;r>=0;r--){if(grid[r][c]!==null){const value=grid[r][c];grid[r][c]=null;grid[write--][c]=value}}for(let r=write;r>=0;r--)grid[r][c]=getRandomElementKey()}}
+function drawElementTile(x,y,key,scale=1){const d=ELEMENTS[key];if(!d)return;const radius=CELL_SIZE*.36*scale;ctx.save();ctx.translate(x,y);const grad=ctx.createRadialGradient(-radius*.3,-radius*.3,radius*.1,0,0,radius);grad.addColorStop(0,d.border);grad.addColorStop(.75,d.color);grad.addColorStop(1,'#020617');ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI*2);ctx.fillStyle=grad;ctx.shadowColor=d.glow;ctx.shadowBlur=10;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=d.border;ctx.stroke();
+  // Os pequenos pontos mostram quantas ligações cada elemento precisa completar.
+  for(let i=0;i<d.valence;i++){const angle=i*2*Math.PI/d.valence-Math.PI/2;ctx.beginPath();ctx.arc(Math.cos(angle)*(radius+5),Math.sin(angle)*(radius+5),2.7,0,Math.PI*2);ctx.fillStyle=d.border;ctx.fill()}
+  ctx.fillStyle=d.text;ctx.font='700 10px Rajdhani';ctx.textAlign='center';ctx.fillText(d.atomicNum,-radius*.45,-radius*.35);ctx.font='900 22px Orbitron';ctx.textBaseline='middle';ctx.shadowBlur=4;ctx.shadowColor='#000';ctx.fillText(d.symbol,0,2);ctx.restore()}
+function render(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let r=0;r<GRID_SIZE;r++)for(let c=0;c<GRID_SIZE;c++){const x=c*CELL_SIZE,y=r*CELL_SIZE;ctx.fillStyle=(r+c)%2===0?'rgba(255,255,255,.025)':'rgba(0,0,0,.15)';ctx.fillRect(x,y,CELL_SIZE,CELL_SIZE);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.strokeRect(x,y,CELL_SIZE,CELL_SIZE);if(grid[r][c])drawElementTile(x+CELL_SIZE/2,y+CELL_SIZE/2,grid[r][c]);}
+  // Desenha ligações simples, duplas e triplas entre os átomos selecionados.
+  if(bondOrders.size){ctx.save();ctx.strokeStyle='#38bdf8';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.shadowColor='#38bdf8';ctx.shadowBlur=8;for(const [key,order] of bondOrders){const [a,b]=key.split('|').map(id=>{const [r,c]=id.split(',').map(Number);return {r,c}});const x1=a.c*CELL_SIZE+CELL_SIZE/2,y1=a.r*CELL_SIZE+CELL_SIZE/2,x2=b.c*CELL_SIZE+CELL_SIZE/2,y2=b.r*CELL_SIZE+CELL_SIZE/2;const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1,ox=-dy/len*4,oy=dx/len*4;for(let i=0;i<order;i++){const offset=(i-(order-1)/2)*5;ctx.beginPath();ctx.moveTo(x1+ox*offset/4,y1+oy*offset/4);ctx.lineTo(x2+ox*offset/4,y2+oy*offset/4);ctx.stroke()}ctx.shadowBlur=0;ctx.fillStyle='#e0f2fe';ctx.font='bold 10px Rajdhani';ctx.textAlign='center';ctx.fillText(order===1?'—':order===2?'═':'≡',(x1+x2)/2,(y1+y2)/2-7)}ctx.restore()}
+  selected.forEach(s=>{const [r,c]=s.split(',').map(Number);ctx.save();ctx.strokeStyle='#facc15';ctx.lineWidth=3;ctx.strokeRect(c*CELL_SIZE+4,r*CELL_SIZE+4,CELL_SIZE-8,CELL_SIZE-8);ctx.restore()});particles.forEach(p=>p.draw())}
+function gameLoop(){for(let i=particles.length-1;i>=0;i--){particles[i].update();if(particles[i].alpha<=0)particles.splice(i,1)}render();requestAnimationFrame(gameLoop)}
+function updateUI(){document.getElementById('scoreDisplay').innerText=score.toLocaleString('pt-BR');document.getElementById('movesDisplay').innerText=moves;document.getElementById('progressBar').style.width=`${Math.min(100,score/GOAL_SCORE*100)}%`;document.getElementById('goalText').innerText=`Meta: ${GOAL_SCORE.toLocaleString('pt-BR')} pts`}
+function checkGameEndStatus(){if(score>=GOAL_SCORE){audioFX.playWin();showEndModal(true)}else if(moves<=0)showEndModal(false)}
+function showEndModal(win){document.getElementById('modalTitle').innerText=win?'SÍNTESE CONCLUÍDA!':'MOVIMENTOS ESGOTADOS';document.getElementById('modalTitle').style.color=win?'#10b981':'#ef4444';document.getElementById('modalSubtitle').innerText=win?'Você formou cadeias com valências completas!':'Tente formar novas estruturas e completar mais valências.';document.getElementById('modalScore').innerText=score.toLocaleString('pt-BR');document.getElementById('modalHighScore').innerText=highScore.toLocaleString('pt-BR');document.getElementById('gameOverModal').classList.add('active')}
+function resetGame(){score=0;moves=INITIAL_MOVES;isProcessing=false;isDragging=false;selected.clear();dragPath=[];bondOrders.clear();document.getElementById('gameOverModal').classList.remove('active');initBoard();updateUI()}
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();canvas.setPointerCapture?.(e.pointerId);startDrag(getCellFromCoords(e.clientX,e.clientY))});
+canvas.addEventListener('pointermove',e=>{if(!isDragging)return;e.preventDefault();moveDrag(getCellFromCoords(e.clientX,e.clientY))});
+canvas.addEventListener('pointerup',e=>{e.preventDefault();endDrag()});canvas.addEventListener('pointercancel',endDrag);
+document.getElementById('resetBtn').addEventListener('click',resetGame);document.getElementById('restartHeaderBtn').addEventListener('click',resetGame);document.getElementById('modalPlayBtn').addEventListener('click',resetGame);
+document.getElementById('soundToggleBtn').addEventListener('click',()=>{audioFX.muted=!audioFX.muted;document.getElementById('soundToggleBtn').innerText=audioFX.muted?'🔇':'🔊'});
+initBoard();updateUI();gameLoop();
+</script>
 </body>
 </html>
