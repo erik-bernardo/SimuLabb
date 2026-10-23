@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NYAN CAT: SPACE SLIDE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #0b0c10;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            pointer-events: none;
+        }
+
+        .hud-text {
+            font-size: 24px;
+            text-shadow: 2px 2px 0 #e94560, -2px -2px 0 #0f3460;
+        }
+
+        #btn-restart {
+            pointer-events: auto;
+            background: #e94560;
+            color: white;
+            border: 2px solid #fff;
+            padding: 8px 16px;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 0 #8e1c31;
+            transition: all 0.1s;
+        }
+
+        #btn-restart:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #8e1c31;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+
+        #overlay h1 {
+            font-size: 48px;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #ff4500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #overlay button {
+            background: #0f3460;
+            color: white;
+            border: 2px solid #43dde6;
+            padding: 15px 30px;
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            cursor: pointer;
+            border-radius: 12px;
+            box-shadow: 0 6px 0 #071a30;
+        }
+        #overlay button:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #071a30;
+        }
+
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="hud-text">LEVEL <span id="level-ui">1</span></div>
+        <div class="hud-text">STARS: <span id="stars-ui">0/0</span></div>
+        <button id="btn-restart">RESTART</button>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="overlay">
+            <h1 id="overlay-title">NYAN CAT<br>SPACE SLIDE</h1>
+            <button id="overlay-btn">START GAME</button>
+        </div>
+    </div>
+
+<script>
+    // --- ENGINE & SETUP ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const uiLevel = document.getElementById('level-ui');
+    const uiStars = document.getElementById('stars-ui');
+    const btnRestart = document.getElementById('btn-restart');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayBtn = document.getElementById('overlay-btn');
+
+    // Assets
+    const nyanImg = new Image();
+    nyanImg.crossOrigin = "anonymous";
+    nyanImg.src = "https://www.nicepng.com/png/full/27-277590_nyan-cat-png-images-what-is-nyan-cat.png";
+
+    // Levels (0=Empty, 1=Wall, 2=Star, 3=Portal, 4=Player, 5=Spike)
+       const LEVELS = [
+        // Level 1: Tutorial
+        [
+            [1,1,1,1,1,1,1,1,1],
+            [1,1,1,2,0,0,2,0,1],
+            [1,3,0,0,1,1,1,0,1],
+            [1,1,1,1,1,1,1,0,1],
+            [1,1,1,1,1,1,1,0,1],
+            [1,1,1,1,1,1,1,0,1],
+            [1,1,1,1,1,1,1,0,1],
+            [1,0,0,2,0,2,0,0,1],
+            [1,0,0,0,1,1,1,1,1],
+            [1,4,0,2,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1]
+        ],
+        // Level 2: First Turn
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,4,2,1,1,1,1,1,1,1,1,1,1,1,1,1,0,2,0,1],
+  [1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1],
+  [1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,0,1],
+  [1,1,0,1,0,2,0,1,0,0,0,1,0,0,0,1,0,1,0,1],
+  [1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+  [1,1,0,0,0,1,0,0,0,1,0,2,0,1,0,0,0,1,3,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 3: U-Shape
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,1,1,1,4,1,1,1,5,0,0,1,1,5,0,0,0,1,1],
+  [1,0,1,1,1,1,1,1,0,0,0,0,1,0,0,2,2,3,1,1],
+  [1,0,0,0,1,1,1,0,2,0,0,0,2,2,2,1,1,1,1,1],
+  [1,1,1,0,1,1,1,0,0,0,0,0,1,0,0,1,1,1,1,1],
+  [1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 4: Backtrack
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,5,5,5,5,5,1,0,0,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+  [1,5,5,5,5,5,5,0,0,1,1,1,1,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,1],
+  [1,5,5,5,5,5,0,0,0,0,1,1,1,0,0,0,1,1,1,1],
+  [1,5,0,0,0,0,0,1,0,0,2,2,2,0,0,0,1,1,1,1],
+  [1,5,4,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+] ,
+        // Level 5: The Hook
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,0,0,0,0,3,1,1,1,1,1,1,5,0,0,1],
+  [1,0,0,0,0,2,1,1,1,1,1,1,1,5,0,0,1],
+  [1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,5,0,0,0,0,0,0,2,0,0,0,1],
+  [1,0,2,0,0,0,0,0,0,0,5,1,1,1,1,1,1],
+  [1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,5,0,0,4,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 6: The Crossroads
+        [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,1,1],
+  [1,1,0,0,2,0,0,0,2,0,0,0,0,0,1,1,1],
+  [1,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,1],
+  [1,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,1],
+  [1,1,0,1,1,1,1,1,1,1,1,0,0,0,1,1,1],
+  [1,0,0,0,1,1,1,1,2,5,1,5,0,1,1,1,1],
+  [1,0,3,0,1,1,1,1,0,0,1,1,0,0,2,1,1],
+  [1,4,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1],
+  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 7: The Bouncer
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,5,5,0,0,0,0,0,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,0,0,3,0,0,0,2,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,5,5,0,0,0,0,1,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1],
+  [1,1,1,1,5,5,1,0,0,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,1,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,2,0,1,1,1],
+  [1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,0,0,0,0,2,0,4,1,0,0,0,0,1,1,1,1,1],
+  [1,1,1,1,1,5,0,2,0,1,5,0,0,1,1,1,1,1,1,1],
+  [1,1,1,1,1,5,5,2,5,1,5,0,0,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 8: Spiral
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,0,0,0,1,1,1,1,1,1,1],
+  [1,1,0,3,2,0,1,1,1,1,1,1],
+  [1,1,0,0,0,0,0,1,1,1,1,1],
+  [1,0,0,2,0,0,0,0,0,0,1,1],
+  [1,2,0,0,0,0,0,0,4,0,1,1],
+  [1,0,0,0,0,0,0,0,2,0,1,1],
+  [1,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,5,5,0,0,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 9: Pinball
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1],
+  [1,1,1,1,1,1,4,0,0,0,2,0,0,0,1,1,1,0,0,1],
+  [1,1,1,1,1,1,1,5,0,0,0,0,0,0,0,1,0,0,1,1],
+  [1,1,1,1,1,1,1,5,1,1,1,1,1,0,0,1,0,1,1,1],
+  [1,1,1,0,0,0,0,0,1,1,1,1,1,0,0,1,2,1,1,1],
+  [1,1,1,0,0,0,0,0,1,1,1,1,1,0,2,1,0,1,1,1],
+  [1,1,5,0,0,0,0,0,1,1,1,1,1,0,0,1,0,1,1,1],
+  [1,5,0,2,0,0,0,0,1,1,1,1,1,0,0,0,0,1,1,1],
+  [1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+  [1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+  [1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+],
+        // Level 10: The Ultimate Challenge
+       [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1],
+  [1,1,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,0,3,0,1,2,1],
+  [1,0,0,0,0,0,0,0,0,2,0,0,0,1,0,0,0,1,0,1,5,1,1,1],
+  [1,0,0,0,0,0,0,0,0,1,0,0,2,0,0,1,0,1,0,0,0,1,5,1],
+  [1,2,0,4,1,5,0,0,0,1,0,5,1,1,0,5,0,1,1,0,0,0,0,1],
+  [1,0,0,1,1,1,0,0,0,1,0,5,1,1,0,0,0,1,5,0,0,0,2,1],
+  [1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,2,0,0,1,0,0,1],
+  [1,1,1,0,2,0,0,0,0,1,0,1,1,0,0,0,0,1,0,0,1,0,0,1],
+  [1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,2,1,1,5,0,0,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+]
+    ];
+
+    // Game Variables
+    let currentLevel = 0;
+    let grid = [];
+    let cols = 0;
+    let rows = 0;
+    let tileSize = 0;
+    let totalStars = 0;
+    let starsCollected = 0;
+    let gameState = 'MENU'; // MENU, PLAYING, MOVING, TRANSITION, DEAD
+    let trailPath = []; // Stores traveled path for rainbow
+    let bgStars = [];
+    let particles = []; // Partículas de explosão ao morrer
+
+    // Player Object
+    const player = {
+        c: 0, r: 0, // Grid position
+        x: 0, y: 0, // Pixel position
+        targetX: 0, targetY: 0,
+        angle: 0, targetAngle: 0, // Radians
+        speed: 15,
+        dc: 0, dr: 0 // Current movement direction
+    };
+
+    // --- INITIALIZATION ---
+    function init() {
+        resize();
+        window.addEventListener('resize', resize);
+        generateBgStars();
+        
+        btnRestart.addEventListener('click', () => loadLevel(currentLevel));
+        overlayBtn.addEventListener('click', () => {
+            if (gameState === 'MENU' || gameState === 'WIN_ALL') {
+                currentLevel = 0;
+                loadLevel(0);
+            } else if (gameState === 'TRANSITION') {
+                loadLevel(currentLevel);
+            }
+            overlay.classList.add('hidden');
+        });
+
+        // Controls
+        window.addEventListener('keydown', handleKey);
+        
+        // Touch / Swipe
+        let startX, startY;
+        window.addEventListener('pointerdown', e => { startX = e.clientX; startY = e.clientY; });
+        window.addEventListener('pointerup', e => {
+            if(gameState !== 'PLAYING') return;
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+            if(Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+                if(Math.abs(dx) > Math.abs(dy)) {
+                    if(dx > 0) attemptMove(1, 0); else attemptMove(-1, 0);
+                } else {
+                    if(dy > 0) attemptMove(0, 1); else attemptMove(0, -1);
+                }
+            }
+        });
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function resize() {
+        // Full screen canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        updateTileSize();
+    }
+
+    function updateTileSize() {
+        if(cols === 0 || rows === 0) return;
+        // Fit grid in screen with padding
+        const padding = 40;
+        const maxW = canvas.width - padding;
+        const maxH = canvas.height - padding - 60; // leave room for top HUD
+        tileSize = Math.min(maxW / cols, maxH / rows);
+    }
+
+    function generateBgStars() {
+        bgStars = [];
+        for(let i=0; i<100; i++){
+            bgStars.push({
+                x: Math.random(),
+                y: Math.random(),
+                size: Math.random() * 2 + 1,
+                alpha: Math.random(),
+                speed: Math.random() * 0.05 + 0.01
+            });
+        }
+    }
+
+    // --- GAME LOGIC ---
+    function loadLevel(index) {
+        if(index >= LEVELS.length) {
+            // Win entire game
+            gameState = 'WIN_ALL';
+            overlayTitle.innerHTML = "YOU WIN!<br>GALAXY SAVED!";
+            overlayBtn.innerText = "PLAY AGAIN";
+            overlay.classList.remove('hidden');
+            return;
+        }
+
+        gameState = 'PLAYING';
+        grid = JSON.parse(JSON.stringify(LEVELS[index])); // Deep copy
+        rows = grid.length;
+        cols = grid[0].length;
+        updateTileSize();
+        
+        totalStars = 0;
+        starsCollected = 0;
+        trailPath = [];
+        particles = []; // Limpa partículas
+
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(grid[r][c] === 2) totalStars++;
+                if(grid[r][c] === 4) {
+                    player.c = c;
+                    player.r = r;
+                    player.x = c * tileSize;
+                    player.y = r * tileSize;
+                    grid[r][c] = 0; // Clear player spawn
+                }
+            }
+        }
+
+        player.angle = 0;
+        player.targetAngle = 0;
+        
+        uiLevel.innerText = (index + 1);
+        updateUI();
+    }
+
+    function updateUI() {
+        uiStars.innerText = `${starsCollected}/${totalStars}`;
+    }
+
+    function handleKey(e) {
+        if(gameState !== 'PLAYING') return;
+        switch(e.key) {
+            case 'ArrowUp': case 'w': case 'W': attemptMove(0, -1); break;
+            case 'ArrowDown': case 's': case 'S': attemptMove(0, 1); break;
+            case 'ArrowLeft': case 'a': case 'A': attemptMove(-1, 0); break;
+            case 'ArrowRight': case 'd': case 'D': attemptMove(1, 0); break;
+        }
+    }
+
+    function attemptMove(dc, dr) {
+        // Can't move into immediate wall
+        if(grid[player.r + dr][player.c + dc] === 1) return;
+
+        // Calculate Target Angle (0: Right, 90: Down, 180: Left, 270: Up)
+        if(dc === 1) player.targetAngle = 0;
+        if(dr === 1) player.targetAngle = Math.PI / 2;
+        if(dc === -1) player.targetAngle = Math.PI;
+        if(dr === -1) player.targetAngle = -Math.PI / 2;
+
+        player.dc = dc;
+        player.dr = dr;
+        
+        // Raycast to find stopping point
+        let nc = player.c;
+        let nr = player.r;
+        while(true) {
+            if(grid[nr + dr][nc + dc] === 1) break;
+            nc += dc;
+            nr += dr;
+        }
+
+        player.targetX = nc * tileSize;
+        player.targetY = nr * tileSize;
+        gameState = 'MOVING';
+
+        // Add start position to trail
+        trailPath.push({x: player.x, y: player.y});
+    }
+
+    function collectItems() {
+        // Check grid positions we are passing through
+        let currentC = Math.round(player.x / tileSize);
+        let currentR = Math.round(player.y / tileSize);
+
+        // --- NEW: Checagem de Espinhos (Morte) ---
+        if(grid[currentR][currentC] === 5 && gameState !== 'DEAD') {
+            die();
+            return;
+        }
+        // -----------------------------------------
+
+        if(grid[currentR][currentC] === 2) {
+            grid[currentR][currentC] = 0; // Remove star
+            starsCollected++;
+            updateUI();
+        }
+
+        if(grid[currentR][currentC] === 3 && starsCollected === totalStars) {
+            gameState = 'TRANSITION';
+            currentLevel++;
+            setTimeout(() => {
+                overlayTitle.innerHTML = "LEVEL CLEAR!";
+                overlayBtn.innerText = "NEXT LEVEL";
+                overlay.classList.remove('hidden');
+            }, 500);
+        }
+    }
+
+    // --- NEW: Função de Morte ---
+    function die() {
+        gameState = 'DEAD';
+        
+        // Gera partículas de explosão no local da morte
+        for(let i=0; i<35; i++) {
+            particles.push({
+                x: player.x + tileSize/2,
+                y: player.y + tileSize/2,
+                vx: (Math.random() - 0.5) * 15,
+                vy: (Math.random() - 0.5) * 15,
+                life: 1.0,
+                decay: Math.random() * 0.04 + 0.01,
+                color: ['#ff0000', '#ff4500', '#8b0000', '#ffb6c1'][Math.floor(Math.random()*4)],
+                size: Math.random() * 8 + 2
+            });
+        }
+        
+        // Reinicia a fase automaticamente após um tempo
+        setTimeout(() => {
+            loadLevel(currentLevel);
+        }, 1200);
+    }
+
+    function lerpAngle(a, b, t) {
+        // Shortest path interpolation for angles
+        let diff = b - a;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        return a + diff * t;
+    }
+
+    // --- RENDER LOOP ---
+    function gameLoop(timestamp) {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+        // Update bg stars
+        bgStars.forEach(s => {
+            s.alpha += s.speed;
+            if(s.alpha > Math.PI * 2) s.alpha = 0;
+        });
+
+        // --- NEW: Atualiza Partículas de Morte e Paralisa o Jogo ---
+        if (gameState === 'DEAD') {
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+            });
+            particles = particles.filter(p => p.life > 0);
+            return; // Impede a continuação do movimento
+        }
+
+        if(gameState === 'MOVING') {
+            // Smooth Rotation
+            player.angle = lerpAngle(player.angle, player.targetAngle, 0.2);
+
+            // Move
+            let dx = player.targetX - player.x;
+            let dy = player.targetY - player.y;
+            let dist = Math.hypot(dx, dy);
+
+            if(dist <= player.speed) {
+                // Arrived
+                player.x = player.targetX;
+                player.y = player.targetY;
+                player.c = Math.round(player.x / tileSize);
+                player.r = Math.round(player.y / tileSize);
+                gameState = 'PLAYING';
+                trailPath.push({x: player.x, y: player.y}); // Anchor trail
+            } else {
+                player.x += (dx / dist) * player.speed;
+                player.y += (dy / dist) * player.speed;
+            }
+            
+            collectItems();
+        } else if (gameState === 'PLAYING') {
+            // Settle rotation perfectly
+            player.angle = lerpAngle(player.angle, player.targetAngle, 0.3);
+        }
+    }
+
+    function draw() {
+        // Clear screen
+        ctx.fillStyle = '#0b0c10';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Space Background
+        bgStars.forEach(s => {
+            ctx.globalAlpha = Math.abs(Math.sin(s.alpha));
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(s.x * canvas.width, s.y * canvas.height, s.size, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        if (cols === 0) return; // Not loaded yet
+
+        // Center grid in canvas
+        const offsetX = (canvas.width - cols * tileSize) / 2;
+        const offsetY = (canvas.height - rows * tileSize) / 2;
+
+        ctx.save();
+        ctx.translate(offsetX, offsetY);
+
+        // Draw Rainbow Trail
+        if(trailPath.length > 0 || gameState === 'MOVING') {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = tileSize * 0.4;
+            
+            const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082'];
+            
+            // Re-construct path dynamically with colors
+            let pathSegments = [...trailPath];
+            if(gameState === 'MOVING') pathSegments.push({x: player.x, y: player.y});
+
+            if(pathSegments.length > 1) {
+                for(let i=0; i < pathSegments.length - 1; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(pathSegments[i].x + tileSize/2, pathSegments[i].y + tileSize/2);
+                    ctx.lineTo(pathSegments[i+1].x + tileSize/2, pathSegments[i+1].y + tileSize/2);
+                    // Colorful cycle
+                    ctx.strokeStyle = colors[i % colors.length];
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Draw Grid
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                const px = c * tileSize;
+                const py = r * tileSize;
+
+                if(grid[r][c] === 1) {
+                    // Wall
+                    ctx.fillStyle = '#1f2833';
+                    ctx.fillRect(px, py, tileSize, tileSize);
+                    // Inner border for retro style
+                    ctx.strokeStyle = '#45a29e';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(px+2, py+2, tileSize-4, tileSize-4);
+                } 
+                else if(grid[r][c] === 2) {
+                    // Star
+                    drawStar(px + tileSize/2, py + tileSize/2, 5, tileSize*0.3, tileSize*0.15, '#ffd700');
+                }
+                else if(grid[r][c] === 3) {
+                    // Portal
+                    const time = Date.now() / 200;
+                    ctx.fillStyle = starsCollected === totalStars ? '#66fcf1' : '#c5c6c7';
+                    ctx.beginPath();
+                    ctx.arc(px + tileSize/2, py + tileSize/2, tileSize*0.3 + Math.sin(time)*4, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    if(starsCollected === totalStars) {
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(px + tileSize/2, py + tileSize/2, tileSize*0.4 + Math.cos(time)*5, 0, Math.PI*2);
+                        ctx.stroke();
+                    }
+                }
+                else if(grid[r][c] === 5) {
+                    // NEW: Desenho do Espinho (Spike)
+                    ctx.fillStyle = '#d90429';
+                    ctx.beginPath();
+                    ctx.moveTo(px + tileSize/2, py + tileSize*0.15); // Topo do espinho
+                    ctx.lineTo(px + tileSize*0.85, py + tileSize*0.85); // Base Direita
+                    ctx.lineTo(px + tileSize*0.15, py + tileSize*0.85); // Base Esquerda
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Detalhe interno do espinho
+                    ctx.fillStyle = '#ff4d6d';
+                    ctx.beginPath();
+                    ctx.moveTo(px + tileSize/2, py + tileSize*0.35);
+                    ctx.lineTo(px + tileSize*0.65, py + tileSize*0.75);
+                    ctx.lineTo(px + tileSize*0.35, py + tileSize*0.75);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Draw Player (Nyan Cat) - Esconde se estiver morto
+        if (gameState !== 'DEAD') {
+            ctx.save();
+            ctx.translate(player.x + tileSize/2, player.y + tileSize/2);
+            ctx.rotate(player.angle);
+            
+            const catSize = tileSize * 0.8;
+            if(nyanImg.complete && nyanImg.naturalWidth !== 0) {
+                ctx.drawImage(nyanImg, -catSize/2, -catSize/2, catSize, catSize);
+            } else {
+                // Fallback
+                ctx.fillStyle = '#ff69b4';
+                ctx.fillRect(-catSize/2, -catSize/4, catSize, catSize/2);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(catSize/4, -catSize/4 + 2, 4, 4); // eye
+            }
+            ctx.restore();
+        }
+
+        // --- NEW: Desenha Partículas de Morte ---
+        particles.forEach(p => {
+            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        ctx.restore();
+    }
+
+    function drawStar(cx, cy, spikes, outerRadius, innerRadius, color) {
+        let rot = Math.PI / 2 * 3;
+        let x = cx;
+        let y = cy;
+        let step = Math.PI / spikes;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - outerRadius)
+        for (let i = 0; i < spikes; i++) {
+            x = cx + Math.cos(rot) * outerRadius;
+            y = cy + Math.sin(rot) * outerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+
+            x = cx + Math.cos(rot) * innerRadius;
+            y = cy + Math.sin(rot) * innerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+        }
+        ctx.lineTo(cx, cy - outerRadius);
+        ctx.closePath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    // Start Engine
+    init();
+
+</script>
+</body>
+</html>
