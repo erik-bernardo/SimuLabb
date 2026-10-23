@@ -1,65 +1,781 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justiça na Pólis: O Julgamento de Platão (Swipe)</title>
-    <link rel="stylesheet" href="style.css">
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Justiça na Pólis: O Julgamento de Platão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --marble: #f7f3ea;
+    --marble-2: #ece4d3;
+    --sand: #e2d3b3;
+    --gold: #b8923a;
+    --gold-2: #d9b95b;
+    --blue: #1d5a86;
+    --blue-dark: #0e3552;
+    --blue-soft: #d8e6ef;
+    --ink: #2a2622;
+    --muted: #6b6254;
+    --terra: #9b4a2f;
+    --ok: #1f6f5c;
+    --serif: "Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif;
+    --sans: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --shadow: 0 14px 34px rgba(40, 30, 10, .22);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: var(--marble-2);
+    background-image:
+      url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.011' numOctaves='5' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 0.42  0 0 0 0 0.38  0 0 0 0 0.30  0 0 0 0.55 -0.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(900px 500px at 50% -10%, #fffdf7, transparent 70%),
+      linear-gradient(180deg, #f4eee0, #e6dcc5);
+    background-attachment: fixed;
+  }
+  .meander {
+    height: 22px; width: 100%;
+    background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M2 20V2h18v18H7V7h8v8' fill='none' stroke='%23b8923a' stroke-width='2' stroke-linecap='square'/%3E%3C/svg%3E") repeat-x center;
+    background-color: var(--blue-dark);
+    border-bottom: 3px solid var(--gold);
+  }
+  .meander.bottom { border-bottom: 0; border-top: 3px solid var(--gold); }
+
+  .game {
+    max-width: 560px; margin: 0 auto; padding: 8px 12px 12px;
+    display: flex; flex-direction: column; gap: 9px;
+    min-height: calc(100dvh - 50px);
+  }
+  .brand { margin: 2px 0 0; text-align: center; font-family: var(--serif); font-weight: 900; font-size: 17px; letter-spacing: .08em; text-transform: uppercase; color: var(--blue-dark); }
+  .brand small { display: block; font-weight: 500; font-size: 10.5px; letter-spacing: .24em; color: var(--gold); margin-top: 2px; }
+
+  /* Painel do filósofo guia */
+  .guide {
+    display: flex; gap: 12px; align-items: center; padding: 10px 12px;
+    background: linear-gradient(180deg, #fffdf8, var(--marble)); border: 1.5px solid var(--gold); border-radius: 14px;
+    box-shadow: 0 0 0 3px rgba(184, 146, 58, .14), var(--shadow);
+  }
+  .avatar {
+    flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+    font-family: var(--serif); font-weight: 900; font-size: 22px; color: #fff;
+    background: radial-gradient(circle at 30% 25%, #3b86b8, var(--blue-dark));
+    border: 2px solid var(--gold-2); box-shadow: 0 3px 8px rgba(14, 53, 82, .4);
+  }
+  .guide-info { min-width: 0; animation: fadeUp .5s both; }
+  .guide-chap { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .guide-name { font-family: var(--serif); font-weight: 700; font-size: 17px; color: var(--blue-dark); line-height: 1.15; }
+  .guide-def { display: block; font-size: 13px; font-style: italic; color: var(--muted); line-height: 1.35; margin-top: 2px; }
+  .guide-def::before { content: "“"; } .guide-def::after { content: "”"; }
+
+  .prog { display: flex; gap: 6px; }
+  .pchap { flex: 1; display: flex; gap: 3px; }
+  .pchap i { flex: 1; height: 5px; border-radius: 3px; background: rgba(120, 100, 60, .22); transition: background .4s; }
+  .pchap i.done { background: var(--gold); }
+  .pchap i.now { background: var(--blue); }
+
+  /* Recursos */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-top: 6px; }
+  .stat {
+    position: relative; text-align: center; padding: 14px 4px 7px;
+    background: linear-gradient(180deg, #fffdf8, var(--marble)); border: 1px solid rgba(184, 146, 58, .55); border-radius: 12px;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .stat.up { animation: pulseUp .7s; } .stat.down { animation: pulseDown .7s; }
+  .stat.danger { box-shadow: 0 0 0 2px rgba(155, 74, 47, .55); }
+  .dot {
+    position: absolute; top: -6px; left: 50%; border-radius: 50%; transform: translateX(-50%) scale(0); opacity: 0;
+    background: radial-gradient(circle at 35% 30%, #fff3c0, var(--gold) 70%); box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(184, 146, 58, .8);
+    transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), opacity .2s;
+  }
+  .dot.on { opacity: 1; transform: translateX(-50%) scale(1); }
+  .dot.s1 { width: 8px; height: 8px; } .dot.s2 { width: 12px; height: 12px; } .dot.s3 { width: 17px; height: 17px; top: -9px; }
+  .st-icon { font-size: 23px; line-height: 1; }
+  .st-name { font-family: var(--serif); font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--blue-dark); margin: 3px 0 5px; text-transform: uppercase; }
+  .bar { height: 7px; margin: 0 6px; border-radius: 4px; background: rgba(120, 100, 60, .2); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, var(--blue), #4b9bcc); border-radius: 4px; transition: width .7s cubic-bezier(.2, .8, .2, 1), background .4s; }
+  .stat.danger .bar i { background: linear-gradient(90deg, var(--terra), #d0764f); }
+  .st-val { font-size: 11px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  /* Palco e cartas */
+  .stage { position: relative; flex: 1; min-height: 360px; max-height: 540px; perspective: 1000px; }
+  .card, .card-back, .feedback {
+    position: absolute; inset: 0; border-radius: 20px;
+    background: linear-gradient(180deg, #fffdf8, var(--marble)); border: 2px solid var(--gold);
+    box-shadow: 0 0 0 4px rgba(184, 146, 58, .15), var(--shadow);
+  }
+  .card-back { transform: translateY(10px) scale(.95); opacity: .8; background: var(--sand); }
+  .card-back.b2 { transform: translateY(19px) scale(.9); opacity: .55; }
+  .card-back.hide { display: none; }
+  .card {
+    display: flex; flex-direction: column; align-items: center; text-align: center; padding: 16px 20px 18px;
+    cursor: grab; user-select: none; -webkit-user-select: none; touch-action: pan-y; overflow: hidden; z-index: 2;
+    transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .4s;
+    will-change: transform;
+  }
+  .card.dragging { transition: none; cursor: grabbing; }
+  .card.enter { animation: cardIn .5s cubic-bezier(.2, .8, .2, 1) both; }
+  .card[hidden] { display: none; }
+  .art {
+    flex: none; width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center; font-size: 56px; margin-top: 42px;
+    background: radial-gradient(circle at 30% 25%, #fff, var(--blue-soft) 60%, #b9d0df);
+    border: 3px solid var(--gold-2); box-shadow: inset 0 -6px 14px rgba(29, 90, 134, .22), 0 6px 14px rgba(14, 53, 82, .2);
+  }
+  .card h2 { font-family: var(--serif); font-weight: 700; font-size: 21px; margin: 14px 0 8px; color: var(--blue-dark); letter-spacing: .02em; }
+  .card p { margin: 0; font-size: 15.5px; line-height: 1.5; color: var(--ink); overflow-y: auto; }
+  .tag {
+    position: absolute; top: 12px; left: 50%; max-width: 76%; padding: 6px 14px; border-radius: 10px; font-family: var(--serif); font-weight: 700; font-size: 12.5px;
+    letter-spacing: .03em; line-height: 1.2; opacity: 0; pointer-events: none; text-align: center;
+    color: #fff; background: var(--blue-dark); border: 2px solid var(--gold-2); box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+  }
+  .tagL { transform: translateX(-50%) rotate(-4deg); } .tagR { transform: translateX(-50%) rotate(4deg); background: var(--terra); }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; transition: opacity .25s; }
+  .controls.off { opacity: 0; pointer-events: none; }
+  .controls.gone { display: none; }
+  .btn {
+    font-family: var(--serif); font-weight: 700; font-size: 13px; letter-spacing: .03em; line-height: 1.2; cursor: pointer;
+    padding: 12px 10px; border-radius: 12px; border: 2px solid var(--gold); color: var(--blue-dark); background: linear-gradient(180deg, #fffdf8, var(--sand));
+    box-shadow: 0 4px 0 rgba(184, 146, 58, .55); transition: transform .12s, box-shadow .12s, background .2s;
+  }
+  .btn:hover, .btn:focus-visible { background: linear-gradient(180deg, #fff, #f1e4c2); outline: none; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(184, 146, 58, .55); }
+  .btn .arr { color: var(--gold); margin: 0 4px; }
+  .btn.primary { color: #fff; background: linear-gradient(180deg, #2b77aa, var(--blue-dark)); border-color: var(--gold-2); box-shadow: 0 4px 0 #082338; padding: 13px 22px; font-size: 14px; }
+  .btn.primary:hover, .btn.primary:focus-visible { background: linear-gradient(180deg, #3a8cc4, #134568); }
+  .btn.primary:active { box-shadow: 0 1px 0 #082338; }
+  .hint { text-align: center; font-size: 12px; color: var(--muted); margin: 0; }
+  .hint kbd { font-family: var(--sans); background: #fff; border: 1px solid var(--gold); border-radius: 4px; padding: 0 5px; }
+
+  /* Feedback */
+  .feedback { z-index: 3; padding: 16px 18px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; animation: slideUp .5s cubic-bezier(.2, .8, .2, 1) both; }
+  .feedback[hidden] { display: none; }
+  .fb-head { display: flex; align-items: center; gap: 12px; }
+  .fb-who { font-family: var(--serif); font-weight: 900; font-size: 17px; }
+  .fb-who.good { color: var(--ok); } .fb-who.warn { color: var(--terra); }
+  .fb-choice { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .fb-text { margin: 0; font-size: 15.5px; line-height: 1.5; }
+  .fb-fx { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #fff; border: 1px solid rgba(184, 146, 58, .6); }
+  .chip.up { color: var(--ok); } .chip.down { color: var(--terra); }
+  .fb-lesson { background: var(--blue-soft); border-left: 4px solid var(--blue); border-radius: 8px; padding: 10px 12px; font-size: 14px; line-height: 1.5; }
+  .fb-lesson b { display: block; font-family: var(--serif); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--blue-dark); margin-bottom: 3px; }
+  .fb-lesson p { margin: 0; }
+  .feedback .btn.primary { align-self: center; margin-top: auto; position: sticky; bottom: 0; flex: none; }
+  .feedback .fb-end { height: 2px; flex: none; }
+
+  /* Modais */
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 14px;
+    background: rgba(8, 35, 56, .82); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); opacity: 0; transition: opacity .4s;
+  }
+  .overlay.show { opacity: 1; } .overlay[hidden] { display: none; }
+  .modal {
+    width: 100%; max-width: 480px; max-height: 94dvh; overflow-y: auto; padding: 22px 22px 20px; text-align: center;
+    background: linear-gradient(180deg, #fffdf8, var(--marble)); border: 2px solid var(--gold); border-radius: 20px;
+    box-shadow: 0 0 0 5px rgba(184, 146, 58, .25), 0 24px 60px rgba(0, 0, 0, .5); animation: pop .5s cubic-bezier(.2, 1.2, .4, 1) both;
+  }
+  .modal .avatar { margin: 0 auto 8px; width: 62px; height: 62px; font-size: 30px; }
+  .modal .big { font-size: 56px; line-height: 1; margin-bottom: 4px; }
+  .modal .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .modal h2 { font-family: var(--serif); font-size: 23px; color: var(--blue-dark); margin: 4px 0 10px; letter-spacing: .02em; }
+  .modal p { font-size: 14.5px; line-height: 1.55; margin: 0 0 10px; text-align: left; }
+  .modal blockquote { margin: 12px 0; padding: 10px 14px; font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--blue-dark); background: var(--blue-soft); border-radius: 10px; border: 1px solid rgba(29, 90, 134, .3); }
+  .modal ul { text-align: left; font-size: 14px; line-height: 1.5; padding-left: 20px; margin: 0 0 12px; }
+  .modal li { margin-bottom: 4px; }
+  .modal .btn.primary { margin-top: 6px; }
+  .mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 4px 0 12px; }
+  .mini div { background: #fff; border: 1px solid rgba(184, 146, 58, .55); border-radius: 10px; padding: 6px 2px; font-size: 12px; color: var(--muted); }
+  .mini span { display: block; font-size: 19px; }
+  .mini b { color: var(--ink); }
+
+  @keyframes cardIn { from { opacity: 0; transform: translateY(30px) scale(.92) rotate(-2deg); } to { opacity: 1; transform: none; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: scale(.88) translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes pulseUp { 0%, 100% { transform: none; } 40% { transform: translateY(-4px) scale(1.05); box-shadow: 0 0 0 3px rgba(31, 111, 92, .5); } }
+  @keyframes pulseDown { 0%, 100% { transform: none; } 40% { transform: translateY(2px) scale(.96); box-shadow: 0 0 0 3px rgba(155, 74, 47, .5); } }
+
+  @media (max-width: 420px) {
+    .brand { font-size: 15px; }
+    .card h2 { font-size: 19px; } .card p, .fb-text { font-size: 14.5px; }
+    .art { width: 88px; height: 88px; font-size: 46px; margin-top: 40px; }
+    .st-name { font-size: 9.5px; } .guide-def { font-size: 12.5px; }
+    .btn { font-size: 12px; }
+  }
+  @media (max-height: 640px) { .hint { display: none; } .art { width: 74px; height: 74px; font-size: 38px; margin-top: 38px; } }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .01s !important; transition-duration: .01s !important; } }
+</style>
 </head>
 <body>
+<div class="meander" aria-hidden="true"></div>
 
-    <div class="game-background">
-        <div class="moon"></div>
-        <div class="hills left-hill"></div>
-        <div class="hills right-hill"></div>
-        <div class="stars"></div>
+<div class="game" id="game">
+  <h1 class="brand">Justiça na Pólis<small>O Julgamento de Platão</small></h1>
+
+  <header class="guide" aria-live="polite">
+    <div class="avatar" id="gAvatar">Κ</div>
+    <div class="guide-info" id="gInfo">
+      <div class="guide-chap" id="gChap"></div>
+      <div class="guide-name" id="gName"></div>
+      <q class="guide-def" id="gDef"></q>
     </div>
+  </header>
 
-    <div class="game-container">
-        
-        <div class="top-bar">
-            <div class="icon-slot">✝️</div>
-            <div class="icon-slot">🤸</div>
-            <div class="icon-slot">🗡️</div>
-            <div class="icon-slot">💲</div>
-        </div>
+  <div class="prog" id="prog" aria-hidden="true"></div>
+  <section class="stats" id="stats" aria-label="Recursos da Pólis"></section>
 
-        <div id="philosopher-info" class="philosopher-info">
-            <p>Filósofo Guia: <strong id="current-philosopher">Céfalo</strong></p>
-            <p class="philosopher-definition" id="philosopher-definition"></p>
-        </div>
+  <main class="stage" id="stage">
+    <div class="card-back b2" id="back2"></div>
+    <div class="card-back" id="back1"></div>
+    <article class="card" id="card" hidden></article>
+    <section class="feedback" id="feedback" hidden aria-live="polite"></section>
+  </main>
 
-        <div class="card-stack">
-            <div id="decision-card" class="decision-card">
-                <div class="card-background-pattern"></div>
-                <div class="card-content">
-                    <h3 id="dilemma-title">Dilema 1: O Tesouro Esquecido</h3>
-                    <p id="dilemma-text"></p>
-                </div>
-            </div>
-        </div>
+  <div class="controls" id="controls">
+    <button class="btn" id="btnL"></button>
+    <button class="btn" id="btnR"></button>
+  </div>
+  <p class="hint">Arraste a carta para a esquerda ou direita &nbsp;·&nbsp; ou use <kbd>←</kbd> <kbd>→</kbd></p>
+</div>
 
-        <div class="swipe-area-labels">
-            <span id="label-left" class="swipe-label"></span>
-            <span id="label-right" class="swipe-label"></span>
-        </div>
+<div class="meander bottom" aria-hidden="true"></div>
 
-        <div class="bottom-bar">
-            <div class="icon-slot">📦</div>
-            <div class="icon-slot">🦴</div>
-            <div class="icon-slot">🧭</div>
-            <div class="icon-slot">📖</div>
-        </div>
+<div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 
-        <div id="feedback-panel" class="feedback-panel hidden">
-            <p id="feedback-message"></p>
-            <button id="next-button">PRÓXIMO DILEMA</button>
-        </div>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-    </div>
+  /* =========================================================
+     DADOS DO JOGO
+     fx = [Piedade, Povo, Ordem, Riqueza]
+     ========================================================= */
+  const STATS = [
+    { icon: '✝️', name: 'Piedade', sub: 'Tradição' },
+    { icon: '🤸', name: 'Povo', sub: 'Saúde' },
+    { icon: '🗡️', name: 'Ordem', sub: 'Exército' },
+    { icon: '💲', name: 'Riqueza', sub: 'Tesouro' }
+  ];
+  const AV = { 'Céfalo': 'Κ', 'Polemarco': 'Π', 'Trasímaco': 'Θ', 'Sócrates': 'Σ', 'Platão': 'Φ' };
+  const avOf = (w) => AV[w.split(' ')[0]] || 'Σ';
+  const o = (label, fx, who, tone, text, lesson) => ({ label, fx, who, tone, text, lesson });
 
-    <script src="script.js"></script>
+  /*DATA*/
+  const CHAPTERS = [
+    {
+      name: 'Céfalo', avatar: 'Κ', title: 'O ancião e a palavra dada',
+      concept: 'Justiça é falar a verdade e devolver o que se tomou de alguém.',
+      intro: 'Você chega à casa de Polemarco, no Pireu. O velho Céfalo, rico e respeitado, diz que a riqueza serve para não enganar ninguém e não ficar devendo aos homens nem aos deuses. Para ele, ser justo é simples: dizer a verdade e pagar o que se deve.',
+      cards: [
+        {
+          icon: '🛡️', title: 'As armas confiadas',
+          text: 'Um amigo deixou suas armas sob sua guarda. Hoje ele volta, transtornado, exigindo-as de volta. Todos sabem que pretende usá-las contra os vizinhos.',
+          L: o('Devolver as armas', [8, -4, -14, 0], 'Céfalo aprova', 'good',
+            'Você devolveu o que era dele e manteve a palavra! Na definição de Céfalo, restituir o que foi confiado é o dever do justo.',
+            'Mas repare no risco: as armas voltaram às mãos de um homem fora de si. Sócrates usará exatamente este caso para testar a definição: “e se o dono das armas enlouqueceu?”'),
+          R: o('Reter as armas', [-8, 6, 10, 0], 'Sócrates questiona', 'warn',
+            'Você protegeu os vizinhos, mas quebrou a regra de Céfalo de devolver sempre o que se tomou. Então a justiça nem sempre é devolver?',
+            'Este é o contraexemplo de Sócrates: se o amigo enlouqueceu, devolver as armas seria um erro. Logo, “dizer a verdade e devolver o que se deve” não pode ser a definição completa da justiça.')
+        },
+        {
+          icon: '⚖️', title: 'O falso testemunho',
+          text: 'Um rico mercador, grande doador do templo, pede que você afirme ao tribunal que o filho dele estava em casa na noite do roubo. Você sabe que não estava.',
+          L: o('Dizer a verdade', [8, -6, 6, -10], 'Céfalo aprova', 'good',
+            'A verdade vem antes do favor. Para Céfalo, quem mente por conveniência acumula dívidas e passa a velhice atormentado.',
+            'Dizer a verdade é parte importante da justiça. Mas Sócrates perguntará: sempre? Existem situações em que a verdade, dita sem cuidado, causa um mal maior?'),
+          R: o('Mentir pelo mercador', [-12, -4, 0, 14], 'Céfalo desaprova', 'warn',
+            'A mentira trouxe ouro, mas quebrou a palavra, o alicerce da justiça para Céfalo. Ele mesmo diz que, ao envelhecer, o homem se lembra das injustiças com medo.',
+            'A consciência pesa mais do que o ouro. Platão dirá que a injustiça adoece a própria alma de quem a pratica.')
+        },
+        {
+          icon: '📜', title: 'A dívida do pescador',
+          text: 'Um pescador pobre deve uma quantia a um credor rico. A pesca falhou e a família passa fome. O credor reclama o pagamento diante de você.',
+          L: o('Perdoar a dívida', [-6, 14, -4, -10], 'Sócrates questiona', 'warn',
+            'Você aliviou a fome, mas quebrou o contrato. Se toda dívida pudesse ser perdoada por compaixão, quem ainda confiaria na palavra dada?',
+            'A regra de Céfalo é clara, porém fria: ela não diz quando a compaixão e o bem da cidade devem pesar. Uma definição de justiça precisa ir além de “pagar o que se deve”.'),
+          R: o('Exigir o pagamento', [6, -14, 4, 12], 'Céfalo aprova', 'good',
+            'Dívida é dívida: pagar o que se deve é o alicerce da confiança e do comércio.',
+            'A regra de Céfalo mantém a cidade previsível, mas pode gerar sofrimento. Ela olha só para o ato de devolver e ignora o contexto e as consequências.')
+        },
+        {
+          icon: '🏺', title: 'A oferenda ao templo',
+          text: 'Os sacerdotes lembram que a cidade deve sacrifícios aos deuses antes das festas. O tesouro está curto, mas Céfalo diz que a riqueza serve justamente para não ficar devendo aos deuses.',
+          L: o('Oferecer o sacrifício', [14, 4, 0, -12], 'Céfalo aprova', 'good',
+            'Quem paga o que deve aos deuses dorme em paz. A riqueza bem usada livra do medo.',
+            'Para Céfalo, o maior valor do dinheiro é permitir ser justo: pagar a homens e deuses. Platão não negará isso, mas mostrará que a justiça é mais do que quitar dívidas.'),
+          R: o('Poupar o tesouro', [-14, -4, 4, 10], 'Céfalo adverte', 'warn',
+            'Poupar é prudente, mas deixar os deuses sem a oferenda é uma dívida em aberto. Os mais velhos murmuram nas praças.',
+            'A tradição une a cidade e descuidar dela custa coesão. Por outro lado, gastar sem limite arruína o tesouro: a justiça pede medida.')
+        }
+      ]
+    },
+    {
+      name: 'Polemarco', avatar: 'Π', title: 'Amigos, inimigos e a lealdade',
+      concept: 'Justiça é fazer o bem aos amigos e o mal aos inimigos.',
+      intro: 'Sócrates mostrou que devolver armas a um louco seria um erro. O velho Céfalo se retira para os sacrifícios e deixa o debate com o filho, Polemarco. Ele defende o que dizia o poeta Simônides: dar a cada um o que lhe é devido, isto é, bem aos amigos e mal aos inimigos.',
+      cards: [
+        {
+          icon: '🏛️', title: 'O general amigo',
+          text: 'Seu velho amigo, um general, é acusado de desviar o soldo das tropas. Ele jura inocência e lembra que foi você quem o promoveu. As provas são fortes.',
+          L: o('Proteger o amigo', [-4, -10, 8, -6], 'Polemarco aprova', 'good',
+            'Amigos se ajudam! Fazer o bem aos amigos é o dever do homem justo.',
+            'Mas Sócrates pergunta: e se o amigo for mau? Ajudar um homem injusto torna você cúmplice, e a definição não distingue amigos de verdade dos que só parecem bons.'),
+          R: o('Julgá-lo com rigor', [4, 10, -12, 8], 'Sócrates questiona', 'warn',
+            'Você pôs a lei acima do amigo. Mas então “bem aos amigos” nem sempre vale? Quando o amigo é mau, ajudá-lo seria justo?',
+            'Sócrates mostra que a definição falha: devemos ajudar quem é bom e de fato amigo, não quem apenas parece ser.')
+        },
+        {
+          icon: '🕵️', title: 'O espião capturado',
+          text: 'Uma patrulha prendeu um espião da cidade inimiga. Ele implora clemência e diz ter filhos pequenos. Os soldados pedem sua execução como exemplo.',
+          L: o('Executá-lo', [4, -6, 12, 0], 'Polemarco aprova', 'good',
+            'Mal aos inimigos! Um inimigo capturado paga pelo que fez.',
+            'Sócrates replicará: ferir um cavalo o torna um cavalo pior; ferir um homem o torna pior como homem, isto é, mais injusto. Pode a justiça produzir injustiça?'),
+          R: o('Libertá-lo com um aviso', [6, 8, -12, -2], 'Sócrates aprova', 'good',
+            'Você não devolveu o mal com o mal. Para Sócrates, a justiça jamais pode tornar alguém pior.',
+            'Prejudicar alguém não o torna mais justo. Como a justiça é uma virtude, não é obra do justo fazer o mal, nem mesmo a um inimigo.')
+        },
+        {
+          icon: '🌾', title: 'A isenção de impostos',
+          text: 'Dois pedidos chegam à sua mesa. Seu amigo, dono de terras, quer isenção de impostos. Um rival político quer erguer um celeiro público que alimentaria a cidade nos anos de seca.',
+          L: o('Favorecer o amigo', [0, -10, 6, -8], 'Polemarco aprova', 'good',
+            'Amigos primeiro! É assim que a cidade premia a lealdade.',
+            'Sócrates perguntaria: o amigo é bom, ou só parece? E o rival é mau, ou só parece? Julgar por laços e aparências é um erro frequente.'),
+          R: o('Apoiar o celeiro do rival', [2, 12, -6, -6], 'Sócrates aprova', 'good',
+            'Você avaliou o projeto, não a pessoa. Polemarco estranha: e a lealdade aos amigos?',
+            'Podemos errar sobre quem é amigo e quem é inimigo, e então ajudaríamos os maus e feriríamos os bons. A justiça precisa olhar o que é de fato bom, não quem pede.')
+        },
+        {
+          icon: '🔥', title: 'A fúria da multidão',
+          text: 'Mercadores estrangeiros foram acusados de fraudar o preço do trigo. A multidão quer incendiar seus armazéns antes de qualquer julgamento.',
+          L: o('Deixar a multidão agir', [0, 8, -14, -10], 'Polemarco aprova', 'good',
+            'Mal aos inimigos! O povo se sente vingado e a fúria se aplaca.',
+            'Mas quem decide quem é o inimigo? Uma multidão enfurecida erra com facilidade, e o mal só gera mais mal, num ciclo de vingança.'),
+          R: o('Conter e julgar', [4, -8, 10, 4], 'Sócrates aprova', 'good',
+            'Você buscou a verdade antes da punição. Justiça sem julgamento é só vingança.',
+            'Se justiça fosse apenas “mal aos inimigos”, a cidade viveria em vinganças sem fim. Para Sócrates, o justo não faz mal a ninguém.')
+        }
+      ]
+    },
+    {
+      name: 'Trasímaco', avatar: 'Θ', title: 'A lei do mais forte',
+      concept: 'Justiça é o interesse do mais forte.',
+      intro: 'Polemarco cede: ferir os outros não torna ninguém mais justo. Então Trasímaco irrompe “como uma fera” e acusa Sócrates de só fazer perguntas. Justiça, diz ele, é a vantagem de quem manda: cada governo faz leis em benefício próprio e chama de “justo” quem as obedece.',
+      cards: [
+        {
+          icon: '👑', title: 'A lei dos aristocratas',
+          text: 'Os nobres propõem uma lei que reduz seus impostos e cobra mais dos pequenos artesãos. “É a vontade de quem governa”, dizem. “Quem obedece, é justo.”',
+          L: o('Sancionar a lei', [0, -14, 6, 14], 'Trasímaco aprova', 'good',
+            'Exato! A lei é feita por quem manda, para quem manda. Isso é a justiça.',
+            'Sócrates responde: governantes também erram sobre o que lhes convém. Se mandarem algo que os prejudica, obedecer seria justo e injusto ao mesmo tempo. A definição se contradiz.'),
+          R: o('Vetar a lei', [0, 10, -8, -12], 'Sócrates questiona', 'warn',
+            'Você recusou a lei do mais forte. Trasímaco ri: “os poderosos se vingarão”. Mas e se a lei fosse injusta, mesmo sendo lei?',
+            'Se justiça fosse o interesse do mais forte, vetar seria “injusto” por definição. Sentimos o contrário, o que mostra uma falha na definição.')
+        },
+        {
+          icon: '🐑', title: 'O pastor e o rebanho',
+          text: 'Trasímaco compara os governantes a pastores que engordam as ovelhas em proveito próprio. Seu tesoureiro propõe um novo imposto sobre o povo para ampliar o palácio.',
+          L: o('Taxar o povo', [-4, -14, 4, 16], 'Trasímaco aprova', 'good',
+            'O pastor cuida do rebanho para tirar proveito dele. Quem manda deve lucrar com o mando.',
+            'Sócrates responde: a arte do pastor visa o bem do rebanho, como a do médico visa o do paciente. Um governante que só pensa em si não exerce de fato a arte de governar.'),
+          R: o('Cortar o luxo do palácio', [4, 10, -8, -8], 'Sócrates aprova', 'good',
+            'Você governou em favor dos governados, como faz o médico, o piloto e o pastor verdadeiro.',
+            'Para Sócrates, nenhuma arte busca o interesse de quem a exerce, mas o de seu objeto. Governar é cuidar.')
+        },
+        {
+          icon: '🪙', title: 'A doação do injusto',
+          text: 'Um mercador célebre por suas fraudes oferece uma imensa doação ao tesouro. Trasímaco lembra: “o injusto prospera, enquanto o justo fica pobre”.',
+          L: o('Aceitar a doação', [-6, -8, 0, 16], 'Trasímaco aprova', 'good',
+            'Ouro é ouro. A injustiça compensa para quem tem poder para praticá-la.',
+            'Sócrates reverte: o injusto vive em guerra consigo e com os outros, e não consegue agir em conjunto. Até uma quadrilha de ladrões precisa de um pouco de justiça entre si.'),
+          R: o('Recusar e investigar', [8, 6, 4, -12], 'Sócrates aprova', 'good',
+            'Você recusou a riqueza manchada. Trasímaco insiste que o injusto é mais feliz; Sócrates quer provar o contrário.',
+            'A injustiça gera discórdia e ódio, e onde há facções nada se faz em comum. A justiça é o que permite aos homens agirem juntos.')
+        },
+        {
+          icon: '⚔️', title: 'O capitão desobediente',
+          text: 'O general ordena esmagar uma passeata de artesãos que protestam contra os impostos. Um capitão se recusa: “a ordem é injusta”. O general exige que você o puna.',
+          L: o('Punir o capitão', [-4, -10, 14, -2], 'Trasímaco aprova', 'good',
+            'Obedecer a quem manda é ser justo. O capitão quebrou a única regra.',
+            'Sócrates pergunta: e se o governante se enganar sobre o que lhe convém? A obediência cega não pode ser toda a justiça.'),
+          R: o('Absolvê-lo', [4, 10, -14, 0], 'Sócrates questiona', 'warn',
+            'Você reconheceu que quem manda também erra. Mas a disciplina do exército se enfraquece com isso.',
+            'Governantes não são infalíveis e leis podem ser injustas. A justiça deve ser buscada além do mero poder, e isso exige entender o que é o bem da cidade.')
+        }
+      ]
+    },
+    {
+      name: 'Sócrates e Platão', avatar: 'Σ', title: 'A harmonia da alma e da Pólis',
+      concept: 'Justiça é a harmonia da alma e da Pólis, onde cada um cumpre seu papel.',
+      intro: 'Sócrates desarmou Trasímaco: governar é cuidar dos governados. Mas o Livro I termina sem uma resposta final. Nos livros seguintes, Platão propõe sua teoria: a cidade tem três partes (governantes, guardiões e produtores), como a alma tem razão, coragem e desejo. A cidade é justa quando cada parte cumpre a sua função em harmonia.',
+      cards: [
+        {
+          icon: '🏅', title: 'O cargo à venda',
+          text: 'Um mercador riquíssimo oferece uma fortuna para ser nomeado estratego, embora nunca tenha empunhado uma espada. “Dinheiro também é mérito”, diz ele.',
+          L: o('Vender o cargo', [-4, -6, -16, 16], 'Sócrates questiona', 'warn',
+            'Você pôs o desejo de riqueza para comandar o exército. Será que cada parte da cidade está fazendo o que sabe fazer?',
+            'Para Platão, quando os produtores usurpam a função dos guardiões, a harmonia se rompe. Essa troca de papéis é a própria injustiça.'),
+          R: o('Escolher o mais apto', [2, 8, 12, -12], 'Platão aprova', 'good',
+            'Cada um no seu ofício: o sapateiro faz sapatos e o guerreiro defende a cidade. Isso é harmonia.',
+            'Justiça é “fazer o que é seu e não se intrometer no que é dos outros”: cada parte exerce a função para a qual é mais apta.')
+        },
+        {
+          icon: '🤺', title: 'A educação dos guardiões',
+          text: 'Os jovens soldados precisam de formação. Você pode investir em música e ginástica, para educar corpo e alma, ou contratar mercenários experientes e mais baratos.',
+          L: o('Educar com música e ginástica', [4, 10, 8, -14], 'Platão aprova', 'good',
+            'Música para a alma, ginástica para o corpo: guardiões firmes com os inimigos e gentis com os cidadãos.',
+            'Platão dedica os Livros II e III à educação dos guardiões. A coragem precisa ser educada: sem formação, a força vira brutalidade.'),
+          R: o('Contratar mercenários', [-6, -8, 10, -2], 'Sócrates questiona', 'warn',
+            'Soldados que lutam por pagamento não amam a cidade que defendem. Que lealdade se compra com moedas?',
+            'A parte corajosa da alma e da cidade deve ser educada, não comprada. Quem defende a Pólis sem amá-la pode virar contra ela.')
+        },
+        {
+          icon: '🎭', title: 'Os poetas e os deuses',
+          text: 'Poetas recitam nas praças que os deuses mentem, brigam e traem. Os sacerdotes pedem que você proíba essas histórias; os poetas falam em liberdade.',
+          L: o('Censurar os poetas', [14, -10, 6, 0], 'Platão aprova', 'good',
+            'Para Platão, histórias que ensinam vícios corrompem os jovens, e a cidade deve cuidar do que eles ouvem.',
+            'Atenção: a censura de Platão é uma das ideias mais criticadas da República. Educar não é o mesmo que proibir. O que você pensa?'),
+          R: o('Permitir a liberdade', [-12, 10, -4, 4], 'Sócrates questiona', 'warn',
+            'A arte floresce e o povo se alegra, mas os jovens ouvem sobre deuses viciosos. Quem forma o caráter da cidade?',
+            'O dilema vive até hoje: liberdade criativa versus formação moral. Platão pende para a ordem; muitos filósofos modernos, para a liberdade.')
+        },
+        {
+          icon: '🧭', title: 'O filósofo-rei',
+          text: 'A assembleia está dividida. Alguns pedem que governem os mais sábios, formados por décadas de estudo. Outros exigem escolher os governantes por sorteio e voto popular.',
+          L: o('Entregar o governo aos sábios', [8, -10, 8, 4], 'Platão aprova', 'good',
+            'A razão deve governar a alma e a cidade, como o piloto conduz o navio.',
+            'Para Platão, só haverá justiça quando filósofos governarem ou os governantes filosofarem. Os críticos perguntam: quem vigia os sábios?'),
+          R: o('Manter a assembleia popular', [-6, 12, -8, -4], 'Sócrates questiona', 'warn',
+            'Você confiou em todo o povo. Mas, diz Platão, um navio disputado por marujos que não sabem navegar vai à deriva.',
+            'A alegoria do navio critica a democracia sem conhecimento. Os defensores respondem que o poder de poucos pode virar tirania. A pergunta segue aberta.')
+        }
+      ]
+    }
+  ];
+  /*DATA-END*/
+
+  const GAME_OVER = [
+    { low: { icon: '🌑', title: 'O Esquecimento dos Deuses', text: 'Sem piedade e sem tradição, os templos esvaziaram e ninguém mais respeita juramentos ou costumes. Sem esses laços comuns, a cidade se desfez em desconfiança e cada um passou a viver só para si.' },
+      high: { icon: '🔥', title: 'A Teocracia', text: 'A devoção excessiva entregou o poder aos sacerdotes. Os oráculos passaram a decidir tudo, a razão foi calada e qualquer dúvida virou impiedade. A Pólis tornou-se prisioneira do medo.' } },
+    { low: { icon: '🥀', title: 'A Fome e a Peste', text: 'O povo adoeceu, passou fome e fugiu das muralhas. Sem cidadãos saudáveis, não há quem cultive, comercie ou lute. A cidade ficou vazia.' },
+      high: { icon: '🎭', title: 'A Licença da Multidão', text: 'O povo teve tudo o que pediu, e logo passou a desprezar leis e autoridades. Para Platão, é assim que a liberdade sem medida degenera em anarquia, abrindo caminho para um demagogo tomar o poder.' } },
+    { low: { icon: '🏚️', title: 'A Invasão', text: 'Sem exército e sem ordem, as muralhas caíram diante dos inimigos. A parte corajosa da cidade foi negligenciada, e a Pólis foi conquistada numa só noite.' },
+      high: { icon: '⛓️', title: 'A Tirania Militar', text: 'Os soldados ganharam tanta força que passaram a mandar nos magistrados. Quando a parte guerreira domina a cidade, ela deixa de proteger e passa a oprimir.' } },
+    { low: { icon: '🕳️', title: 'O Tesouro Vazio', text: 'Os cofres secaram. Sem moedas, os soldados desertaram, os estaleiros pararam e os credores tomaram o que restava. A cidade foi vendida pedaço a pedaço.' },
+      high: { icon: '🏦', title: 'A Oligarquia da Cobiça', text: 'A riqueza cresceu tanto que o dinheiro virou o único mérito. Platão alerta: a cidade se divide em duas, ricos e pobres, sempre em conspiração mútua. A harmonia se perdeu.' } }
+  ];
+
+  /* =========================================================
+     ESTADO
+     ========================================================= */
+  const TOTAL = CHAPTERS.reduce((n, c) => n + c.cards.length, 0);
+  const S = { vals: [50, 50, 50, 50], ch: 0, ci: 0, busy: true, fb: false, done: 0 };
+
+  const card = $('#card'), feedback = $('#feedback'), controls = $('#controls');
+  const btnL = $('#btnL'), btnR = $('#btnR');
+  const cur = () => CHAPTERS[S.ch].cards[S.ci];
+
+  /* =========================================================
+     INTERFACE: recursos, progresso, filósofo guia
+     ========================================================= */
+  function buildStats() {
+    $('#stats').innerHTML = STATS.map((s, i) => `
+      <div class="stat" id="st${i}" title="${s.name} / ${s.sub}" aria-label="${s.name} e ${s.sub}">
+        <span class="dot"></span>
+        <div class="st-icon" aria-hidden="true">${s.icon}</div>
+        <div class="st-name">${s.name}</div>
+        <div class="bar"><i></i></div>
+        <div class="st-val">50%</div>
+      </div>`).join('');
+    renderStats();
+  }
+
+  function renderStats(before) {
+    STATS.forEach((_, i) => {
+      const el = $('#st' + i), v = S.vals[i];
+      $('.bar i', el).style.width = v + '%';
+      $('.st-val', el).textContent = Math.round(v) + '%';
+      el.classList.toggle('danger', v <= 15 || v >= 85);
+      if (before && before[i] !== v) {
+        el.classList.remove('up', 'down'); void el.offsetWidth;
+        el.classList.add(v > before[i] ? 'up' : 'down');
+      }
+    });
+  }
+
+  function buildProgress() {
+    $('#prog').innerHTML = CHAPTERS.map((c, ci) =>
+      `<div class="pchap">${c.cards.map((_, k) => {
+        const done = ci < S.ch || (ci === S.ch && k < S.ci);
+        const now = ci === S.ch && k === S.ci;
+        return `<i class="${done ? 'done' : now ? 'now' : ''}"></i>`;
+      }).join('')}</div>`).join('');
+  }
+
+  function setGuide() {
+    const c = CHAPTERS[S.ch];
+    $('#gAvatar').textContent = c.avatar;
+    $('#gChap').textContent = `Capítulo ${S.ch + 1} de ${CHAPTERS.length} · Filósofo Guia`;
+    $('#gName').textContent = c.name;
+    $('#gDef').textContent = c.concept;
+    const info = $('#gInfo'); info.style.animation = 'none'; void info.offsetWidth; info.style.animation = '';
+    buildProgress();
+  }
+
+  /* =========================================================
+     CARTAS: renderização, pré-visualização e decisão
+     ========================================================= */
+  function renderCard() {
+    const c = cur();
+    card.hidden = false;
+    card.className = 'card';
+    card.style.cssText = '';
+    card.innerHTML = `
+      <div class="tag tagL">${c.L.label}</div><div class="tag tagR">${c.R.label}</div>
+      <div class="art" aria-hidden="true">${c.icon}</div>
+      <h2>${c.title}</h2>
+      <p>${c.text}</p>`;
+    void card.offsetWidth;
+    card.classList.add('enter');
+    btnL.innerHTML = `<span class="arr">◀</span>${c.L.label}`;
+    btnR.innerHTML = `${c.R.label}<span class="arr">▶</span>`;
+    controls.classList.remove('off', 'gone');
+    const remaining = TOTAL - S.done;
+    $('#back1').classList.toggle('hide', remaining < 2);
+    $('#back2').classList.toggle('hide', remaining < 3);
+    feedback.hidden = true;
+    S.fb = false; S.busy = false;
+    buildProgress();
+  }
+
+  // Mostra pontinhos nos recursos afetados (tamanho = intensidade; sem revelar sinal ou valor)
+  function preview(dir) {
+    const fx = dir ? cur()[dir].fx : null;
+    STATS.forEach((_, i) => {
+      const m = fx ? Math.abs(fx[i]) : 0;
+      $('#st' + i + ' .dot').className = 'dot' + (m ? ' on s' + (m <= 7 ? 1 : m <= 13 ? 2 : 3) : '');
+    });
+  }
+  const threshold = () => Math.min(110, card.offsetWidth * 0.3 || 110);
+  function showTags(dx) {
+    const r = clamp(Math.abs(dx) / threshold(), 0, 1);
+    const L = card.querySelector('.tagL'), R = card.querySelector('.tagR');
+    if (L) L.style.opacity = dx < 0 ? r : 0;
+    if (R) R.style.opacity = dx > 0 ? r : 0;
+  }
+
+  let drag = null;
+
+  card.addEventListener('pointerdown', (e) => {
+    if (S.busy || S.fb) return;
+    drag = { x: e.clientX, dx: 0, id: e.pointerId };
+    try { card.setPointerCapture(e.pointerId); } catch (_) {}
+    card.classList.add('dragging');
+    card.classList.remove('enter');
+  });
+  card.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    drag.dx = e.clientX - drag.x;
+    card.style.transform = `translateX(${drag.dx}px) rotate(${drag.dx / 16}deg)`;
+    showTags(drag.dx);
+    preview(Math.abs(drag.dx) > 24 ? (drag.dx < 0 ? 'L' : 'R') : null);
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const dx = drag.dx; drag = null;
+    card.classList.remove('dragging');
+    if (Math.abs(dx) >= threshold()) decide(dx < 0 ? 'L' : 'R');
+    else { card.style.transform = ''; showTags(0); preview(null); }
+  };
+  card.addEventListener('pointerup', endDrag);
+  card.addEventListener('pointercancel', endDrag);
+
+  [[btnL, 'L'], [btnR, 'R']].forEach(([b, d]) => {
+    b.addEventListener('click', () => decide(d));
+    b.addEventListener('mouseenter', () => { if (!S.busy) preview(d); });
+    b.addEventListener('focus', () => { if (!S.busy) preview(d); });
+    b.addEventListener('mouseleave', () => preview(null));
+    b.addEventListener('blur', () => preview(null));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!$('#overlay').hidden || S.busy || S.fb) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); decide('L'); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); decide('R'); }
+  });
+
+  function decide(dir) {
+    if (S.busy || S.fb) return;
+    S.busy = true;
+    const c = cur(), ch = c[dir];
+    // anima a saída da carta
+    card.classList.remove('dragging', 'enter');
+    showTags(dir === 'L' ? -9999 : 9999);
+    const w = Math.max(window.innerWidth, 600);
+    card.style.transform = `translateX(${dir === 'L' ? -w : w}px) rotate(${dir === 'L' ? -26 : 26}deg)`;
+    card.style.opacity = '0';
+    preview(null);
+    controls.classList.add('off');
+    // aplica efeitos
+    const before = S.vals.slice();
+    S.vals = S.vals.map((v, i) => clamp(v + ch.fx[i], 0, 100));
+    renderStats(before);
+    S.done++;
+    setTimeout(() => showFeedback(c, dir), 420);
+  }
+
+  const findOver = () => {
+    for (let i = 0; i < 4; i++) {
+      if (S.vals[i] <= 0) return { i, side: 'low' };
+      if (S.vals[i] >= 100) return { i, side: 'high' };
+    }
+    return null;
+  };
+
+  /* =========================================================
+     FEEDBACK FILOSÓFICO
+     ========================================================= */
+  function showFeedback(c, dir) {
+    const ch = c[dir];
+    S.fb = true;
+    card.hidden = true;
+    const over = findOver();
+    const lastInChapter = S.ci === CHAPTERS[S.ch].cards.length - 1;
+    const lastGame = lastInChapter && S.ch === CHAPTERS.length - 1;
+    const label = over ? 'Ver o destino da Pólis' : lastGame ? 'Concluir o Julgamento' : lastInChapter ? 'Próximo Filósofo' : 'Próximo Dilema';
+    const chips = ch.fx.map((d, i) => d ? `<span class="chip ${d > 0 ? 'up' : 'down'}">${STATS[i].icon} ${d > 0 ? '▲' : '▼'} ${Math.abs(d)}</span>` : '').join('');
+    feedback.innerHTML = `
+      <div class="fb-head">
+        <div class="avatar">${avOf(ch.who)}</div>
+        <div><div class="fb-who ${ch.tone}">${ch.who}</div>
+        <div class="fb-choice">Sua decisão: <b>${ch.label}</b></div></div>
+      </div>
+      <p class="fb-text">${ch.text}</p>
+      <div class="fb-fx" aria-label="Efeitos da decisão">${chips}</div>
+      <div class="fb-lesson"><b>📜 Conceito em debate</b><p>${ch.lesson}</p></div>
+      <button class="btn primary" id="btnNext">${label}</button>`;
+    controls.classList.add('gone');
+    feedback.hidden = false;
+    feedback.style.animation = 'none'; void feedback.offsetWidth; feedback.style.animation = '';
+    feedback.scrollTop = 0;
+    const next = $('#btnNext');
+    next.addEventListener('click', advance);
+    setTimeout(() => next.focus({ preventScroll: true }), 60);
+  }
+
+  function advance() {
+    if (!S.fb) return;
+    S.fb = false;
+    feedback.hidden = true;
+    if (findOver()) return showGameOver();
+    S.ci++;
+    if (S.ci >= CHAPTERS[S.ch].cards.length) {
+      S.ch++; S.ci = 0;
+      if (S.ch >= CHAPTERS.length) { S.ch = CHAPTERS.length - 1; S.ci = CHAPTERS[S.ch].cards.length - 1; return showEnding(); }
+      return chapterIntro();
+    }
+    renderCard();
+  }
+
+  /* =========================================================
+     MODAIS: prólogo, capítulos, game over e final
+     ========================================================= */
+  function modal(html, onGo) {
+    const ov = $('#overlay'), m = $('#modal');
+    S.busy = true;
+    m.innerHTML = html;
+    ov.hidden = false; ov.classList.remove('show'); void ov.offsetWidth; ov.classList.add('show');
+    m.scrollTop = 0;
+    const b = $('[data-go]', m);
+    b.addEventListener('click', () => { ov.classList.remove('show'); ov.hidden = true; onGo(); });
+    setTimeout(() => b.focus({ preventScroll: true }), 80);
+  }
+
+  function prologue() {
+    modal(`
+      <div class="big">🏛️</div>
+      <div class="kicker">Atenas · Pireu</div>
+      <h2>Justiça na Pólis</h2>
+      <p>Você é um <b>magistrado</b> da Grécia Antiga. Na casa de Polemarco, filósofos debatem a pergunta que move a <i>República</i> de Platão: <b>o que é a justiça?</b> Cada dilema que chega às suas mãos é um teste para essas ideias.</p>
+      <ul>
+        <li><b>Arraste a carta</b> (ou use os botões e as setas ← →) para decidir.</li>
+        <li>Os <b>pontinhos dourados</b> mostram quais recursos serão afetados; quanto maior, mais forte o efeito. Mas você decide se sobem ou descem.</li>
+        <li>Mantenha os <b>quatro recursos</b> longe de <b>0%</b> e de <b>100%</b>: tanto a falta quanto o excesso arruínam a cidade.</li>
+        <li>Após cada escolha, o filósofo comenta a sua decisão.</li>
+      </ul>
+      <div class="mini">${STATS.map((s) => `<div><span>${s.icon}</span><b>${s.name}</b></div>`).join('')}</div>
+      <button class="btn primary" data-go>Assumir a magistratura</button>`,
+      chapterIntro);
+  }
+
+  function chapterIntro() {
+    const c = CHAPTERS[S.ch];
+    setGuide();
+    modal(`
+      <div class="avatar">${c.avatar}</div>
+      <div class="kicker">Capítulo ${S.ch + 1} de ${CHAPTERS.length} · ${S.ch < 3 ? 'República, Livro I' : 'República, Livros II–IV'}</div>
+      <h2>${c.name}</h2>
+      <p><b>${c.title}.</b> ${c.intro}</p>
+      <blockquote>“${c.concept}”</blockquote>
+      <button class="btn primary" data-go>Entrar no debate</button>`,
+      renderCard);
+  }
+
+  function showGameOver() {
+    const { i, side } = findOver();
+    const g = GAME_OVER[i][side];
+    modal(`
+      <div class="big">${g.icon}</div>
+      <div class="kicker">Fim de jogo · ${STATS[i].icon} ${STATS[i].name} chegou a ${side === 'low' ? '0%' : '100%'}</div>
+      <h2>${g.title}</h2>
+      <p>${g.text}</p>
+      <div class="mini">${STATS.map((s, k) => `<div><span>${s.icon}</span><b>${Math.round(S.vals[k])}%</b></div>`).join('')}</div>
+      <blockquote>Na República, a justiça é harmonia: nenhuma parte da cidade pode faltar nem dominar as outras.</blockquote>
+      <p style="text-align:center;color:var(--muted);font-size:13px">Você julgou ${S.done} de ${TOTAL} dilemas.</p>
+      <button class="btn primary" data-go>Recomeçar o julgamento</button>`,
+      restart);
+  }
+
+  function showEnding() {
+    const dev = S.vals.reduce((s, v) => s + Math.abs(v - 50), 0) / 4;
+    const rank = dev < 12 ? ['🏆', 'Magistrado Justo', 'Você manteve as quatro partes da Pólis em harmonia, que é exatamente a justiça platônica.']
+      : dev < 22 ? ['🏛️', 'Guardião do Equilíbrio', 'A cidade sobreviveu e prosperou, ainda que algumas partes tenham pesado mais que outras.']
+      : ['⛵', 'Sobrevivente da Pólis', 'Você levou a cidade até o fim, mas à beira do desequilíbrio. A harmonia ainda precisa ser construída.'];
+    modal(`
+      <div class="big">${rank[0]}</div>
+      <div class="kicker">O julgamento chegou ao fim</div>
+      <h2>${rank[1]}</h2>
+      <p>${rank[2]}</p>
+      <div class="mini">${STATS.map((s, k) => `<div><span>${s.icon}</span><b>${Math.round(S.vals[k])}%</b></div>`).join('')}</div>
+      <ul>
+        <li><b>Céfalo:</b> justiça é dizer a verdade e devolver o que se deve. É um bom começo, mas falha no caso das armas.</li>
+        <li><b>Polemarco:</b> bem aos amigos, mal aos inimigos. Falha porque erramos quem é amigo e porque o justo não faz o mal.</li>
+        <li><b>Trasímaco:</b> o interesse do mais forte. Falha porque governar é cuidar de quem é governado.</li>
+        <li><b>Platão:</b> cada parte cumpre sua função, em harmonia, na alma e na cidade.</li>
+      </ul>
+      <button class="btn primary" data-go>Jogar novamente</button>`,
+      restart);
+  }
+
+  function restart() {
+    S.vals = [50, 50, 50, 50]; S.ch = 0; S.ci = 0; S.done = 0; S.fb = false;
+    card.hidden = true; feedback.hidden = true;
+    buildStats();
+    chapterIntro();
+  }
+
+  /* =========================================================
+     INÍCIO
+     ========================================================= */
+  buildStats();
+  setGuide();
+  prologue();
+})();
+</script>
 </body>
 </html>
