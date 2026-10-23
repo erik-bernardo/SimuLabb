@@ -1,379 +1,674 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-        <link rel="icon" type="image/png" href="https://erik-bernardo.github.io/SimuLabb/dados/logo-icon.png">
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sintaxe Pro: Anatomia do Texto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Açougue Sintático: O Mestre da Faca</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap');
+
         :root {
-            --bg: #f4f7f6;
-            --frase: #3498db;
-            --oracao: #2ecc71;
-            --periodo: #f1c40f;
-            --errado: #e74c3c;
-            --dark: #2c3e50;
+            --wood-dark: #5c3a21;
+            --wood-light: #8b5a2b;
+            --frase-color: #3498db;
+            --oracao-color: #2ecc71;
+            --conectivo-color: #f1c40f;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             margin: 0;
-        }
-
-        .game-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            width: 95%;
-            max-width: 800px;
-        }
-
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .stats { display: flex; justify-content: space-between; font-weight: bold; color: #7f8c8d; }
-
-        /* Área do Texto */
-        .sentence-area {
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: #1a1a1a;
+            height: 100vh;
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            padding: 30px;
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .segment {
-            padding: 12px 18px;
-            background: #f9f9f9;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 19px;
+        /* Tábua de Carne (Background) */
+        #game-board {
+            flex: 1;
             position: relative;
-            user-select: none;
-        }
-
-        /* Classes de Seleção (Fundo) */
-        .sel-frase { background-color: var(--frase) !important; color: white; border-color: #2980b9; }
-        .sel-oracao { background-color: var(--oracao) !important; color: white; border-color: #27ae60; }
-        
-        /* Classe de Contorno (Período) - Aplicada junto com as outras */
-        .sel-periodo { 
-            box-shadow: 0 0 0 4px var(--periodo); /* Contorno dourado */
-            border-color: var(--periodo) !important;
-            z-index: 2;
-        }
-
-        /* Toolbar */
-        .toolbar {
+            background: repeating-linear-gradient(
+                90deg,
+                var(--wood-light),
+                var(--wood-light) 40px,
+                var(--wood-dark) 40px,
+                var(--wood-dark) 42px
+            );
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            /* Cursor de Faca (Fallback emoji se SVG falhar) */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 4.5l-11 11c-1.5 1.5-4 1.5-5.5 0s-1.5-4 0-5.5l11-11c1.5-1.5 4-1.5 5.5 0s1.5 4 0 5.5z"/><path d="M12.5 8.5l4 4"/></svg>') 0 32, crosshair;
         }
+
+        /* Canvas de Corte */
+        #slice-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Deixa os eventos passarem para o container */
+            z-index: 50;
+        }
+
+        /* Top Bar */
+        .header {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 20;
+            font-family: 'Fredoka One', cursive;
+            color: #333;
+            font-size: 20px;
+        }
+
+        /* Container do Salame */
+        #salami-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            max-width: 90%;
+            flex-wrap: wrap;
+            gap: 0; /* Começa junto */
+            transition: gap 0.4s ease;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5)); /* Sombra global para unificar a peça */
+        }
+
+        /* Pedaço de Salame */
+        .salami-segment {
+            background-color: #c0392b;
+            /* Textura de carne com gordura */
+            background-image: 
+                radial-gradient(circle at 10% 20%, #e0a39a 2px, transparent 3px),
+                radial-gradient(circle at 30% 60%, #d48b80 3px, transparent 4px),
+                radial-gradient(circle at 70% 30%, #e0a39a 2px, transparent 3px),
+                radial-gradient(circle at 80% 80%, #d48b80 3px, transparent 4px),
+                linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.3) 100%);
+            color: white;
+            padding: 25px 30px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 28px;
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+            border-top: 5px solid #fdf4f4;
+            border-bottom: 5px solid #fdf4f4;
+            border-left: none; /* Deixa totalmente grudado */
+            border-right: none; /* Deixa totalmente grudado */
+            margin: 0;
+            border-radius: 0; /* Bordas retas para emenda invisível */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        /* Bordas iniciais redondas nas pontas */
+        .salami-segment.is-first {
+            border-left: 5px solid #fdf4f4;
+            border-radius: 50px 0 0 50px;
+            padding-left: 40px;
+        }
+        .salami-segment.is-last {
+            border-right: 5px solid #fdf4f4;
+            border-radius: 0 50px 50px 0;
+            padding-right: 40px;
+        }
+
+        /* Quando Cortado */
+        .salami-segment.cut-left { border-radius: 50px 0 0 50px; border-left: 5px solid #fdf4f4; }
+        .salami-segment.cut-right { border-radius: 0 50px 50px 0; border-right: 5px solid #fdf4f4; }
+
+        /* Zonas de Corte Invisíveis */
+        .cut-zone {
+            width: 0px; /* Largura zero para não criar separação visual nenhuma */
+            height: 90px;
+            background: transparent;
+            position: relative;
+            z-index: 100;
+        }
+        
+        /* Quando a zona é cortada, ela some e o flex gap cuida do espaço */
+        .cut-zone.cut { display: none; }
+
+        /* Painel de Ferramentas (Classificação) */
+        #toolbar {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+            transition: bottom 0.5s ease;
+            z-index: 20;
+        }
+        #toolbar.show { bottom: 0; }
 
         .tool-btn {
-            padding: 12px 20px;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            background: #eee;
-        }
-
-        .tool-btn.active { transform: translateY(-3px); border-color: #000; }
-        .btn-f { color: var(--frase); }
-        .btn-o { color: var(--oracao); }
-        .btn-p { color: #d4ac0d; border: 2px dashed #d4ac0d; }
-
-        .action-btn {
-            width: 100%;
-            padding: 18px;
             border: none;
-            border-radius: 10px;
-            background: var(--dark);
-            color: white;
+            padding: 12px 25px;
             font-size: 18px;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: bold;
+            color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+        }
+        .tool-btn:active { transform: translateY(5px); box-shadow: none; }
+        .tool-btn.active { outline: 4px solid #333; outline-offset: 2px; }
+
+        .btn-frase { background: var(--frase-color); }
+        .btn-oracao { background: var(--oracao-color); }
+        .btn-conectivo { background: var(--conectivo-color); }
+
+        /* Efeitos de Resolução */
+        .solved-frase { background: var(--frase-color) !important; background-image: none !important; color: white; text-shadow: none;}
+        .solved-oracao { background: var(--oracao-color) !important; background-image: none !important; color: white; text-shadow: none;}
+        .solved-conectivo { background: var(--conectivo-color) !important; background-image: none !important; color: white; text-shadow: none;}
+
+        /* Toast de Mensagem */
+        #toast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: #e74c3c;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        #toast.success { background: #2ecc71; }
+
+        /* Animação de Erro */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
         }
 
-        #explanation-panel {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: #fff8e1;
-            border-radius: 8px;
-            border: 1px solid #ffe082;
+        /* Modal do Chefe */
+        #chef-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #chef-modal.show { opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: translateY(50px);
+            transition: transform 0.3s;
+            position: relative;
+        }
+        #chef-modal.show .modal-content { transform: translateY(0); }
+        
+        .chef-icon { font-size: 70px; margin-bottom: 10px; }
+        .modal-title { font-family: 'Fredoka One', cursive; font-size: 28px; color: #2c3e50; margin: 0 0 15px 0;}
+        .modal-text { font-size: 18px; color: #555; line-height: 1.5; margin-bottom: 25px;}
+        
+        .next-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1e8449;
+            width: 100%;
+        }
+        .next-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        /* Instruções Temporárias */
+        #instruction {
+            position: absolute;
+            top: 100px;
+            color: white;
+            font-size: 22px;
+            font-family: 'Fredoka One', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 15;
         }
 
-        .locked { pointer-events: none; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="game-card">
+    <div id="game-board">
         <div class="header">
-            <h1>Anatomia do Texto</h1>
-            <div class="stats">
-                <span>Nível: <span id="level-num">1</span></span>
-                <span>Pontos: <span id="score">0</span></span>
-            </div>
+            <span>Nível: <span id="level-display">1</span></span>
+            <span>Açougue Sintático</span>
         </div>
 
-        <div class="toolbar" id="toolbar">
-            <button class="tool-btn btn-f" onclick="setTool('frase')">● FRASE</button>
-            <button class="tool-btn btn-o" onclick="setTool('oracao')">● ORAÇÃO</button>
-            <button class="tool-btn btn-p" onclick="setTool('periodo')">▢ PERÍODO</button>
+        <div id="instruction">Arraste a faca para separar as orações!</div>
+
+        <div id="salami-container">
+            <!-- Pedaços injetados via JS -->
         </div>
 
-        <div class="sentence-area" id="sentence-area"></div>
+        <canvas id="slice-canvas"></canvas>
 
-        <button class="action-btn" id="main-btn" onclick="verify()">VERIFICAR ACERTOS</button>
+        <div id="toolbar">
+            <button class="tool-btn btn-frase" data-tool="frase">🔵 Frase Nominal</button>
+            <button class="tool-btn btn-oracao" data-tool="oracao">🟢 Oração</button>
+            <button class="tool-btn btn-conectivo" data-tool="conectivo">🟡 Conectivo</button>
+        </div>
 
-        <div id="explanation-panel">
-            <h3 style="margin-top:0">Análise do Mestre:</h3>
-            <div id="explanation-content"></div>
+        <div id="toast">Erro!</div>
+    </div>
+
+    <div id="chef-modal">
+        <div class="modal-content">
+            <div class="chef-icon">👨‍🍳</div>
+            <h2 class="modal-title">Prato Perfeito!</h2>
+            <p class="modal-text" id="modal-desc">Você fatiou e classificou com perfeição.</p>
+            <button class="next-btn" onclick="nextLevel()">PRÓXIMO PEDIDO</button>
         </div>
     </div>
 
-    <script>
-   const levels = [
-    {
-        text: ["Bom dia!", "O sol nasceu."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Bom dia!</b>: Frase nominal.", "<b>O sol nasceu</b>: Oração (verbo nasceu) e Período Simples."]
-    },
-    {
-        text: ["Que susto!", "A porta bateu."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Que susto!</b>: Frase nominal.", "<b>A porta bateu</b>: Oração pelo verbo bater."]
-    },
-    {
-        text: ["Fogo!", "Fujam todos!"],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Fogo!</b>: Frase nominal (emoção sem verbo).", "<b>Fujam todos!</b>: Oração (verbo fugir)."]
-    },
-    {
-        text: ["Atenção.", "O sinal abriu", "e", "os carros passaram."],
-        ans_type: ["frase", "oracao", null, "oracao"],
-        ans_period: [false, true, true, true],
-        desc: ["<b>Atenção</b>: Frase.", "<b>O sinal... passaram</b>: Período composto com duas orações e um conectivo."]
-    },
-    {
-        text: ["Silêncio.", "A aula começou."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Silêncio</b>: Frase.", "<b>A aula começou</b>: Oração e Período Simples."]
-    },
-    {
-        text: ["Trabalhei muito", "mas", "ganhei pouco."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["<b>Todo o conjunto</b> é um Período Composto com duas orações ligadas pelo 'mas'."]
-    },
-    {
-        text: ["Socorro!", "Eu caí."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Socorro!</b>: Frase.", "<b>Eu caí</b>: Oração."]
-    },
-    {
-        text: ["Incrível!", "O time jogou", "e", "venceu."],
-        ans_type: ["frase", "oracao", null, "oracao"],
-        ans_period: [false, true, true, true],
-        desc: ["<b>Incrível</b>: Frase.", "<b>O time... venceu</b>: Período Composto."]
-    },
-    {
-        text: ["Diga a verdade", "ou", "fique calado."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["Período Composto por duas orações alternativas."]
-    },
-    {
-        text: ["Parabéns!", "Você merece."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Parabéns</b>: Frase.", "<b>Você merece</b>: Oração."]
-    },
-    {
-        text: ["Choveu", "por isso", "não fui."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["Período Composto explicativo."]
-    },
-    {
-        text: ["Cuidado!", "O carro vem", "e", "está rápido."],
-        ans_type: ["frase", "oracao", null, "oracao"],
-        ans_period: [false, true, true, true],
-        desc: ["Uma frase seguida de um período composto."]
-    },
-    {
-        text: ["Que alegria!", "Meu amigo chegou."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["Frase Nominal seguida de Oração."]
-    },
-    {
-        text: ["Penso,", "logo", "existo."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["Famoso período composto conclusivo."]
-    },
-    {
-        text: ["Ei!", "Olhe para cá."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Ei!</b>: Interjeição (Frase).", "<b>Olhe...</b>: Oração (verbo olhar)."]
-    },
-    {
-        text: ["Saímos cedo", "entretanto", "atrasamos."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["Período Composto adversativo."]
-    },
-    {
-        text: ["Justiça!", "O povo clama", "e", "a lei falha."],
-        ans_type: ["frase", "oracao", null, "oracao"],
-        ans_period: [false, true, true, true],
-        desc: ["Frase de impacto e período composto."]
-    },
-    {
-        text: ["Oi.", "Tudo bem?", "Espero que sim."],
-        ans_type: ["frase", "frase", "oracao"],
-        ans_period: [false, false, true],
-        desc: ["Duas frases curtas e uma oração (verbo esperar)."]
-    },
-    {
-        text: ["Estude", "para que", "venca."],
-        ans_type: ["oracao", null, "oracao"],
-        ans_period: [true, true, true],
-        desc: ["Período Composto final (objetivo)."]
-    },
-    {
-        text: ["Paz!", "A guerra terminou."],
-        ans_type: ["frase", "oracao"],
-        ans_period: [false, true],
-        desc: ["<b>Paz!</b>: Frase Nominal.", "<b>A guerra terminou</b>: Oração (verbo terminar)."]
+<script>
+    /* ================= DADOS DOS NÍVEIS ================= */
+    const levels = [
+        {
+            segments: [
+                { text: "Atenção!", type: "frase" },
+                { text: "O mestre chegou.", type: "oracao" }
+            ],
+            explanation: "Excelente! 'Atenção!' é uma Frase Nominal (não tem verbo). 'O mestre chegou' é uma Oração, pois possui o verbo 'chegar'."
+        },
+        {
+            segments: [
+                { text: "Estudei muito", type: "oracao" },
+                { text: "mas", type: "conectivo" },
+                { text: "não passei.", type: "oracao" }
+            ],
+            explanation: "Belo corte! Temos duas Orações separadas pela conjunção/conectivo 'mas' (adversativo). Isso forma um Período Composto."
+        },
+        {
+            segments: [
+                { text: "Fogo!", type: "frase" },
+                { text: "Corram todos", type: "oracao" },
+                { text: "porque", type: "conectivo" },
+                { text: "o prédio queima.", type: "oracao" }
+            ],
+            explanation: "Obra de arte! Uma Frase Nominal de impacto, seguida de um Período Composto com oração principal e oração subordinada explicativa ('porque')."
+        },
+        {
+            segments: [
+                { text: "Vim", type: "oracao" },
+                { text: ",", type: "conectivo" }, // Tratando vírgula como conectivo estrutural neste contexto lúdico
+                { text: "vi", type: "oracao" },
+                { text: "e", type: "conectivo" },
+                { text: "venci.", type: "oracao" }
+            ],
+            explanation: "Corte de mestre! As famosas orações coordenadas assindéticas (separadas por vírgula) e sindética (com 'e'). Tudo perfeito!"
+        }
+    ];
+
+    /* ================= ESTADOS GLOBAIS ================= */
+    let currentLevelIndex = 0;
+    let gameState = "SLICING"; // SLICING, CLASSIFYING, DONE
+    let activeTool = null;
+    let cutsRequired = 0;
+    let cutsMade = 0;
+    let classifiedCount = 0;
+
+    /* ================= ELEMENTOS DOM ================= */
+    const container = document.getElementById('salami-container');
+    const canvas = document.getElementById('slice-canvas');
+    const ctx = canvas.getContext('2d');
+    const board = document.getElementById('game-board');
+    const instruction = document.getElementById('instruction');
+    const toolbar = document.getElementById('toolbar');
+    const tools = document.querySelectorAll('.tool-btn');
+    const toast = document.getElementById('toast');
+
+    /* ================= AUDIO SYNTH ================= */
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playSound(type) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if(type === 'slash') {
+            // Som rápido de corte da faca
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if(type === 'error') {
+            // Buzzer grave
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, now);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if(type === 'success') {
+            // Plim agudo
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.setValueAtTime(900, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
     }
-];
 
-        let cur = 0;
-        let points = 0;
-        let tool = null;
-        let userType = [];
-        let userPeriod = [];
-        let locked = false;
+    /* ================= LÓGICA DE INICIALIZAÇÃO ================= */
+    function resizeCanvas() {
+        canvas.width = board.clientWidth;
+        canvas.height = board.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
 
-        function init() {
-            locked = false;
-            userType = new Array(levels[cur].text.length).fill(null);
-            userPeriod = new Array(levels[cur].text.length).fill(false);
+    function initLevel() {
+        const level = levels[currentLevelIndex];
+        document.getElementById('level-display').innerText = currentLevelIndex + 1;
+        container.innerHTML = '';
+        container.style.gap = '0px';
+        
+        gameState = "SLICING";
+        cutsRequired = level.segments.length - 1;
+        cutsMade = 0;
+        classifiedCount = 0;
+        activeTool = null;
+        
+        toolbar.classList.remove('show');
+        instruction.innerText = "Arraste a faca para separar as orações e conectivos!";
+        tools.forEach(t => t.classList.remove('active'));
+
+        // Construir Salame
+        level.segments.forEach((seg, index) => {
+            // Criar gomo
+            const el = document.createElement('div');
+            el.className = 'salami-segment';
+            if(index === 0) el.classList.add('is-first', 'cut-left');
+            if(index === level.segments.length - 1) el.classList.add('is-last', 'cut-right');
             
-            const area = document.getElementById('sentence-area');
-            area.innerHTML = '';
-            area.classList.remove('locked');
-            document.getElementById('toolbar').classList.remove('locked');
-            document.getElementById('explanation-panel').style.display = 'none';
-            document.getElementById('main-btn').innerText = "VERIFICAR ACERTOS";
-            document.getElementById('main-btn').style.background = "#2c3e50";
+            el.innerText = seg.text;
+            el.dataset.type = seg.type;
+            el.dataset.index = index;
+            el.dataset.solved = "false";
+            
+            el.addEventListener('click', () => handleSegmentClick(el));
+            container.appendChild(el);
 
-            levels[cur].text.forEach((t, i) => {
-                const div = document.createElement('div');
-                div.className = 'segment';
-                div.innerText = t;
-                div.onclick = () => clickSegment(i, div);
-                area.appendChild(div);
+            // Criar Zona de Corte Invisível
+            if (index < level.segments.length - 1) {
+                const zone = document.createElement('div');
+                zone.className = 'cut-zone';
+                zone.dataset.cutIndex = index; // identifica qual corte é
+                container.appendChild(zone);
+            }
+        });
+        
+        resizeCanvas();
+    }
+
+    /* ================= MECÂNICA DE CORTE (CANVAS) ================= */
+    let isDrawing = false;
+    let startX = 0, startY = 0;
+    let currentX = 0, currentY = 0;
+
+    function getCoords(e) {
+        if(e.touches && e.touches.length > 0) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    board.addEventListener('pointerdown', (e) => {
+        if(gameState !== "SLICING") return;
+        isDrawing = true;
+        const coords = getCoords(e);
+        startX = coords.x;
+        startY = coords.y;
+        currentX = startX;
+        currentY = startY;
+    });
+
+    board.addEventListener('pointermove', (e) => {
+        if(!isDrawing) return;
+        const coords = getCoords(e);
+        currentX = coords.x;
+        currentY = coords.y;
+
+        // Limpar e desenhar rastro
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(currentX, currentY);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00ffff';
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    });
+
+    board.addEventListener('pointerup', (e) => {
+        if(!isDrawing) return;
+        isDrawing = false;
+        
+        // Avaliar o corte antes de apagar
+        evaluateCut(startX, startY, currentX, currentY);
+        
+        // Efeito de sumir rápido do rastro
+        let alpha = 1.0;
+        function fadeOut() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(alpha <= 0) return;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(currentX, currentY);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = `rgba(0, 255, 255, ${alpha})`;
+            ctx.stroke();
+            alpha -= 0.1;
+            requestAnimationFrame(fadeOut);
+        }
+        fadeOut();
+    });
+
+    // Matemática simples de interseção Linha-Retângulo
+    function lineIntersectsRect(x1, y1, x2, y2, rect) {
+        const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+        const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+        
+        // Se a bounding box da linha nem toca a bounding box do rect, false
+        if (maxX < rect.left || minX > rect.right || maxY < rect.top || minY > rect.bottom) return false;
+
+        // Checagem cruzada simples (basta a linha atravessar os limites)
+        // Para uma facada que cruza o elemento, isso é suficiente na prática.
+        return true; 
+    }
+
+    function evaluateCut(x1, y1, x2, y2) {
+        // Ignora cliques simples
+        if(Math.abs(x1 - x2) < 10 && Math.abs(y1 - y2) < 10) return;
+
+        const zones = document.querySelectorAll('.cut-zone:not(.cut)');
+        let hitZone = null;
+
+        // Checa se acertou a zona de corte exata
+        zones.forEach(zone => {
+            const rect = zone.getBoundingClientRect();
+            // Aumentar artificialmente a hit-box da zona para facilitar o jogo
+            const hitRect = {
+                left: rect.left - 20, right: rect.right + 20,
+                top: rect.top - 50, bottom: rect.bottom + 50
+            };
+            if(lineIntersectsRect(x1, y1, x2, y2, hitRect)) {
+                hitZone = zone;
+            }
+        });
+
+        if(hitZone) {
+            // CORTE CERTO!
+            playSound('slash');
+            hitZone.classList.add('cut');
+            
+            // Achar os gomos adjacentes e adicionar bordas arredondadas
+            const idx = parseInt(hitZone.dataset.cutIndex);
+            const segments = document.querySelectorAll('.salami-segment');
+            segments[idx].classList.add('cut-right');
+            segments[idx+1].classList.add('cut-left');
+            
+            // Adicionar gap físico no container para eles se afastarem
+            container.style.gap = `${(cutsMade + 1) * 15}px`;
+            
+            cutsMade++;
+            checkSlicingPhase();
+        } else {
+            // Checa se cortou no meio do salame errado
+            const segments = document.querySelectorAll('.salami-segment');
+            let hitMeat = false;
+            segments.forEach(seg => {
+                const rect = seg.getBoundingClientRect();
+                if(lineIntersectsRect(x1, y1, x2, y2, rect)) hitMeat = true;
             });
-        }
 
-        function setTool(t) {
-            tool = t;
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-
-        function clickSegment(i, el) {
-            if(!tool) return;
-
-            if(tool === 'periodo') {
-                userPeriod[i] = !userPeriod[i]; // Toggle contorno
-                el.classList.toggle('sel-periodo');
-            } else {
-                // Se clicar no mesmo tipo, remove. Se não, troca.
-                if(userType[i] === tool) {
-                    userType[i] = null;
-                    el.classList.remove('sel-frase', 'sel-oracao');
-                } else {
-                    userType[i] = tool;
-                    el.classList.remove('sel-frase', 'sel-oracao');
-                    el.classList.add('sel-' + tool);
-                }
+            if(hitMeat) {
+                // Errou!
+                playSound('error');
+                showToast("Corte incorreto! Não divida no meio da palavra!", false);
             }
         }
+    }
 
-        function verify() {
-            if(locked) { next(); return; }
+    function checkSlicingPhase() {
+        if(cutsMade >= cutsRequired) {
+            gameState = "CLASSIFYING";
+            instruction.innerText = "Agora selecione um carimbo e classifique as fatias!";
+            toolbar.classList.add('show');
+            playSound('success');
+        }
+    }
 
-            const level = levels[cur];
-            let hits = 0;
-            let totalPossible = level.text.length * 2; // Tipo + Período para cada bloco
+    /* ================= MECÂNICA DE CLASSIFICAÇÃO ================= */
+    tools.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            tools.forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            activeTool = btn.dataset.tool;
+        });
+    });
 
-            level.text.forEach((_, i) => {
-                if(userType[i] === level.ans_type[i]) hits++;
-                if(userPeriod[i] === level.ans_period[i]) hits++;
-            });
-
-            const roundPoints = Math.round((hits / totalPossible) * 100);
-            points += roundPoints;
-            document.getElementById('score').innerText = points;
-
-            showAnalysis(roundPoints);
+    function handleSegmentClick(segment) {
+        if(gameState !== "CLASSIFYING") return;
+        if(segment.dataset.solved === "true") return;
+        if(!activeTool) {
+            showToast("Selecione um carimbo abaixo primeiro!", false);
+            return;
         }
 
-        function showAnalysis(roundScore) {
-            locked = true;
-            document.getElementById('sentence-area').classList.add('locked');
-            document.getElementById('toolbar').classList.add('locked');
+        if(segment.dataset.type === activeTool) {
+            // ACERTOU CLASSIFICAÇÃO
+            playSound('success');
+            segment.dataset.solved = "true";
+            segment.classList.add(`solved-${activeTool}`);
+            classifiedCount++;
             
-            const content = document.getElementById('explanation-content');
-            content.innerHTML = `<p>Você marcou <b>${roundScore}%</b> desta estrutura corretamente.</p>`;
-            
-            levels[cur].desc.forEach(d => {
-                content.innerHTML += `<p style="font-size:0.9rem; margin:5px 0;">• ${d}</p>`;
-            });
-
-            document.getElementById('explanation-panel').style.display = 'block';
-            document.getElementById('main-btn').innerText = "PRÓXIMO NÍVEL";
-            document.getElementById('main-btn').style.background = "#27ae60";
-        }
-
-        function next() {
-            cur++;
-            if(cur < levels.length) init();
-            else {
-                alert("Fim da Jornada! Pontuação Total: " + points);
-                cur = 0; points = 0;
-                document.getElementById('score').innerText = "0";
-                init();
+            if(classifiedCount >= levels[currentLevelIndex].segments.length) {
+                setTimeout(showChefPanel, 500);
             }
+        } else {
+            // ERROU CLASSIFICAÇÃO
+            playSound('error');
+            segment.classList.add('shake');
+            setTimeout(() => segment.classList.remove('shake'), 500);
+            showToast("Classificação incorreta! Tente novamente.", false);
         }
+    }
 
-        init();
-    </script>
+    /* ================= FEEDBACK E UI ================= */
+    function showToast(msg, isSuccess) {
+        toast.innerText = msg;
+        toast.className = isSuccess ? 'success show' : 'show';
+        setTimeout(() => toast.className = '', 2500);
+    }
+
+    function showChefPanel() {
+        document.getElementById('modal-desc').innerHTML = levels[currentLevelIndex].explanation;
+        document.getElementById('chef-modal').classList.add('show');
+        playSound('success');
+    }
+
+    function nextLevel() {
+        document.getElementById('chef-modal').classList.remove('show');
+        currentLevelIndex++;
+        if(currentLevelIndex >= levels.length) {
+            alert("Parabéns! Você completou todos os níveis e se tornou o Mestre Açougueiro da Sintaxe!");
+            currentLevelIndex = 0; // Reinicia
+        }
+        initLevel();
+    }
+
+    // Prevenir scrolling no mobile ao arrastar a faca
+    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+
+    // Iniciar jogo
+    window.onload = initLevel;
+
+</script>
 </body>
 </html>
