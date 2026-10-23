@@ -1,750 +1,831 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Interativo de Funções Matemáticas</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Inter & Math fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0f172a; /* Slate 900 background */
-            color: #f8fafc;
-        }
-        .font-mono-math {
-            font-family: 'Fira Code', monospace;
-        }
-        /* Custom scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-        /* Glassmorphism panel styling */
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        /* Custom range slider styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: #334155;
-            height: 6px;
-            border-radius: 3px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-            transition: transform 0.1s ease;
-        }
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-        /* Step pulse animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-step {
-            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laboratório de Funções</title>
+<style>
+  :root {
+    --bg: #0a0e1f;
+    --bg-grad-1: rgba(124, 92, 255, .22);
+    --bg-grad-2: rgba(34, 211, 238, .16);
+    --card: rgba(255, 255, 255, .055);
+    --card-solid: #12172e;
+    --border: rgba(255, 255, 255, .10);
+    --txt: #eef1ff;
+    --muted: #98a2c7;
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+    --grid: rgba(255, 255, 255, .06);
+    --grid-major: rgba(255, 255, 255, .12);
+    --axis: rgba(255, 255, 255, .55);
+    --curveA: #8b7bff;
+    --curveB: #22d3ee;
+    --root: #34d399;
+    --yint: #fbbf24;
+    --pop: rgba(20, 25, 52, .94);
+    --shadow: 0 20px 50px rgba(0, 0, 0, .45);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  [data-theme="light"] {
+    --bg: #f3f5ff;
+    --bg-grad-1: rgba(124, 92, 255, .16);
+    --bg-grad-2: rgba(34, 211, 238, .16);
+    --card: rgba(255, 255, 255, .8);
+    --card-solid: #ffffff;
+    --border: rgba(30, 40, 90, .10);
+    --txt: #151a3a;
+    --muted: #5d6796;
+    --grid: rgba(30, 40, 90, .06);
+    --grid-major: rgba(30, 40, 90, .12);
+    --axis: rgba(21, 26, 58, .65);
+    --curveA: #6a4cf5;
+    --curveB: #0891b2;
+    --root: #059669;
+    --yint: #d97706;
+    --pop: rgba(255, 255, 255, .97);
+    --shadow: 0 20px 50px rgba(40, 50, 110, .18);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--txt);
+    background:
+      radial-gradient(900px 500px at 8% -10%, var(--bg-grad-1), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, var(--bg-grad-2), transparent 60%),
+      var(--bg);
+    transition: background .4s, color .3s;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { max-width: 1280px; margin: 0 auto; padding: 20px 18px 36px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 8px 24px rgba(124, 92, 255, .4);
+    font-weight: 800; font-style: italic; font-size: 18px; color: #fff;
+  }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: -.01em; }
+  .brand p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+
+  .icon-btn {
+    border: 1px solid var(--border); background: var(--card); color: var(--txt);
+    width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 17px;
+    backdrop-filter: blur(10px); transition: transform .2s, background .2s;
+  }
+  .icon-btn:hover { transform: translateY(-1px); }
+  .icon-btn:active { transform: scale(.95); }
+
+  .layout { display: grid; grid-template-columns: 340px 1fr; gap: 18px; align-items: start; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+  }
+  .side { display: flex; flex-direction: column; gap: 14px; }
+  .side .card { padding: 16px; }
+  .label { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+  /* Seletor segmentado */
+  .seg { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; border-radius: 15px; background: rgba(127, 127, 160, .12); }
+  .seg::before {
+    content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px;
+    width: calc((100% - 8px) / 3); border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), #5b8cff);
+    box-shadow: 0 6px 18px rgba(124, 92, 255, .45);
+    transform: translateX(calc(var(--i, 1) * 100%));
+    transition: transform .35s cubic-bezier(.5, 1.4, .5, 1);
+  }
+  .seg button {
+    position: relative; z-index: 1; border: 0; background: transparent; color: var(--muted);
+    padding: 11px 4px; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; border-radius: 11px;
+    transition: color .25s;
+  }
+  .seg button small { display: block; font-weight: 500; font-size: 10.5px; opacity: .8; margin-top: 2px; }
+  .seg button.on { color: #fff; }
+
+  .equation {
+    margin-top: 14px; padding: 14px 14px; border-radius: 14px; text-align: center;
+    background: rgba(127, 127, 160, .1); border: 1px dashed var(--border);
+    font-family: var(--mono); font-size: 19px; font-weight: 600; letter-spacing: -.01em; word-break: break-word;
+  }
+
+  /* Sliders */
+  .sl { display: grid; grid-template-columns: 22px 1fr 46px; align-items: center; gap: 10px; margin-bottom: 11px; }
+  .sl:last-child { margin-bottom: 0; }
+  .sl b { font-family: var(--mono); font-size: 14px; color: var(--accent-2); }
+  .sl output { font-family: var(--mono); font-size: 13px; text-align: right; }
+  .sl small { grid-column: 2 / 4; color: var(--muted); font-size: 11px; margin-top: -8px; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px; outline: none; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent) var(--pct, 50%), rgba(127,127,160,.25) var(--pct, 50%));
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    border: 3px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.35); transition: transform .15s;
+  }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); }
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+
+  .ghost {
+    margin-top: 12px; width: 100%; padding: 10px; border-radius: 12px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); background: transparent; color: var(--muted); transition: all .2s;
+  }
+  .ghost:hover { color: var(--txt); border-color: var(--accent); }
+
+  /* Pontos de interesse */
+  .chips { display: flex; flex-direction: column; gap: 8px; }
+  .chip {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 13px; cursor: pointer;
+    border: 1px solid var(--border); background: rgba(127,127,160,.08); color: var(--txt); font: inherit; text-align: left;
+    transition: transform .2s, border-color .2s, background .2s; animation: pop .4s both;
+  }
+  .chip:hover { transform: translateX(3px); border-color: var(--accent); background: rgba(124,92,255,.12); }
+  .chip i { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 22%, transparent); }
+  .chip.root i { background: var(--root); color: var(--root); }
+  .chip.yint i { background: var(--yint); color: var(--yint); }
+  .chip span { font-size: 13px; font-weight: 650; }
+  .chip em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .empty { font-size: 13px; color: var(--muted); padding: 4px 2px; }
+
+  .tip { font-size: 13px; line-height: 1.55; color: var(--muted); }
+  .tip b { color: var(--txt); }
+  .tip code { font-family: var(--mono); background: rgba(127,127,160,.16); padding: 1px 6px; border-radius: 6px; color: var(--txt); font-size: 12px; }
+
+  /* Palco */
+  .stage { position: relative; overflow: hidden; height: clamp(420px, 72vh, 700px); padding: 0; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; }
+  .readout {
+    position: absolute; left: 14px; top: 14px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 3; pointer-events: none;
+  }
+  .pill {
+    font-family: var(--mono); font-size: 12px; padding: 6px 11px; border-radius: 99px;
+    background: var(--pop); border: 1px solid var(--border); backdrop-filter: blur(8px);
+  }
+  .pill.hint { font-family: inherit; color: var(--muted); }
+  .zoom { position: absolute; right: 14px; top: 14px; display: flex; flex-direction: column; gap: 8px; z-index: 3; }
+  .zoom .icon-btn { width: 38px; height: 38px; background: var(--pop); font-weight: 700; }
+  .legend { position: absolute; left: 14px; bottom: 12px; display: flex; gap: 14px; font-size: 12px; color: var(--muted); z-index: 2; pointer-events: none; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* Balão */
+  .balloon {
+    position: absolute; left: 0; top: 0; z-index: 5; width: 330px; max-width: calc(100% - 20px);
+    background: var(--pop); border: 1px solid var(--border); border-radius: 18px; padding: 14px 15px 13px;
+    box-shadow: var(--shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    opacity: 0; visibility: hidden; transform: translate3d(0, 0, 0) scale(.94); transform-origin: 0 100%;
+    transition: opacity .25s, visibility .25s;
+  }
+  .balloon.show { opacity: 1; visibility: visible; }
+  .balloon .bh { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px; letter-spacing: .02em; }
+  .badge.root { background: color-mix(in srgb, var(--root) 18%, transparent); color: var(--root); }
+  .badge.yint { background: color-mix(in srgb, var(--yint) 20%, transparent); color: var(--yint); }
+  .badge.both { background: linear-gradient(90deg, color-mix(in srgb, var(--root) 20%, transparent), color-mix(in srgb, var(--yint) 20%, transparent)); color: var(--txt); }
+  .badge.free { background: rgba(124,92,255,.18); color: var(--accent); }
+  [data-theme="dark"] .badge.free, :root:not([data-theme]) .badge.free { color: #b4a5ff; }
+  .x-btn { border: 0; background: rgba(127,127,160,.16); color: var(--txt); width: 26px; height: 26px; border-radius: 9px; cursor: pointer; font-size: 14px; line-height: 1; }
+  .x-btn:hover { background: rgba(244,63,94,.25); }
+  .ln { opacity: 0; animation: lineIn .45s forwards; }
+  .noanim .ln { opacity: 1; animation: none; }
+  .l-intro { font-size: 14px; font-weight: 600; margin-bottom: 9px; }
+  .l-intro b { color: var(--accent-2); }
+  .steps { border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 11px; }
+  .l-f { font-family: var(--mono); font-size: 13.5px; word-break: break-word; }
+  .l-f.dim { color: var(--muted); }
+  .l-f.res { font-weight: 700; color: var(--txt); background: linear-gradient(90deg, rgba(124,92,255,.22), transparent); padding: 4px 8px; margin-left: -8px; border-radius: 8px; }
+  .l-note { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+  .l-note b { color: var(--txt); }
+
+  .balloon.dock {
+    left: 10px !important; right: 10px; bottom: 10px; top: auto !important; width: auto; max-width: none;
+    transform: translateY(14px) !important; transition: opacity .25s, transform .3s, visibility .25s;
+  }
+  .balloon.dock.show { transform: translateY(0) !important; }
+
+  @keyframes lineIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    .stage { order: -1; height: clamp(400px, 62vh, 560px); }
+  }
+  @media (max-width: 520px) {
+    .app { padding: 14px 12px 28px; }
+    .brand p { display: none; }
+    .equation { font-size: 16px; }
+    .legend { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .01s !important; transition-duration: .01s !important; } }
+</style>
 </head>
-<body class="min-h-screen flex flex-col p-3 md:p-6 text-slate-100">
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">f(x)</div>
+      <div>
+        <h1>Laboratório de Funções</h1>
+        <p>Clique no gráfico e veja a conta, passo a passo</p>
+      </div>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Alternar tema" aria-label="Alternar tema">☾</button>
+  </header>
 
-    <!-- Top Header Navigation -->
-    <header class="max-w-7xl mx-auto w-full mb-4 flex flex-col md:flex-row justify-between items-center gap-3 glass-panel p-4 rounded-2xl shadow-xl">
-        <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-xl shadow-lg shadow-cyan-500/20">
-                <i class="fa-solid fa-chart-line text-white text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                    Simulador de Funções
-                </h1>
-                <p class="text-xs text-slate-400">Explore gráficos, coeficientes e o cálculo exato de cada ponto em tempo real</p>
-            </div>
+  <div class="layout">
+    <aside class="side">
+      <section class="card">
+        <p class="label">Tipo de função</p>
+        <div class="seg" id="seg">
+          <button data-deg="1">1º grau<small>reta</small></button>
+          <button data-deg="2" class="on">2º grau<small>parábola</small></button>
+          <button data-deg="3">3º grau<small>cúbica</small></button>
         </div>
-        
-        <!-- Preset Quick Switcher -->
-        <div class="flex flex-wrap gap-2 justify-center">
-            <button onclick="setDegree(1)" id="tab-deg1" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
-                <span>1º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Lineares)</span>
-            </button>
-            <button onclick="setDegree(2)" id="tab-deg2" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
-                <span>2º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Quadráticas)</span>
-            </button>
-            <button onclick="setDegree(3)" id="tab-deg3" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5">
-                <span>3º Grau</span> <span class="opacity-60 text-[10px] font-mono-math">(Cúbicas)</span>
-            </button>
-        </div>
-    </header>
+        <div class="equation" id="equation"></div>
+      </section>
 
-    <!-- Main Workspace Grid -->
-    <main class="max-w-7xl mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        <!-- Left Sidebar: Controls & Parameters (4 cols on lg) -->
-        <div class="lg:col-span-4 flex flex-col gap-4">
-            
-            <!-- Equation & Dynamic Sliders Card -->
-            <div class="glass-panel p-5 rounded-2xl shadow-lg flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm uppercase tracking-wider font-bold text-cyan-400 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders"></i> Coeficientes da Função
-                    </h2>
-                    <button onclick="resetCoefficients()" class="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-                        <i class="fa-solid fa-rotate-left"></i> Redefinir
-                    </button>
-                </div>
+      <section class="card">
+        <p class="label">Coeficientes</p>
+        <div id="sliders"></div>
+        <button class="ghost" id="resetBtn">↺ Voltar ao exemplo</button>
+      </section>
 
-                <!-- Main Formula Display -->
-                <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-center shadow-inner">
-                    <span class="text-xs text-slate-500 block mb-1">Fórmula Atual:</span>
-                    <div id="formula-display" class="font-mono-math text-lg md:text-xl font-bold text-cyan-300">
-                        f(x) = 2x - 4
-                    </div>
-                </div>
+      <section class="card">
+        <p class="label">Pontos de interesse</p>
+        <div class="chips" id="chips"></div>
+      </section>
 
-                <!-- Presets selection -->
-                <div>
-                    <label class="text-xs font-medium text-slate-400 block mb-2">Exemplos Práticos Prontos:</label>
-                    <div id="preset-buttons" class="grid grid-cols-2 gap-1.5">
-                        <!-- Buttons populated dynamically -->
-                    </div>
-                </div>
+      <section class="card">
+        <p class="label">Entendendo a função</p>
+        <div class="tip" id="tip"></div>
+      </section>
+    </aside>
 
-                <hr class="border-slate-800">
-
-                <!-- Sliders Container -->
-                <div id="sliders-container" class="space-y-3">
-                    <!-- Dynamic range inputs generated by JS -->
-                </div>
-            </div>
-
-            <!-- Key Points Summary Card -->
-            <div class="glass-panel p-5 rounded-2xl shadow-lg flex flex-col gap-3">
-                <h2 class="text-sm uppercase tracking-wider font-bold text-amber-400 flex items-center gap-2">
-                    <i class="fa-solid fa-bullseye"></i> Pontos Notáveis Encontrados
-                </h2>
-                <div id="key-points-list" class="space-y-2 text-xs">
-                    <!-- Key points dynamically rendered here -->
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Middle / Main Area: Canvas Graph (5 cols on lg) -->
-        <div class="lg:col-span-8 flex flex-col gap-4">
-            
-            <div class="glass-panel p-4 md:p-5 rounded-2xl shadow-lg flex-1 flex flex-col relative min-h-[420px] lg:min-h-[500px]">
-                <!-- Graph Header Toolbar -->
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]"></span>
-                        <h3 class="font-semibold text-sm md:text-base text-slate-200">Plano Cartesiano Interativo</h3>
-                    </div>
-                    <div class="flex items-center gap-3 text-xs text-slate-400">
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Raízes (Y=0)</span>
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Eixo Y (X=0)</span>
-                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Vértices/Extremos</span>
-                    </div>
-                </div>
-
-                <!-- Canvas Container -->
-                <div class="relative flex-1 w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80 cursor-crosshair group">
-                    <canvas id="graphCanvas" class="w-full h-full block"></canvas>
-                    
-                    <!-- Zoom & Pan Controls Overlay -->
-                    <div class="absolute bottom-3 right-3 flex gap-1.5 bg-slate-900/90 backdrop-blur-md p-1 rounded-lg border border-slate-800 text-xs">
-                        <button onclick="zoomGraph(1.2)" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Aumentar Zoom">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                        <button onclick="zoomGraph(0.8)" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Diminuir Zoom">
-                            <i class="fa-solid fa-minus"></i>
-                        </button>
-                        <button onclick="resetZoom()" class="p-2 hover:bg-slate-800 rounded text-slate-300 hover:text-white transition-colors" title="Centralizar Origem">
-                            <i class="fa-solid fa-compress"></i>
-                        </button>
-                    </div>
-
-                    <!-- Instruction overlay banner -->
-                    <div class="absolute top-3 left-3 pointer-events-none bg-slate-900/80 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-lg text-[11px] text-slate-400">
-                        <i class="fa-solid fa-hand-pointer text-cyan-400 mr-1"></i> Clique em qualquer ponto da linha para ver o cálculo
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Calculation Step-by-Step Breakdown Panel -->
-            <div id="calc-panel" class="glass-panel p-5 rounded-2xl shadow-lg border-l-4 border-l-cyan-400 transition-all duration-300">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Detalhamento Numérico</span>
-                        <h2 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-calculator text-cyan-400"></i> Passo a Passo da Substituição de X
-                        </h2>
-                    </div>
-                    <div id="calc-point-badge" class="px-3 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800/60 rounded-full text-xs font-mono-math font-bold">
-                        Ponto Selecionado: X = 2, Y = 0
-                    </div>
-                </div>
-
-                <!-- Calculation Steps Grid -->
-                <div id="calc-steps-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <!-- Dynamically populated calculation steps -->
-                </div>
-
-                <!-- Context explanation box -->
-                <div id="calc-explanation" class="mt-4 p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
-                    <i class="fa-solid fa-lightbulb text-amber-400 text-sm mt-0.5 shrink-0"></i>
-                    <span id="explanation-text">
-                        Clique em uma das bolinhas marcadas para entender o significado desse ponto na função.
-                    </span>
-                </div>
-            </div>
-
-        </div>
-
+    <main class="card stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div class="readout">
+        <div class="pill hint" id="hint">Clique em qualquer ponto do gráfico</div>
+      </div>
+      <div class="zoom">
+        <button class="icon-btn" id="zIn" aria-label="Aproximar">+</button>
+        <button class="icon-btn" id="zOut" aria-label="Afastar">−</button>
+        <button class="icon-btn" id="zReset" aria-label="Zoom padrão" style="font-size:14px">⟲</button>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--root)"></i>raízes (y = 0)</span>
+        <span><i style="background:var(--yint)"></i>corte no eixo y (x = 0)</span>
+      </div>
+      <div class="balloon" id="balloon" role="dialog" aria-live="polite"></div>
     </main>
-
-    <!-- Footer -->
-    <footer class="max-w-7xl mx-auto w-full mt-4 text-center text-xs text-slate-500 py-2">
-        Simulador Visual de Funções Matemáticas &bull; Desenvolvido para Aprendizado Interativo
-    </footer>
-
-    <!-- Interactive Logic JavaScript -->
-    <script>
-        // Global State
-        let degree = 1; // 1: linear, 2: quadratic, 3: cubic
-        let coeffs = { a: 0, b: 0, c: 2, d: -4 }; // Default for f(x) = 2x - 4 (degree 1 uses c & d or a & b mapped)
-        let selectedX = 2;
-        let viewScale = 35; // Pixels per grid unit
-        let originOffset = { x: 0, y: 0 }; // Canvas center offset
-
-        // Presets for quick switching
-        const presets = {
-            1: [
-                { name: 'f(x) = 2x - 4', coeffs: { a: 0, b: 0, c: 2, d: -4 }, x: 2 },
-                { name: 'f(x) = -x + 3', coeffs: { a: 0, b: 0, c: -1, d: 3 }, x: 3 },
-                { name: 'f(x) = 0.5x + 1', coeffs: { a: 0, b: 0, c: 0.5, d: 1 }, x: -2 }
-            ],
-            2: [
-                { name: 'f(x) = x² - 4', coeffs: { a: 0, b: 1, c: 0, d: -4 }, x: 2 },
-                { name: 'f(x) = -x² + 9', coeffs: { a: 0, b: -1, c: 0, d: 9 }, x: 3 },
-                { name: 'f(x) = x² - 2x - 3', coeffs: { a: 0, b: 1, c: -2, d: -3 }, x: 3 }
-            ],
-            3: [
-                { name: 'f(x) = x³ - 4x', coeffs: { a: 1, b: 0, c: -4, d: 0 }, x: 2 },
-                { name: 'f(x) = x³ - 3x + 2', coeffs: { a: 1, b: 0, c: -3, d: 2 }, x: 1 },
-                { name: 'f(x) = -x³ + 4x', coeffs: { a: -1, b: 0, c: 4, d: 0 }, x: 2 }
-            ]
-        };
-
-        // Canvas element setup
-        const canvas = document.getElementById('graphCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Evaluate f(x) = ax³ + bx² + cx + d
-        function evaluateY(x) {
-            return (coeffs.a * Math.pow(x, 3)) + (coeffs.b * Math.pow(x, 2)) + (coeffs.c * x) + coeffs.d;
-        }
-
-        // Initialize App
-        function initApp() {
-            window.addEventListener('resize', resizeCanvas);
-            setupCanvasInteraction();
-            setDegree(1);
-        }
-
-        // Switch degree tab (1º, 2º, 3º grau)
-        function setDegree(deg) {
-            degree = deg;
-            
-            // Update tab button styles
-            for (let i = 1; i <= 3; i++) {
-                const btn = document.getElementById(`tab-deg${i}`);
-                if (i === deg) {
-                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25';
-                } else {
-                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white';
-                }
-            }
-
-            // Load default preset for this degree
-            loadPreset(0);
-        }
-
-        function loadPreset(index) {
-            const preset = presets[degree][index];
-            coeffs = { ...preset.coeffs };
-            selectedX = preset.x;
-            renderSliders();
-            renderPresetButtons();
-            updateAll();
-        }
-
-        function renderPresetButtons() {
-            const container = document.getElementById('preset-buttons');
-            container.innerHTML = '';
-            presets[degree].forEach((p, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-mono-math bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 hover:border-slate-500 transition-all text-left truncate';
-                btn.innerText = p.name;
-                btn.onclick = () => loadPreset(idx);
-                container.appendChild(btn);
-            });
-        }
-
-        function renderSliders() {
-            const container = document.getElementById('sliders-container');
-            container.innerHTML = '';
-
-            const activeCoeffs = [];
-            if (degree === 3) activeCoeffs.push({ key: 'a', label: 'Coeficiente A (x³)', step: 0.1, min: -3, max: 3 });
-            if (degree >= 2) activeCoeffs.push({ key: 'b', label: degree === 2 ? 'Coeficiente A (x²)' : 'Coeficiente B (x²)', step: 0.1, min: -5, max: 5 });
-            activeCoeffs.push({ key: 'c', label: degree === 1 ? 'Inclinação (a em ax)' : (degree === 2 ? 'Coeficiente B (x)' : 'Coeficiente C (x)'), step: 0.5, min: -6, max: 6 });
-            activeCoeffs.push({ key: 'd', label: 'Termo Independente (Constante d)', step: 0.5, min: -10, max: 10 });
-
-            activeCoeffs.forEach(item => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'space-y-1';
-                
-                const val = coeffs[item.key];
-                wrapper.innerHTML = `
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-300">${item.label}</span>
-                        <span class="font-mono-math font-bold text-cyan-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800" id="val-${item.key}">${val}</span>
-                    </div>
-                    <input type="range" min="${item.min}" max="${item.max}" step="${item.step}" value="${val}" 
-                           oninput="onSliderChange('${item.key}', this.value)" class="w-full">
-                `;
-                container.appendChild(wrapper);
-            });
-        }
-
-        function onSliderChange(key, value) {
-            coeffs[key] = parseFloat(value);
-            document.getElementById(`val-${key}`).innerText = value;
-            updateAll();
-        }
-
-        function resetCoefficients() {
-            loadPreset(0);
-        }
-
-        // Format math formula text string
-        function getFormulaString() {
-            let parts = [];
-            if (degree === 3 && coeffs.a !== 0) {
-                let aStr = coeffs.a === 1 ? '' : (coeffs.a === -1 ? '-' : coeffs.a);
-                parts.push(`${aStr}x³`);
-            }
-            if (degree >= 2 && coeffs.b !== 0) {
-                let bVal = coeffs.b;
-                let sign = (parts.length > 0) ? (bVal > 0 ? ' + ' : ' - ') : (bVal < 0 ? '-' : '');
-                let absB = Math.abs(bVal);
-                let bStr = absB === 1 ? '' : absB;
-                parts.push(`${sign}${bStr}x²`);
-            }
-            if (coeffs.c !== 0) {
-                let cVal = coeffs.c;
-                let sign = (parts.length > 0) ? (cVal > 0 ? ' + ' : ' - ') : (cVal < 0 ? '-' : '');
-                let absC = Math.abs(cVal);
-                let cStr = absC === 1 ? '' : absC;
-                parts.push(`${sign}${cStr}x`);
-            }
-            if (coeffs.d !== 0 || parts.length === 0) {
-                let dVal = coeffs.d;
-                let sign = (parts.length > 0) ? (dVal > 0 ? ' + ' : ' - ') : '';
-                parts.push(`${sign}${Math.abs(dVal)}`);
-            }
-
-            return 'f(x) = ' + parts.join('');
-        }
-
-        // Find mathematical roots, y-intercept, and extrema
-        function calculateKeyPoints() {
-            let points = [];
-
-            // Y-intercept (x = 0)
-            const yIntercept = evaluateY(0);
-            points.push({ type: 'y-intercept', x: 0, y: yIntercept, label: 'Eixo Y (x = 0)', color: '#c084fc' });
-
-            // Numerical root finder in interval [-10, 10]
-            const step = 0.05;
-            for (let x = -12; x <= 12; x += step) {
-                let y1 = evaluateY(x);
-                let y2 = evaluateY(x + step);
-
-                // Exact root or sign change
-                if (Math.abs(y1) < 0.001) {
-                    addRootPoint(points, Math.round(x * 100) / 100);
-                } else if (y1 * y2 < 0) {
-                    // Linear interpolation for closer estimate
-                    let rootX = x - y1 * (step / (y2 - y1));
-                    addRootPoint(points, Math.round(rootX * 100) / 100);
-                }
-            }
-
-            // Extrema / Vertices for degree 2 or 3
-            if (degree === 2 && coeffs.b !== 0) {
-                // Vertex of parabola x = -b / (2a)
-                let vx = -coeffs.c / (2 * coeffs.b);
-                let vy = evaluateY(vx);
-                points.push({ type: 'vertex', x: Math.round(vx * 100) / 100, y: Math.round(vy * 100) / 100, label: 'Vértice Parábola', color: '#f59e0b' });
-            }
-
-            return points;
-        }
-
-        function addRootPoint(pointsList, xVal) {
-            if (!pointsList.some(p => p.type === 'root' && Math.abs(p.x - xVal) < 0.2)) {
-                pointsList.push({ type: 'root', x: xVal, y: 0, label: `Raiz (y = 0)`, color: '#34d399' });
-            }
-        }
-
-        // Render Canvas
-        function drawGraph() {
-            const width = canvas.width;
-            const height = canvas.height;
-
-            ctx.clearRect(0, 0, width, height);
-
-            const originX = width / 2 + originOffset.x;
-            const originY = height / 2 + originOffset.y;
-
-            // Draw Cartesian Grid
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1;
-
-            const minX = Math.floor((-originX) / viewScale);
-            const maxX = Math.ceil((width - originX) / viewScale);
-            const minY = Math.floor((originY - height) / viewScale);
-            const maxY = Math.ceil(originY / viewScale);
-
-            // Vertical grid lines
-            for (let x = minX; x <= maxX; x++) {
-                let px = originX + x * viewScale;
-                ctx.beginPath();
-                ctx.moveTo(px, 0);
-                ctx.lineTo(px, height);
-                ctx.stroke();
-
-                // Axis numbers
-                if (x !== 0 && x % 2 === 0) {
-                    ctx.fillStyle = '#64748b';
-                    ctx.font = '10px Inter';
-                    ctx.fillText(x.toString(), px - 4, originY + 14);
-                }
-            }
-
-            // Horizontal grid lines
-            for (let y = minY; y <= maxY; y++) {
-                let py = originY - y * viewScale;
-                ctx.beginPath();
-                ctx.moveTo(0, py);
-                ctx.lineTo(width, py);
-                ctx.stroke();
-
-                if (y !== 0 && y % 2 === 0) {
-                    ctx.fillStyle = '#64748b';
-                    ctx.font = '10px Inter';
-                    ctx.fillText(y.toString(), originX + 6, py + 3);
-                }
-            }
-
-            // Main X and Y Axes
-            ctx.strokeStyle = '#475569';
-            ctx.lineWidth = 2;
-
-            // X Axis
-            ctx.beginPath();
-            ctx.moveTo(0, originY);
-            ctx.lineTo(width, originY);
-            ctx.stroke();
-
-            // Y Axis
-            ctx.beginPath();
-            ctx.moveTo(originX, 0);
-            ctx.lineTo(originX, height);
-            ctx.stroke();
-
-            // Draw Function Curve
-            ctx.strokeStyle = '#38bdf8'; // Bright Cyan curve
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-
-            let firstPoint = true;
-            for (let px = 0; px <= width; px += 2) {
-                let x = (px - originX) / viewScale;
-                let y = evaluateY(x);
-                let py = originY - y * viewScale;
-
-                if (firstPoint) {
-                    ctx.moveTo(px, py);
-                    firstPoint = false;
-                } else {
-                    ctx.lineTo(px, py);
-                }
-            }
-            ctx.stroke();
-
-            // Draw Key Markers (Roots, Y-Intercepts, Vertices)
-            const keyPoints = calculateKeyPoints();
-            keyPoints.forEach(pt => {
-                let px = originX + pt.x * viewScale;
-                let py = originY - pt.y * viewScale;
-
-                // Pulsing outer halo
-                ctx.beginPath();
-                ctx.arc(px, py, 8, 0, Math.PI * 2);
-                ctx.fillStyle = pt.color + '33';
-                ctx.fill();
-
-                // Solid marker
-                ctx.beginPath();
-                ctx.arc(px, py, 5, 0, Math.PI * 2);
-                ctx.fillStyle = pt.color;
-                ctx.fill();
-                ctx.strokeStyle = '#0f172a';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-            });
-
-            // Draw Active Selected Point Marker
-            let selPx = originX + selectedX * viewScale;
-            let selY = evaluateY(selectedX);
-            let selPy = originY - selY * viewScale;
-
-            ctx.beginPath();
-            ctx.arc(selPx, selPy, 7, 0, Math.PI * 2);
-            ctx.fillStyle = '#f43f5e'; // Rose Pink active cursor
-            ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Active point coordinate label
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '600 11px Fira Code';
-            ctx.fillText(`(${selectedX.toFixed(1)}, ${selY.toFixed(1)})`, selPx + 10, selPy - 10);
-        }
-
-        // Update All UI Components
-        function updateAll() {
-            document.getElementById('formula-display').innerText = getFormulaString();
-            drawGraph();
-            updateKeyPointsList();
-            updateCalculationSteps();
-        }
-
-        function updateKeyPointsList() {
-            const list = document.getElementById('key-points-list');
-            list.innerHTML = '';
-            const points = calculateKeyPoints();
-
-            if (points.length === 0) {
-                list.innerHTML = `<span class="text-slate-500">Nenhum ponto notável no intervalo visível.</span>`;
-                return;
-            }
-
-            points.forEach(pt => {
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center bg-slate-900/90 p-2 rounded-lg border border-slate-800 cursor-pointer hover:border-slate-600 transition-all';
-                item.onclick = () => {
-                    selectedX = pt.x;
-                    updateAll();
-                };
-
-                item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${pt.color}"></span>
-                        <span class="text-slate-300 font-medium">${pt.label}</span>
-                    </div>
-                    <span class="font-mono-math font-bold text-white">(${pt.x}, ${pt.y})</span>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        // Detailed Step-by-Step Numerical Breakdown
-        function updateCalculationSteps() {
-            const x = Math.round(selectedX * 10) / 10;
-            const y = Math.round(evaluateY(x) * 100) / 100;
-
-            document.getElementById('calc-point-badge').innerText = `Ponto Selecionado: X = ${x}, Y = ${y}`;
-
-            const container = document.getElementById('calc-steps-list');
-            container.innerHTML = '';
-
-            let steps = [];
-
-            // Step 1: Write Formula
-            steps.push({
-                title: '1. Equação Original',
-                code: getFormulaString(),
-                desc: 'Identificando a lei de formação da função.'
-            });
-
-            // Step 2: Substitution
-            let formulaSub = getFormulaString().replace('f(x) = ', 'f(' + x + ') = ');
-            // Replace x variables with (x_val)
-            if (degree === 3) formulaSub = formulaSub.replace('x³', `(${x})³`).replace('x²', `(${x})²`).replace('x', `(${x})`);
-            else if (degree === 2) formulaSub = formulaSub.replace('x²', `(${x})²`).replace('x', `(${x})`);
-            else formulaSub = formulaSub.replace('x', `(${x})`);
-
-            steps.push({
-                title: `2. Substituição de X = ${x}`,
-                code: formulaSub,
-                desc: `Substituímos a variável x pelo valor ${x}.`
-            });
-
-            // Step 3: Evaluate powers & multiplication
-            let step3Code = '';
-            if (degree === 3) {
-                let cubeVal = Math.round(Math.pow(x, 3) * 100) / 100;
-                let sqVal = Math.round(Math.pow(x, 2) * 100) / 100;
-                step3Code = `f(${x}) = ${coeffs.a ? coeffs.a * cubeVal : 0} + ${coeffs.b ? coeffs.b * sqVal : 0} + (${coeffs.c * x}) + (${coeffs.d})`;
-            } else if (degree === 2) {
-                let sqVal = Math.round(Math.pow(x, 2) * 100) / 100;
-                step3Code = `f(${x}) = ${coeffs.b * sqVal} + (${coeffs.c * x}) + (${coeffs.d})`;
-            } else {
-                step3Code = `f(${x}) = ${coeffs.c * x} + (${coeffs.d})`;
-            }
-
-            steps.push({
-                title: '3. Resolução de Potências/Aritmética',
-                code: step3Code,
-                desc: 'Efetuando os cálculos das potências e multiplicações.'
-            });
-
-            // Step 4: Final Value
-            steps.push({
-                title: '4. Resultado Final (Valor de Y)',
-                code: `f(${x}) = ${y}`,
-                desc: `Portanto, quando x = ${x}, o valor do Y correspondente é ${y}.`
-            });
-
-            // Render step cards
-            steps.forEach((s, idx) => {
-                const card = document.createElement('div');
-                card.className = 'bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col justify-between animate-step';
-                card.style.animationDelay = `${idx * 0.08}s`;
-                card.innerHTML = `
-                    <div>
-                        <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">${s.title}</span>
-                        <div class="font-mono-math text-xs md:text-sm text-slate-100 font-semibold bg-slate-950 p-2 rounded border border-slate-800/80 mb-2 overflow-x-auto">
-                            ${s.code}
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-slate-400">${s.desc}</p>
-                `;
-                container.appendChild(card);
-            });
-
-            // Educational Context Box Message
-            const explanation = document.getElementById('explanation-text');
-            if (Math.abs(y) < 0.05) {
-                explanation.innerHTML = `<strong class="text-emerald-400 font-semibold">Este ponto é uma RAIZ DA FUNÇÃO (onde Y = 0)!</strong> O valor x = ${x} é a solução da equação f(x) = 0, indicando exatamente onde a curva corta o eixo horizontal X.`;
-            } else if (Math.abs(x) < 0.05) {
-                explanation.innerHTML = `<strong class="text-purple-400 font-semibold">Este ponto é a INTERSEÇÃO COM O EIXO Y (onde X = 0)!</strong> Quando zeramos a variável X, o valor obtido Y = ${y} é sempre igual ao termo independente da função.`;
-            } else {
-                explanation.innerHTML = `O par ordenado <strong>(${x}, ${y})</strong> representa uma coordenada no plano onde a função passa. Qualquer valor de X inserido produzirá exatamente um Y equivalente.`;
-            }
-        }
-
-        // Canvas Setup & Interactivity
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            drawGraph();
-        }
-
-        function setupCanvasInteraction() {
-            let isDragging = false;
-            let startMouse = { x: 0, y: 0 };
-
-            canvas.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startMouse = { x: e.clientX, y: e.clientY };
-                selectPointFromMouse(e);
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    const dx = e.clientX - startMouse.x;
-                    const dy = e.clientY - startMouse.y;
-                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-                        originOffset.x += dx;
-                        originOffset.y += dy;
-                        startMouse = { x: e.clientX, y: e.clientY };
-                        drawGraph();
-                    }
-                }
-            });
-
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-
-            // Touch support
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    selectPointFromMouse(e.touches[0]);
-                }
-            });
-        }
-
-        function selectPointFromMouse(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const originX = canvas.width / 2 + originOffset.x;
-
-            let mathX = (clickX - originX) / viewScale;
-            // Round to nearest 0.5 for clean user interaction
-            selectedX = Math.round(mathX * 2) / 2;
-            updateAll();
-        }
-
-        function zoomGraph(factor) {
-            viewScale *= factor;
-            if (viewScale < 10) viewScale = 10;
-            if (viewScale > 150) viewScale = 150;
-            drawGraph();
-        }
-
-        function resetZoom() {
-            viewScale = 35;
-            originOffset = { x: 0, y: 0 };
-            drawGraph();
-        }
-
-        // On document ready
-        window.onload = () => {
-            initApp();
-            resizeCanvas();
-        };
-    </script>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const SUP = ['', '', '²', '³'];
+
+  /* ---------- Formatação (pt-BR) ---------- */
+  const r4 = (n) => { const v = Number(n.toFixed(4)); return Object.is(v, -0) ? 0 : v; };
+  const fmt = (n) => String(r4(n)).replace('.', ',');
+  const isInt = (n) => Math.abs(n - Math.round(n)) < 1e-9;
+  const fmtPt = (x, y) => `(${fmt(x)}${isInt(x) && isInt(y) ? ', ' : '; '}${fmt(y)})`;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  /* ---------- Matemática ---------- */
+  // coeficientes em ordem crescente de potência: [c0, c1, c2, c3]
+  const PRESETS = { 1: [-4, 2, 0, 0], 2: [-4, 0, 1, 0], 3: [0, -1, 0, 1] };
+  const COEF_INFO = {
+    1: [{ p: 1, n: 'a', d: 'coeficiente de x' }, { p: 0, n: 'b', d: 'termo independente' }],
+    2: [{ p: 2, n: 'a', d: 'coeficiente de x²' }, { p: 1, n: 'b', d: 'coeficiente de x' }, { p: 0, n: 'c', d: 'termo independente' }],
+    3: [{ p: 3, n: 'a', d: 'coeficiente de x³' }, { p: 2, n: 'b', d: 'coeficiente de x²' }, { p: 1, n: 'c', d: 'coeficiente de x' }, { p: 0, n: 'd', d: 'termo independente' }]
+  };
+
+  const evalP = (c, x) => ((c[3] * x + c[2]) * x + c[1]) * x + c[0];
+
+  function realRoots(d) { // d em ordem decrescente
+    const n = d.length - 1, a = d[0];
+    if (n === 1) return [-d[1] / a];
+    if (n === 2) {
+      const [A, B, C] = d, D = B * B - 4 * A * C;
+      if (D < -1e-12) return [];
+      if (Math.abs(D) < 1e-12) return [-B / (2 * A)];
+      const s = Math.sqrt(D);
+      return [(-B - s) / (2 * A), (-B + s) / (2 * A)].sort((p, q) => p - q);
+    }
+    const crit = realRoots([3 * d[0], 2 * d[1], d[2]]);
+    const R = 1 + Math.max(...d.slice(1).map((v) => Math.abs(v / a)));
+    const f = (x) => d.reduce((s, c) => s * x + c, 0);
+    const pts = [-R, ...crit, R], out = [];
+    const add = (r) => { if (!out.some((o) => Math.abs(o - r) < 1e-7)) out.push(r); };
+    pts.forEach((p) => { if (Math.abs(f(p)) < 1e-9) add(p); });
+    for (let i = 0; i < pts.length - 1; i++) {
+      let l = pts[i], h = pts[i + 1];
+      const fl = f(l), fh = f(h);
+      if (Math.abs(fl) < 1e-9 || Math.abs(fh) < 1e-9 || fl * fh > 0) continue;
+      for (let k = 0; k < 100; k++) {
+        const m = (l + h) / 2, fm = f(m);
+        if ((fl < 0) === (fm < 0)) l = m; else h = m;
+      }
+      add((l + h) / 2);
+    }
+    return out.sort((p, q) => p - q);
+  }
+
+  function computeSpecial(c, deg) {
+    const desc = c.slice(0, deg + 1).reverse();
+    const roots = realRoots(desc).map((r) => {
+      r = Number(r.toFixed(9));
+      return Math.abs(r) < 1e-9 ? 0 : r;
+    });
+    const pts = roots.map((x) => ({ x, y: 0, root: true, yint: x === 0 }));
+    if (!roots.includes(0)) pts.push({ x: 0, y: c[0], root: false, yint: true });
+    return pts.sort((p, q) => p.x - q.x);
+  }
+
+  /* ---------- Texto das equações ---------- */
+  const termsOf = (c, deg) => {
+    const t = [];
+    for (let p = deg; p >= 0; p--) if (Math.abs(c[p]) > 1e-12) t.push({ c: c[p], p });
+    return t;
+  };
+  const joinTerms = (items) => items.length
+    ? items.map((it, i) => (i === 0 ? (it.neg ? '-' : '') : (it.neg ? ' - ' : ' + ')) + it.t).join('')
+    : '0';
+  const symbolic = (c, deg) => joinTerms(termsOf(c, deg).map(({ c: k, p }) => ({
+    neg: k < 0,
+    t: (Math.abs(k) === 1 && p > 0 ? '' : fmt(Math.abs(k))) + (p > 0 ? 'x' + SUP[p] : '')
+  })));
+
+  function explain(x, c, deg, special) {
+    const xr = r4(x), fx = fmt(xr);
+    const terms = termsOf(c, deg);
+    const paren = (v) => (v < 0 ? `(${fmt(v)})` : fmt(v));
+
+    const substituted = joinTerms(terms.map(({ c: k, p }) => ({
+      neg: k < 0,
+      t: p > 0 ? (Math.abs(k) === 1 ? '' : fmt(Math.abs(k)) + '·') + `(${fx})` + SUP[p] : fmt(Math.abs(k))
+    })));
+
+    const needMid = terms.some(({ c: k, p }) => Math.abs(k) !== 1 && p >= 1);
+    const middle = needMid ? joinTerms(terms.map(({ c: k, p }) => ({
+      neg: k < 0,
+      t: p === 0 ? fmt(Math.abs(k))
+        : (Math.abs(k) === 1 ? paren(Math.pow(xr, p)) : fmt(Math.abs(k)) + '·' + paren(Math.pow(xr, p)))
+    }))) : null;
+
+    let total = 0;
+    const evaluated = joinTerms(terms.map(({ c: k, p }) => {
+      const v = k * Math.pow(xr, p);
+      total += v;
+      const z = Math.abs(r4(v)) === 0;
+      return { neg: !z && v < 0, t: fmt(Math.abs(v)) };
+    }));
+    let y = r4(total);
+    if (Math.abs(total) < 1e-9) y = 0;
+
+    const rootHit = special.find((p) => p.root && Math.abs(p.x - x) < 1e-6);
+    const isRoot = !!rootHit || Math.abs(total) < 1e-9;
+    const isY = xr === 0;
+    const exactRoot = Math.abs(total) < 1e-9;
+
+    const lines = [{ k: 'f dim', h: `f(x) = ${symbolic(c, deg)}` }, { k: 'f', h: `f(${fx}) = ${substituted}` }];
+    if (middle && middle !== substituted) lines.push({ k: 'f', h: `f(${fx}) = ${middle}` });
+    if (evaluated !== substituted && evaluated !== middle) lines.push({ k: 'f', h: `f(${fx}) = ${evaluated}` });
+    lines.push({ k: 'f res', h: isRoot && !exactRoot ? `f(${fx}) ≈ 0` : `f(${fx}) = ${fmt(y)}` });
+
+    const notes = [];
+    if (isRoot && exactRoot) notes.push(`<b>f(${fx}) = 0</b>, então x = ${fx} é uma <b>raiz</b>: o gráfico toca o eixo x em ${fmtPt(xr, 0)}.`);
+    else if (isRoot) notes.push(`Raiz <b>aproximada</b>: o valor exato é irracional, por isso o resultado fica muito perto de 0, mas não exatamente nele.`);
+    if (isY) notes.push(`Em <b>x = 0</b> o gráfico corta o eixo y no ponto ${fmtPt(0, y)}.`);
+    if (!isRoot && !isY) notes.push(`Logo, o ponto <b>${fmtPt(xr, y)}</b> pertence ao gráfico de f.`);
+
+    const kind = isRoot && isY ? 'both' : isRoot ? 'root' : isY ? 'yint' : 'free';
+    const title = { both: 'Raiz e corte no eixo y', root: 'Raiz da função', yint: 'Corte no eixo y', free: 'Ponto do gráfico' }[kind];
+    return { fx, y, kind, title, lines, notes };
+  }
+
+  /* ---------- Estado ---------- */
+  const st = {
+    deg: 2,
+    target: PRESETS[2].slice(),
+    cur: PRESETS[2].slice(),
+    special: [],
+    sel: null,          // { x }
+    hover: null,
+    zoom: 1,
+    view: { xh: 6.5, yh: 8 },
+    pointsT: performance.now()
+  };
+
+  /* ---------- Canvas ---------- */
+  const stage = $('#stage'), cv = $('#cv'), ctx = cv.getContext('2d');
+  const balloon = $('#balloon');
+  let W = 0, H = 0, dpr = 1, colors = {};
+
+  function readColors() {
+    const s = getComputedStyle(document.documentElement);
+    const g = (n) => s.getPropertyValue(n).trim();
+    colors = {
+      grid: g('--grid'), major: g('--grid-major'), axis: g('--axis'), txt: g('--txt'), muted: g('--muted'),
+      a: g('--curveA'), b: g('--curveB'), root: g('--root'), yint: g('--yint'), pop: g('--pop'), accent: g('--accent'), card: g('--card-solid')
+    };
+  }
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    balloon.classList.toggle('dock', W < 640);
+    kick();
+  }
+  new ResizeObserver(resize).observe(stage);
+
+  const sx = (x) => W / 2 + x * (W / (2 * st.view.xh));
+  const sy = (y) => H / 2 - y * (H / (2 * st.view.yh));
+  const ix = (px) => (px - W / 2) / (W / (2 * st.view.xh));
+
+  function niceStep(range, ticks) {
+    const raw = range / Math.max(ticks, 1), pow = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / pow;
+    return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * pow;
+  }
+
+  function viewTarget() {
+    let xm = 6.5, ym = 8;
+    st.special.forEach((p) => { xm = Math.max(xm, Math.abs(p.x) * 1.25); });
+    ym = Math.max(ym, Math.abs(st.target[0]) * 1.3);
+    if (st.deg === 2 && Math.abs(st.target[2]) > 1e-9) {
+      const xv = -st.target[1] / (2 * st.target[2]);
+      xm = Math.max(xm, Math.abs(xv) * 1.3);
+      ym = Math.max(ym, Math.abs(evalP(st.target, xv)) * 1.25);
+    }
+    return { xh: Math.min(xm, 40) / st.zoom, yh: Math.min(ym, 60) / st.zoom };
+  }
+
+  /* ---------- Desenho ---------- */
+  const easeOutBack = (t) => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+  function draw(now) {
+    ctx.clearRect(0, 0, W, H);
+    const { xh, yh } = st.view;
+
+    // grade
+    const stepX = niceStep(2 * xh, W / 75), stepY = niceStep(2 * yh, H / 60);
+    ctx.lineWidth = 1;
+    ctx.font = '11.5px ui-monospace, Menlo, Consolas, monospace';
+    for (let x = Math.ceil(-xh / stepX) * stepX; x <= xh; x += stepX) {
+      const px = Math.round(sx(x)) + .5;
+      ctx.strokeStyle = colors.grid; ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+    }
+    for (let y = Math.ceil(-yh / stepY) * stepY; y <= yh; y += stepY) {
+      const py = Math.round(sy(y)) + .5;
+      ctx.strokeStyle = colors.grid; ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+    }
+    // eixos
+    ctx.strokeStyle = colors.axis; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(0, sy(0)); ctx.lineTo(W, sy(0)); ctx.moveTo(sx(0), 0); ctx.lineTo(sx(0), H); ctx.stroke();
+    // rótulos
+    ctx.fillStyle = colors.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let x = Math.ceil(-xh / stepX) * stepX; x <= xh; x += stepX) {
+      if (Math.abs(x) < stepX / 2) continue;
+      ctx.fillText(fmt(x), sx(x), clamp(sy(0) + 7, 4, H - 18));
+    }
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let y = Math.ceil(-yh / stepY) * stepY; y <= yh; y += stepY) {
+      if (Math.abs(y) < stepY / 2) continue;
+      ctx.fillText(fmt(y), clamp(sx(0) - 8, 30, W - 6), sy(y));
+    }
+    ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    ctx.fillText('0', sx(0) - 7, sy(0) + 6);
+    ctx.fillStyle = colors.txt; ctx.font = 'italic 600 13px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('x', W - 16, clamp(sy(0) - 8, 16, H - 6));
+    ctx.textBaseline = 'top'; ctx.fillText('y', clamp(sx(0) + 9, 4, W - 12), 8 + 44);
+
+    // curva
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, colors.a); grad.addColorStop(1, colors.b);
+    ctx.beginPath();
+    for (let px = -2, first = true; px <= W + 2; px += 1.5) {
+      const y = evalP(st.cur, ix(px));
+      const py = clamp(sy(y), -6000, 6000);
+      if (first) { ctx.moveTo(px, py); first = false; } else ctx.lineTo(px, py);
+    }
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = grad; ctx.globalAlpha = .2; ctx.lineWidth = 11; ctx.stroke();
+    ctx.globalAlpha = 1; ctx.lineWidth = 3.6; ctx.stroke();
+    ctx.restore();
+
+    // cursor / guia de hover
+    if (st.hover && !st.hover.snap) {
+      const hx = st.hover.x, hy = evalP(st.cur, hx);
+      ctx.save(); ctx.setLineDash([4, 5]); ctx.strokeStyle = colors.muted; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sx(hx), 0); ctx.lineTo(sx(hx), H); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(sx(hx), sy(hy), 5, 0, 7); ctx.fill();
+    }
+
+    // ponto selecionado
+    if (st.sel) {
+      const x = st.sel.x, y = evalP(st.cur, x), px = sx(x), py = sy(y);
+      ctx.save(); ctx.setLineDash([5, 5]); ctx.lineWidth = 1.3; ctx.strokeStyle = colors.accent;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, sy(0)); ctx.moveTo(px, py); ctx.lineTo(sx(0), py); ctx.stroke(); ctx.restore();
+      const pulse = (Math.sin(now / 280) + 1) / 2;
+      ctx.strokeStyle = colors.accent; ctx.globalAlpha = .55 - pulse * .4; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(px, py, 11 + pulse * 9, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = colors.accent; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(px, py, 7, 0, 7); ctx.fill(); ctx.stroke();
+    }
+
+    // pontos de interesse
+    st.special.forEach((p, i) => {
+      const t = clamp((now - st.pointsT - 150 - i * 70) / 450, 0, 1);
+      if (t <= 0) return;
+      const sc = easeOutBack(t);
+      const px = sx(p.x), py = sy(p.y);
+      const hot = st.hover && st.hover.snap === p;
+      const col = p.root ? colors.root : colors.yint;
+      const r = (hot ? 10.5 : 8.5) * sc;
+      ctx.fillStyle = col; ctx.globalAlpha = hot ? .38 : .22;
+      ctx.beginPath(); ctx.arc(px, py, r + 8, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.fillStyle = col; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill(); ctx.stroke();
+      if (p.root && p.yint) { // raiz em (0,0): contorno amarelo
+        ctx.strokeStyle = colors.yint; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(px, py, r + 3.5, 0, 7); ctx.stroke();
+      }
+      ctx.globalAlpha = clamp(t * 1.5, 0, 1);
+      ctx.font = '600 12px ui-monospace, Menlo, Consolas, monospace';
+      const label = fmtPt(r4(p.x), r4(p.y));
+      const tw = ctx.measureText(label).width;
+      let lx = px + 14, ly = py - 16;
+      if (lx + tw > W - 8) lx = px - 14 - tw;
+      if (ly < 40) ly = py + 22;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 4; ctx.strokeStyle = colors.card; ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = colors.txt; ctx.fillText(label, lx, ly);
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  /* ---------- Loop de animação ---------- */
+  let last = performance.now(), running = false;
+  function kick() { if (!running) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, .05); last = now;
+    const k = 1 - Math.exp(-dt * 13);
+    let moving = false;
+    for (let i = 0; i < 4; i++) {
+      const d = st.target[i] - st.cur[i];
+      if (Math.abs(d) > 1e-4) { st.cur[i] += d * k; moving = true; } else st.cur[i] = st.target[i];
+    }
+    const vt = viewTarget();
+    ['xh', 'yh'].forEach((a) => {
+      const d = vt[a] - st.view[a];
+      if (Math.abs(d) > 1e-4 * vt[a]) { st.view[a] += d * k; moving = true; } else st.view[a] = vt[a];
+    });
+    draw(now);
+    positionBalloon();
+    const animatingPoints = now - st.pointsT < 150 + st.special.length * 70 + 500;
+    if (moving || st.sel || animatingPoints) requestAnimationFrame(frame);
+    else running = false;
+  }
+
+  /* ---------- Balão ---------- */
+  function positionBalloon() {
+    if (!st.sel || !balloon.classList.contains('show')) return;
+    if (balloon.classList.contains('dock')) return;
+    const px = sx(st.sel.x), py = sy(evalP(st.cur, st.sel.x));
+    const bw = balloon.offsetWidth, bh = balloon.offsetHeight;
+    let bx = px + 20, by = py - bh - 16;
+    if (bx + bw > W - 10) bx = px - 20 - bw;
+    if (bx < 10) bx = 10;
+    if (by < 54) by = py + 22;
+    by = clamp(by, 54, H - bh - 10);
+    balloon.style.transform = `translate3d(${bx}px, ${by}px, 0) scale(1)`;
+  }
+
+  function renderBalloon(animate) {
+    if (!st.sel) {
+      balloon.classList.remove('show');
+      balloon.style.transform = 'translate3d(0,0,0) scale(.94)';
+      return;
+    }
+    const e = explain(st.sel.x, st.target, st.deg, st.special);
+    balloon.classList.toggle('noanim', !animate);
+    const dl = (i) => `style="animation-delay:${animate ? 80 + i * 170 : 0}ms"`;
+    let i = 0;
+    let html = `
+      <div class="bh"><span class="badge ${e.kind}">${e.title}</span>
+      <button class="x-btn" id="xBtn" aria-label="Fechar">✕</button></div>
+      <div class="l-intro ln" ${dl(i++)}>Você clicou no ponto <b>x = ${e.fx}</b></div>
+      <div class="steps">` +
+      e.lines.map((l) => `<div class="l-${l.k.split(' ')[0]} ${l.k.includes('dim') ? 'dim' : ''} ${l.k.includes('res') ? 'res' : ''} ln" ${dl(i++)}>${l.h}</div>`).join('') +
+      `</div>` +
+      e.notes.map((n) => `<div class="l-note ln" ${dl(i++)}>${n}</div>`).join('');
+    const wasShown = balloon.classList.contains('show');
+    balloon.innerHTML = html;
+    balloon.classList.add('show');
+    if (!wasShown) {
+      // posição inicial sem animar a partir do canto
+      balloon.style.transition = 'none';
+      positionBalloon();
+      void balloon.offsetWidth;
+      balloon.style.transition = '';
+    }
+    $('#xBtn').onclick = () => { st.sel = null; renderBalloon(false); };
+    positionBalloon();
+    kick();
+  }
+
+  /* ---------- Interações no gráfico ---------- */
+  function canvasPos(ev) {
+    const r = cv.getBoundingClientRect();
+    return { px: ev.clientX - r.left, py: ev.clientY - r.top };
+  }
+  function nearestSpecial(px, py, radius) {
+    let best = null, bd = radius;
+    st.special.forEach((p) => {
+      const d = Math.hypot(sx(p.x) - px, sy(p.y) - py);
+      if (d < bd) { bd = d; best = p; }
+    });
+    return best;
+  }
+  function snapX(x) {
+    const xh = st.view.xh, step = xh > 15 ? .5 : xh > 3 ? .1 : .05;
+    return Number((Math.round(x / step) * step).toFixed(4));
+  }
+
+  let down = null;
+  cv.addEventListener('pointerdown', (e) => { down = canvasPos(e); });
+  cv.addEventListener('pointerup', (e) => {
+    if (!down) return;
+    const p = canvasPos(e);
+    const moved = Math.hypot(p.px - down.px, p.py - down.py);
+    down = null;
+    if (moved > 8) return;
+    const sp = nearestSpecial(p.px, p.py, e.pointerType === 'touch' ? 26 : 16);
+    const x = sp ? sp.x : snapX(ix(p.px));
+    st.sel = { x };
+    renderBalloon(true);
+    $('#hint').textContent = 'Clique em outro ponto, ou em ✕ para fechar';
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    const p = canvasPos(e);
+    const sp = nearestSpecial(p.px, p.py, 16);
+    const x = ix(p.px);
+    st.hover = { x, snap: sp };
+    cv.style.cursor = sp ? 'pointer' : 'crosshair';
+    const y = evalP(st.target, x);
+    $('#hint').textContent = sp ? `Clique para ver a conta: ${fmtPt(r4(sp.x), r4(sp.y))}` : `x = ${fmt(x)}   f(x) = ${fmt(y)}`;
+    $('#hint').style.fontFamily = 'var(--mono)';
+    kick();
+  });
+  cv.addEventListener('pointerleave', () => {
+    st.hover = null; $('#hint').style.fontFamily = '';
+    $('#hint').textContent = st.sel ? 'Clique em outro ponto, ou em ✕ para fechar' : 'Clique em qualquer ponto do gráfico';
+    kick();
+  });
+  cv.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    st.zoom = clamp(st.zoom * Math.exp(-e.deltaY * .0013), .35, 5); kick();
+  }, { passive: false });
+  $('#zIn').onclick = () => { st.zoom = clamp(st.zoom * 1.3, .35, 5); kick(); };
+  $('#zOut').onclick = () => { st.zoom = clamp(st.zoom / 1.3, .35, 5); kick(); };
+  $('#zReset').onclick = () => { st.zoom = 1; kick(); };
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.sel) { st.sel = null; renderBalloon(false); } });
+
+  /* ---------- Painel lateral ---------- */
+  function buildSliders() {
+    const box = $('#sliders');
+    box.innerHTML = '';
+    COEF_INFO[st.deg].forEach((info, idx) => {
+      const row = document.createElement('div');
+      row.className = 'sl';
+      row.innerHTML = `<b>${info.n}</b><input type="range" min="-8" max="8" step="0.5" aria-label="coeficiente ${info.n}"><output></output><small>${info.d}</small>`;
+      const inp = row.querySelector('input'), out = row.querySelector('output');
+      const set = () => {
+        const v = Number(inp.value);
+        out.textContent = fmt(v);
+        inp.style.setProperty('--pct', ((v + 8) / 16 * 100) + '%');
+      };
+      inp.value = st.target[info.p]; set();
+      inp.addEventListener('input', () => {
+        let v = Number(inp.value);
+        if (idx === 0 && v === 0) { v = st.target[info.p] >= 0 ? -0.5 : 0.5; inp.value = v; }
+        set();
+        st.target[info.p] = v;
+        onCoefChange();
+      });
+      box.appendChild(row);
+    });
+  }
+
+  function buildChips() {
+    const box = $('#chips');
+    box.innerHTML = '';
+    if (!st.special.some((p) => p.root)) {
+      const e = document.createElement('div');
+      e.className = 'empty';
+      e.textContent = 'Esta função não tem raízes reais: o gráfico não cruza o eixo x.';
+      box.appendChild(e);
+    }
+    st.special.forEach((p, i) => {
+      const b = document.createElement('button');
+      b.className = 'chip ' + (p.root ? 'root' : 'yint');
+      b.style.animationDelay = i * 60 + 'ms';
+      const name = p.root && p.yint ? 'Raiz e corte em y' : p.root ? 'Raiz' : 'Corte no eixo y';
+      b.innerHTML = `<i></i><span>${name}</span><em>${fmtPt(r4(p.x), r4(p.y))}</em>`;
+      b.onclick = () => { st.sel = { x: p.x }; renderBalloon(true); };
+      box.appendChild(b);
+    });
+  }
+
+  function buildTip() {
+    const c = st.target, d = st.deg;
+    let h = '';
+    if (d === 1) {
+      h = `Uma reta. O coeficiente angular <b>a = ${fmt(c[1])}</b> faz a reta ${c[1] > 0 ? '<b>subir</b>' : '<b>descer</b>'} da esquerda para a direita.
+           O termo <b>b = ${fmt(c[0])}</b> é onde ela corta o eixo y. A raiz vem de <code>ax + b = 0</code> → <code>x = −b/a</code>.`;
+    } else if (d === 2) {
+      const [cc, b, a] = c, D = b * b - 4 * a * cc, xv = -b / (2 * a), yv = evalP(c, xv);
+      h = `Uma parábola com concavidade <b>${a > 0 ? 'para cima' : 'para baixo'}</b>. O discriminante é
+           <code>Δ = b² − 4ac = ${fmt(D)}</code>, então ${D > 1e-9 ? '<b>há 2 raízes reais</b>' : Math.abs(D) <= 1e-9 ? '<b>há 1 raiz real</b> (o vértice toca o eixo x)' : '<b>não há raízes reais</b>'}.
+           O vértice fica em <code>${fmtPt(r4(xv), r4(yv))}</code>.`;
+    } else {
+      const n = st.special.filter((p) => p.root).length;
+      h = `Uma cúbica sempre cruza o eixo x <b>pelo menos 1 vez</b> e pode ter até 3 raízes reais. Esta tem <b>${n} raiz${n > 1 ? 'es' : ''} real${n > 1 ? 'is' : ''}</b>.
+           O ponto onde ela corta o eixo y é sempre <code>(0, d)</code> = <code>${fmtPt(0, r4(c[0]))}</code>.`;
+    }
+    $('#tip').innerHTML = h;
+  }
+
+  function refreshInfo() {
+    st.special = computeSpecial(st.target, st.deg);
+    $('#equation').textContent = 'f(x) = ' + symbolic(st.target, st.deg);
+    buildChips();
+    buildTip();
+  }
+
+  function onCoefChange() {
+    refreshInfo();
+    if (st.sel) renderBalloon(false);
+    st.pointsT = performance.now() - 2000; // não reanimar os pontos a cada ajuste
+    kick();
+  }
+
+  function setDegree(deg) {
+    st.deg = deg;
+    st.target = PRESETS[deg].slice();
+    st.sel = null;
+    renderBalloon(false);
+    document.querySelectorAll('#seg button').forEach((b) => b.classList.toggle('on', Number(b.dataset.deg) === deg));
+    $('#seg').style.setProperty('--i', deg - 1);
+    buildSliders();
+    refreshInfo();
+    st.pointsT = performance.now();
+    $('#hint').textContent = 'Clique em qualquer ponto do gráfico';
+    kick();
+  }
+
+  document.querySelectorAll('#seg button').forEach((b) => b.addEventListener('click', () => {
+    const d = Number(b.dataset.deg);
+    if (d !== st.deg) setDegree(d);
+  }));
+  $('#resetBtn').onclick = () => { st.target = PRESETS[st.deg].slice(); st.sel = null; renderBalloon(false); buildSliders(); refreshInfo(); st.pointsT = performance.now(); kick(); };
+
+  /* ---------- Tema ---------- */
+  const root = document.documentElement;
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    $('#themeBtn').textContent = t === 'dark' ? '☀' : '☾';
+    readColors(); kick();
+  }
+  $('#themeBtn').onclick = () => setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+  /* ---------- Início ---------- */
+  setTheme(prefersLight ? 'light' : 'dark');
+  $('#seg').style.setProperty('--i', 1);
+  buildSliders();
+  refreshInfo();
+  resize();
+  st.view = viewTarget();
+  st.pointsT = performance.now();
+  kick();
+})();
+</script>
 </body>
 </html>
