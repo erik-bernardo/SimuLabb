@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyan Cat: Level Editor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #0b0c10;
+            color: #c5c6c7;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar - Controls */
+        #sidebar {
+            width: 320px;
+            background-color: #1f2833;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 4px solid #45a29e;
+            box-shadow: 2px 0 15px rgba(69, 162, 158, 0.2);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #66fcf1;
+            font-size: 32px;
+            text-shadow: 2px 2px 0 #000;
+            text-align: center;
+            border-bottom: 2px solid #45a29e;
+            padding-bottom: 10px;
+        }
+
+        .panel-section {
+            background: #0b0c10;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #45a29e;
+        }
+
+        .panel-title {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Size Controls */
+        .size-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 16px;
+            color: #c5c6c7;
+        }
+
+        input[type="number"] {
+            background: #1f2833;
+            border: 1px solid #45a29e;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        button {
+            background: #45a29e;
+            color: #0b0c10;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+            font-weight: bold;
+        }
+        button:hover { background: #66fcf1; }
+        button:active { transform: translateY(2px); }
+
+        /* Tool Palette */
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1f2833;
+            border: 2px solid transparent;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+        }
+        
+        .tool-btn:hover { background: #2a3644; }
+        
+        .tool-btn.active {
+            border-color: #66fcf1;
+            background: rgba(102, 252, 241, 0.1);
+        }
+
+        .tool-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        /* Icon Colors Matching the Game */
+        .icon-0 { background: #000; border: 1px dashed #444; }
+        .icon-1 { background: #1f2833; border: 2px solid #45a29e; }
+        .icon-2 { background: #ffd700; color: #000; font-size: 18px; }
+        .icon-3 { background: #66fcf1; border-radius: 50%; box-shadow: 0 0 10px #66fcf1;}
+        .icon-4 { background: #ff69b4; color: #fff; font-size: 18px;}
+
+        /* Export Area */
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #45a29e;
+            padding: 10px;
+            border-radius: 4px;
+            resize: none;
+            user-select: text;
+        }
+
+        /* Main Workspace - Grid Area */
+        #workspace {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+            overflow: auto;
+            padding: 20px;
+        }
+
+        #grid-container {
+            display: grid;
+            gap: 1px;
+            background-color: #333;
+            border: 4px solid #45a29e;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            cursor: crosshair;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background-color: #0b0c10; /* Default 0 */
+            transition: filter 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        .cell:hover { filter: brightness(1.5); }
+
+        /* Cell Visuals based on Value */
+        .cell[data-val="0"] { background-color: #050508; }
+        .cell[data-val="1"] { 
+            background-color: #1f2833; 
+            box-shadow: inset 0 0 0 2px #45a29e; 
+        }
+        .cell[data-val="2"] { background-color: #050508; }
+        .cell[data-val="2"]::after { content: '⭐'; text-shadow: 0 0 5px #ffd700; }
+        
+        .cell[data-val="3"] { background-color: #050508; }
+        .cell[data-val="3"]::after { 
+            content: ''; 
+            width: 25px; height: 25px; 
+            background: #66fcf1; 
+            border-radius: 50%;
+            box-shadow: 0 0 10px #66fcf1;
+        }
+
+        .cell[data-val="4"] { background-color: #050508; }
+        .cell[data-val="4"]::after { content: '🐱'; text-shadow: 0 0 5px #ff69b4; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar / Controls -->
+    <div id="sidebar">
+        <h1>Nyan Level Editor</h1>
+
+        <div class="panel-section">
+            <span class="panel-title">Tamanho da Fase</span>
+            <div class="size-controls">
+                <div class="input-group">
+                    <label>Colunas (Largura)</label>
+                    <input type="number" id="cols-input" value="9" min="3" max="30">
+                </div>
+                <div class="input-group">
+                    <label>Linhas (Altura)</label>
+                    <input type="number" id="rows-input" value="11" min="3" max="30">
+                </div>
+            </div>
+            <button id="btn-update-grid" style="width: 100%;">Atualizar Grade</button>
+        </div>
+
+        <div class="panel-section">
+            <span class="panel-title">Paleta (Tiles)</span>
+            <div id="tools-container">
+                <div class="tool-btn active" data-tool="0">
+                    <div class="tool-icon icon-0"></div> 0: Espaço (Chão)
+                </div>
+                <div class="tool-btn" data-tool="1">
+                    <div class="tool-icon icon-1"></div> 1: Parede
+                </div>
+                <div class="tool-btn" data-tool="2">
+                    <div class="tool-icon icon-2">⭐</div> 2: Estrela (Coletável)
+                </div>
+                <div class="tool-btn" data-tool="3">
+                    <div class="tool-icon icon-3"></div> 3: Portal (Saída)
+                </div>
+                <div class="tool-btn" data-tool="4">
+                    <div class="tool-icon icon-4">🐱</div> 4: Nyan Cat (Início)
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <span class="panel-title">Exportar Matriz</span>
+            <textarea id="export-output" readonly></textarea>
+            <button id="btn-copy" style="width: 100%;">Copiar Código</button>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="workspace">
+        <div id="grid-container"></div>
+    </div>
+
+<script>
+    // --- STATE ---
+    let rows = 11;
+    let cols = 9;
+    let currentTool = 0; // 0 = space
+    let gridData = [];
+    let isDrawing = false;
+
+    // --- DOM ELEMENTS ---
+    const gridContainer = document.getElementById('grid-container');
+    const colsInput = document.getElementById('cols-input');
+    const rowsInput = document.getElementById('rows-input');
+    const btnUpdateGrid = document.getElementById('btn-update-grid');
+    const toolBtns = document.querySelectorAll('.tool-btn');
+    const exportOutput = document.getElementById('export-output');
+    const btnCopy = document.getElementById('btn-copy');
+
+    // --- INITIALIZATION ---
+    function init() {
+        generateInitialGridData();
+        renderGrid();
+        updateExport();
+
+        // Mouse listeners for drag-painting
+        gridContainer.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            paintCell(e.target);
+        });
+
+        window.addEventListener('mouseup', () => {
+            if(isDrawing) {
+                isDrawing = false;
+                updateExport();
+            }
+        });
+
+        gridContainer.addEventListener('mouseover', (e) => {
+            if(isDrawing) paintCell(e.target);
+        });
+
+        // Prevent default drag behaviors
+        gridContainer.addEventListener('dragstart', (e) => e.preventDefault());
+    }
+
+    function generateInitialGridData() {
+        gridData = [];
+        for (let r = 0; r < rows; r++) {
+            let row = [];
+            for (let c = 0; c < cols; c++) {
+                // Border walls, inside space
+                if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+                    row.push(1);
+                } else {
+                    row.push(0);
+                }
+            }
+            gridData.push(row);
+        }
+        
+        // Default spawn point for Nyan and Portal
+        if (rows > 2 && cols > 2) {
+            gridData[rows-2][1] = 4; // Nyan
+            gridData[1][cols-2] = 3; // Portal
+        }
+    }
+
+    function resizeGrid() {
+        const newCols = parseInt(colsInput.value);
+        const newRows = parseInt(rowsInput.value);
+        
+        if (isNaN(newCols) || isNaN(newRows) || newCols < 3 || newRows < 3) return;
+
+        let newGridData = [];
+        for (let r = 0; r < newRows; r++) {
+            let row = [];
+            for (let c = 0; c < newCols; c++) {
+                // Copy old data if it exists, else put space (0) or walls (1) on edges
+                if (r < rows && c < cols && gridData[r] !== undefined) {
+                    row.push(gridData[r][c]);
+                } else {
+                    if (r === 0 || r === newRows - 1 || c === 0 || c === newCols - 1) row.push(1);
+                    else row.push(0);
+                }
+            }
+            newGridData.push(row);
+        }
+
+        rows = newRows;
+        cols = newCols;
+        gridData = newGridData;
+        
+        // Ensure unique items are still unique/exist safely, but let user handle it mostly
+        renderGrid();
+        updateExport();
+    }
+
+    function renderGrid() {
+        gridContainer.innerHTML = '';
+        gridContainer.style.gridTemplateColumns = `repeat(${cols}, 35px)`;
+        gridContainer.style.gridTemplateRows = `repeat(${rows}, 35px)`;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.dataset.val = gridData[r][c];
+                gridContainer.appendChild(cell);
+            }
+        }
+    }
+
+    function paintCell(target) {
+        if (!target.classList.contains('cell')) return;
+
+        const r = parseInt(target.dataset.r);
+        const c = parseInt(target.dataset.c);
+        
+        // Edge walls logic (optional restraint, but we'll let user paint anywhere)
+        
+        // Unique item restriction (Only 1 Nyan(4) and 1 Portal(3))
+        if (currentTool === 3 || currentTool === 4) {
+            // Find and clear existing instance in data and DOM
+            for(let ir = 0; ir < rows; ir++) {
+                for(let ic = 0; ic < cols; ic++) {
+                    if (gridData[ir][ic] === currentTool) {
+                        gridData[ir][ic] = 0;
+                        const oldCell = document.querySelector(`.cell[data-r="${ir}"][data-c="${ic}"]`);
+                        if(oldCell) oldCell.dataset.val = 0;
+                    }
+                }
+            }
+        }
+
+        gridData[r][c] = currentTool;
+        target.dataset.val = currentTool;
+    }
+
+    function updateExport() {
+        let output = "[\n";
+        for (let r = 0; r < rows; r++) {
+            output += "  [" + gridData[r].join(",") + "]";
+            if (r < rows - 1) output += ",\n";
+            else output += "\n";
+        }
+        output += "]";
+        exportOutput.value = output;
+    }
+
+    // --- EVENT LISTENERS ---
+    
+    // Resize Button
+    btnUpdateGrid.addEventListener('click', resizeGrid);
+
+    // Tool Selection
+    toolBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class
+            toolBtns.forEach(b => b.classList.remove('active'));
+            // Set new active
+            btn.classList.add('active');
+            currentTool = parseInt(btn.dataset.tool);
+        });
+    });
+
+    // Copy to Clipboard
+    btnCopy.addEventListener('click', () => {
+        exportOutput.select();
+        document.execCommand('copy');
+        
+        const originalText = btnCopy.innerText;
+        btnCopy.innerText = "Copiado!";
+        setTimeout(() => {
+            btnCopy.innerText = originalText;
+        }, 1500);
+    });
+
+    // Start
+    init();
+
+</script>
+</body>
+</html>
