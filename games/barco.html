@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Carga Máxima: O Desafio do Empuxo</title>
+<style>
+:root{
+  --blue:#1b6ca8; --blue-dark:#0e4a75; --water:#2e9ccf; --sand:#e8d5a3; --wood:#8b5a2b;
+  --green:#3fae5a; --yellow:#f2c14e; --red:#e05252; --ink:#22303c; --panel:#fffdf6;
+  --shadow:0 6px 18px rgba(10,30,50,.18);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:"Trebuchet MS","Segoe UI",Verdana,sans-serif; color:var(--ink);
+  background:linear-gradient(180deg,#0e4a75 0%,#1b6ca8 45%,#2e9ccf 100%);
+  overflow-x:hidden;
+}
+#app{min-height:100%;display:flex;flex-direction:column;}
+.screen{display:none;flex:1;flex-direction:column;}
+.screen.active{display:flex;}
+button{
+  font-family:inherit;font-weight:700;border:none;cursor:pointer;border-radius:14px;
+  padding:12px 22px;font-size:16px;color:#fff;background:var(--blue);
+  box-shadow:0 4px 0 var(--blue-dark);transition:transform .08s, filter .15s;
+}
+button:hover{filter:brightness(1.08);}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--blue-dark);}
+button.secondary{background:#5b7a8c;box-shadow:0 4px 0 #3f5a68;}
+button.green{background:var(--green);box-shadow:0 4px 0 #2b7d40;}
+button.yellow{background:var(--yellow);color:#5a4300;box-shadow:0 4px 0 #c79a2a;}
+button.red{background:var(--red);box-shadow:0 4px 0 #a83a3a;}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+h1,h2,h3{margin:0;}
+/* ---------- HOME ---------- */
+#screen-home{align-items:center;justify-content:center;text-align:center;padding:24px;position:relative;overflow:hidden;}
+.logo-badge{
+  width:120px;height:120px;border-radius:50%;margin:0 auto 14px;position:relative;
+  background:radial-gradient(circle at 35% 30%,#7fd0f0,#1b6ca8 70%);
+  box-shadow:0 10px 24px rgba(0,0,0,.3), inset 0 -8px 18px rgba(0,0,0,.25);
+  display:flex;align-items:center;justify-content:center;font-size:56px;
+}
+.logo-badge::after{content:"";position:absolute;left:8%;right:8%;bottom:16%;height:16%;
+  background:rgba(255,255,255,.35);border-radius:50%;}
+#screen-home h1{font-size:clamp(34px,6vw,58px);color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.25);letter-spacing:1px;}
+.subtitle{color:#ffe9a8;font-size:clamp(16px,2.6vw,24px);margin:6px 0 26px;font-weight:700;}
+.menu{display:flex;flex-direction:column;gap:12px;width:min(340px,90vw);}
+.menu button{font-size:18px;padding:15px;}
+.home-wave{position:absolute;bottom:0;left:0;right:0;height:120px;pointer-events:none;}
+/* ---------- LEVEL SELECT ---------- */
+#screen-levels{padding:18px;align-items:center;}
+.levels-head{display:flex;align-items:center;gap:14px;width:min(1000px,96vw);margin-bottom:14px;}
+.levels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;width:min(1000px,96vw);}
+.level-card{
+  background:var(--panel);border-radius:18px;padding:16px;box-shadow:var(--shadow);
+  border:3px solid transparent;position:relative;overflow:hidden;
+}
+.level-card.locked{filter:grayscale(.7);opacity:.75;}
+.level-card .env-icon{font-size:38px;}
+.level-card h3{margin:6px 0 4px;font-size:18px;}
+.level-card .meta{font-size:13px;color:#57676f;margin:2px 0;}
+.stars{color:#f2b01e;font-size:20px;letter-spacing:2px;}
+.level-card button{margin-top:10px;width:100%;}
+.diff{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#fff;}
+.diff.easy{background:var(--green);} .diff.medium{background:var(--yellow);color:#5a4300;}
+.diff.hard{background:#e07b39;} .diff.extreme{background:var(--red);}
+/* ---------- GAME ---------- */
+#screen-game{padding:10px;gap:10px;}
+.hud{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;
+  background:rgba(255,253,246,.95);border-radius:16px;padding:10px 14px;box-shadow:var(--shadow);
+  width:min(1200px,98vw);margin:0 auto;
+}
+.hud .stat{font-size:13px;font-weight:700;color:#3c4c57;}
+.hud .stat b{color:var(--blue-dark);}
+.hud-buttons{display:flex;gap:8px;flex-wrap:wrap;}
+.hud-buttons button{padding:8px 14px;font-size:13px;border-radius:10px;}
+#game-canvas{
+  width:min(1200px,98vw);height:clamp(220px,38vh,380px);display:block;margin:0 auto;
+  border-radius:18px;box-shadow:var(--shadow);background:#bfe6f5;touch-action:none;
+}
+.planner{
+  width:min(1200px,98vw);margin:0 auto;display:grid;gap:12px;
+  grid-template-columns:minmax(240px,1fr) minmax(320px,2fr);
+}
+@media(max-width:820px){.planner{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border-radius:16px;padding:12px;box-shadow:var(--shadow);}
+.panel h3{font-size:15px;margin-bottom:8px;color:var(--blue-dark);display:flex;justify-content:space-between;align-items:center;}
+#available-items{display:flex;flex-wrap:wrap;gap:8px;min-height:70px;}
+.item-chip{
+  display:inline-flex;align-items:center;gap:6px;background:#f6ead0;border:2px solid #d9bd85;
+  border-radius:12px;padding:6px 10px;font-size:13px;font-weight:700;cursor:grab;user-select:none;
+  box-shadow:0 2px 0 #d9bd85;transition:transform .1s;
+}
+.item-chip:active{cursor:grabbing;}
+.item-chip.selected{outline:3px solid var(--yellow);transform:scale(1.05);}
+.item-chip.dragging{opacity:.35;}
+.item-icon{font-size:18px;}
+#trips-area{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;min-height:120px;}
+.trip-card{
+  background:#eef7fb;border:2px solid #b8d8e8;border-radius:14px;padding:10px;width:230px;
+  display:flex;flex-direction:column;gap:6px;transition:box-shadow .15s, border-color .15s;
+}
+.trip-card.drop-hover{border-color:var(--yellow);box-shadow:0 0 0 4px rgba(242,193,78,.4);}
+.trip-card.invalid{border-color:var(--red);background:#fdeaea;}
+.trip-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:14px;}
+.trip-del{background:none;box-shadow:none;color:#a33;padding:2px 6px;font-size:15px;}
+.trip-mass{font-size:13px;color:#41525c;}
+.bar{height:10px;background:#d7e5ec;border-radius:99px;overflow:hidden;}
+.bar>div{height:100%;border-radius:99px;transition:width .2s, background .2s;}
+.trip-items{display:flex;flex-wrap:wrap;gap:5px;min-height:30px;}
+.trip-items .item-chip{padding:3px 7px;font-size:11px;box-shadow:0 1px 0 #d9bd85;}
+.trip-status{font-size:12px;font-weight:800;}
+.status-safe{color:var(--green);} .status-warn{color:#b98a12;} .status-crit{color:#c05621;} .status-bad{color:var(--red);}
+.planner-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+#feedback-toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  background:rgba(20,40,60,.92);color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;
+  opacity:0;pointer-events:none;transition:all .3s;max-width:90vw;text-align:center;z-index:60;
+}
+#feedback-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ---------- MODALS ---------- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(8,25,40,.6);display:none;align-items:center;justify-content:center;
+  padding:16px;z-index:50;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:var(--panel);border-radius:20px;max-width:720px;width:100%;max-height:88vh;overflow:auto;
+  padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.modal h2{color:var(--blue-dark);margin-bottom:10px;}
+.modal h3{color:var(--blue);margin:14px 0 6px;}
+.modal p,.modal li{font-size:14px;line-height:1.55;}
+.formula{
+  background:#eaf4fb;border-left:5px solid var(--blue);padding:10px 14px;border-radius:8px;
+  font-family:Georgia,serif;font-size:17px;margin:8px 0;
+}
+.modal .close-row{display:flex;justify-content:flex-end;margin-top:14px;}
+.result-stars{font-size:44px;text-align:center;letter-spacing:6px;margin:8px 0;}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.result-grid div{background:#f2f7fa;border-radius:10px;padding:8px 10px;font-size:13px;}
+.result-grid b{display:block;font-size:17px;color:var(--blue-dark);}
+@media(max-width:520px){.result-grid{grid-template-columns:1fr;}}
+#hint-box{
+  background:#fff8e1;border:2px dashed var(--yellow);border-radius:12px;padding:10px;
+  font-size:13px;margin-top:8px;display:none;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen active">
+    <div class="logo-badge">⚓</div>
+    <h1>CARGA MÁXIMA</h1>
+    <div class="subtitle">O Desafio do Empuxo</div>
+    <div class="menu">
+      <button id="btn-play" class="green">▶ JOGAR</button>
+      <button id="btn-levels">🗺️ SELEÇÃO DE NÍVEIS</button>
+      <button id="btn-physics" class="secondary">📚 APRENDER FÍSICA</button>
+      <button id="btn-howto" class="secondary">❓ COMO JOGAR</button>
+    </div>
+    <svg class="home-wave" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M0,60 C150,110 350,10 600,60 C850,110 1050,10 1200,60 L1200,120 L0,120 Z" fill="rgba(255,255,255,.18)"/>
+      <path d="M0,80 C200,30 400,120 600,80 C800,40 1000,120 1200,80 L1200,120 L0,120 Z" fill="rgba(255,255,255,.28)"/>
+    </svg>
+  </section>
+
+  <!-- LEVEL SELECT -->
+  <section id="screen-levels" class="screen">
+    <div class="levels-head">
+      <button id="btn-back-home" class="secondary">← Voltar</button>
+      <h2 style="color:#fff;">Seleção de Níveis</h2>
+    </div>
+    <div id="levels-grid" class="levels-grid"></div>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <div class="stat">Nível: <b id="hud-level"></b></div>
+      <div class="stat">Ambiente: <b id="hud-env"></b></div>
+      <div class="stat">Densidade: <b id="hud-rho"></b></div>
+      <div class="stat">Mercadorias: <b id="hud-count"></b></div>
+      <div class="stat">Massa total: <b id="hud-total"></b></div>
+      <div class="stat">Capacidade/viagem: <b id="hud-cap"></b></div>
+      <div class="stat">Progresso: <b id="hud-progress"></b></div>
+      <div class="hud-buttons">
+        <button id="btn-hint" class="yellow">💡 Dica</button>
+        <button id="btn-physics2" class="secondary">📚 Física</button>
+        <button id="btn-exit" class="secondary">☰ Menu</button>
+      </div>
+    </div>
+    <canvas id="game-canvas"></canvas>
+    <div class="planner">
+      <div class="panel">
+        <h3>📦 Mercadorias disponíveis <span id="avail-count" style="font-size:12px;color:#778;"></span></h3>
+        <div id="available-items"></div>
+        <div id="hint-box"></div>
+      </div>
+      <div class="panel">
+        <h3>🚤 Viagens planejadas
+          <button id="btn-add-trip" class="green" style="padding:6px 12px;font-size:12px;">+ Nova viagem</button>
+        </h3>
+        <div id="trips-area"></div>
+        <div class="planner-actions">
+          <button id="btn-start" class="green">🚢 INICIAR TRANSPORTE</button>
+          <button id="btn-reset-plan" class="secondary">↺ Limpar planejamento</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODALS -->
+  <div id="modal-physics" class="modal-backdrop">
+    <div class="modal">
+      <h2>📚 Aprenda Física: Empuxo</h2>
+      <h3>O que é empuxo?</h3>
+      <p>Empuxo é a força vertical para cima que um fluido (como água) exerce sobre um corpo imerso, total ou parcialmente. É ele que faz o barco flutuar.</p>
+      <h3>Princípio de Arquimedes</h3>
+      <p>O empuxo é igual ao peso do fluido deslocado pelo corpo:</p>
+      <div class="formula">E = ρ × g × V</div>
+      <p>Onde <b>ρ</b> é a densidade do líquido (kg/m³), <b>g</b> ≈ 9,81 m/s² e <b>V</b> é o volume de líquido deslocado (m³).</p>
+      <h3>Por que um barco de metal flutua?</h3>
+      <p>Porque o formato do casco desloca um volume enorme de água. Mesmo sendo de metal, o conjunto barco + ar dentro dele tem densidade média menor que a da água.</p>
+      <h3>Por que a água salgada facilita a flutuação?</h3>
+      <p>Água salgada tem densidade maior (ex.: 1.200 kg/m³ no jogo). Para o mesmo volume deslocado, o empuxo é maior — por isso o barco consegue carregar mais.</p>
+      <h3>O que acontece quando adicionamos carga?</h3>
+      <p>O peso total aumenta, então o barco precisa deslocar mais água para gerar empuxo equivalente. O casco afunda até o novo equilíbrio:</p>
+      <div class="formula">V<sub>deslocado</sub> = (M<sub>barco</sub> + M<sub>carga</sub>) / ρ</div>
+      <h3>Massa, peso e densidade</h3>
+      <ul>
+        <li><b>Massa:</b> quantidade de matéria, em kg. Ex.: um barril de 50 kg.</li>
+        <li><b>Peso:</b> força da gravidade sobre a massa: P = m × g. Um barril de 50 kg pesa cerca de 490 N.</li>
+        <li><b>Densidade:</b> massa por volume (ρ = m/V). A água doce tem ρ ≈ 1.000 kg/m³.</li>
+      </ul>
+      <h3>Exemplo do jogo</h3>
+      <p>Em água doce (ρ = 1.000 kg/m³), um barco de 100 kg com 200 kg de carga desloca V = 300/1000 = 0,30 m³. Se o volume máximo seguro do casco for 0,30 m³, essa é a carga-limite. No mar (ρ = 1.200 kg/m³), o mesmo volume sustenta 360 kg — 60 kg a mais!</p>
+      <div class="close-row"><button class="close-modal">Fechar</button></div>
+    </div>
+  </div>
+
+  <div id="modal-howto" class="modal-backdrop">
+    <div class="modal">
+      <h2>❓ Como Jogar</h2>
+      <ol>
+        <li>Veja o manifesto de mercadorias e a capacidade máxima do barco para o líquido do nível.</li>
+        <li>Crie viagens e arraste (ou toque para selecionar e toque na viagem) as mercadorias para distribuí-las.</li>
+        <li>Cada viagem não pode ultrapassar a capacidade segura — o empuxo máximo do casco limita a carga.</li>
+        <li>Objetivo: transportar tudo usando o <b>menor número possível de viagens</b>. Distribuições diferentes são aceitas se usarem o mínimo.</li>
+        <li>Use o botão de dica se precisar. Depois, inicie o transporte e observe o barco afundar conforme a carga!</li>
+      </ol>
+      <p><b>Lembre-se:</b> a capacidade muda com a densidade do líquido. Água salgada sustenta mais carga; o pântano, menos.</p>
+      <div class="close-row"><button class="close-modal">Entendi!</button></div>
+    </div>
+  </div>
+
+  <div id="modal-result" class="modal-backdrop">
+    <div class="modal" style="max-width:520px;">
+      <h2 id="result-title" style="text-align:center;">Nível Concluído!</h2>
+      <div class="result-stars" id="result-stars"></div>
+      <p id="result-msg" style="text-align:center;font-weight:700;"></p>
+      <div class="result-grid">
+        <div>Massa transportada<b id="res-mass"></b></div>
+        <div>Viagens realizadas<b id="res-trips"></b></div>
+        <div>Mínimo possível<b id="res-optimal"></b></div>
+        <div>Aproveitamento médio<b id="res-avg"></b></div>
+        <div>Tempo de planejamento<b id="res-plan-time"></b></div>
+        <div>Tempo de execução<b id="res-run-time"></b></div>
+      </div>
+      <div class="close-row" style="justify-content:center;gap:10px;flex-wrap:wrap;">
+        <button id="btn-next-level" class="green">Próximo nível ▶</button>
+        <button id="btn-replay" class="secondary">↺ Jogar novamente</button>
+        <button id="btn-see-physics" class="secondary">📚 Ver aprendizado</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feedback-toast"></div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   CARGA MÁXIMA: O DESAFIO DO EMPUXO
+   Jogo educativo — HTML5 Canvas + JS ES6 puro
+   ============================================================ */
+
+// ---------------- Constantes ----------------
+const GRAVITY = 9.81;
+const SAFE_FRACTION = 0.95;          // limite de planejamento abaixo do volume máximo
+const HARD_FRACTION = 1.0;           // volume máximo real do casco
+const WARN_AT = 0.75, CRIT_AT = 0.90;
+
+const ITEM_TYPES = {
+  pacote:  {name:"Pacote leve",      mass:10, icon:"📦", color:"#c9a06a"},
+  caixaP:  {name:"Caixa pequena",    mass:20, icon:"🧰", color:"#a9743f"},
+  saco:    {name:"Saco de grãos",    mass:30, icon:"🧺", color:"#d8b25e"},
+  caixaG:  {name:"Caixa grande",     mass:40, icon:"🗃️", color:"#8b5a2b"},
+  barril:  {name:"Barril metálico",  mass:50, icon:"🛢️", color:"#7a8a99"},
+  minerio: {name:"Bloco de minério", mass:80, icon:"🪨", color:"#6d6d6d"}
+};
+
+// ---------------- Níveis ----------------
+const LEVELS = [
+  {id:1, name:"Porto de Água Doce", env:"Rio de água doce", envIcon:"🏞️", rho:1000,
+   boatMass:100, maxVolume:0.30, diff:"easy", diffLabel:"Fácil",
+   items:{pacote:3, caixaP:3, saco:3, caixaG:1}},
+  {id:2, name:"Travessia no Mar", env:"Mar aberto", envIcon:"🌊", rho:1200,
+   boatMass:100, maxVolume:0.30, diff:"medium", diffLabel:"Médio",
+   items:{saco:4, caixaG:3, barril:2, minerio:2}},
+  {id:3, name:"O Pântano", env:"Pântano denso", envIcon:"🐊", rho:800,
+   boatMass:100, maxVolume:0.30, diff:"medium", diffLabel:"Médio",
+   items:{caixaP:2, saco:4, caixaG:3, barril:2}},
+  {id:4, name:"Porto Industrial", env:"Porto industrial", envIcon:"🏭", rho:1000,
+   boatMass:150, maxVolume:0.45, diff:"hard", diffLabel:"Difícil",
+   items:{pacote:4, caixaP:4, saco:4, caixaG:4, barril:4, minerio:3}},
+  {id:5, name:"O Grande Transporte", env:"Estuário misto", envIcon:"🌅", rho:1100,
+   boatMass:150, maxVolume:0.40, diff:"extreme", diffLabel:"Extremo",
+   items:{pacote:5, caixaP:5, saco:5, caixaG:5, barril:5, minerio:4}}
+];
+
+// ---------------- Utilidades ----------------
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt = n => n.toLocaleString("pt-BR");
+
+let toastTimer=null;
+function toast(msg, ms=3200){
+  const t=$("#feedback-toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),ms);
+}
+
+// Som simples (opcional, sem arquivos)
+let audioCtx=null;
+function beep(freq=440, dur=0.12, type="sine", vol=0.08){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=vol;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+    o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+
+// ---------------- SaveSystem ----------------
+const SaveSystem = {
+  key:"cargaMaximaProgress",
+  load(){ try{ return JSON.parse(localStorage.getItem(this.key)) || {stars:{}}; }catch(e){ return {stars:{}}; } },
+  save(data){ try{ localStorage.setItem(this.key, JSON.stringify(data)); }catch(e){} },
+  setStars(levelId, stars){
+    const d=this.load();
+    d.stars[levelId]=Math.max(d.stars[levelId]||0, stars);
+    this.save(d);
+  },
+  getStars(levelId){ return this.load().stars[levelId]||0; },
+  isUnlocked(levelId){
+    if(levelId===1) return true;
+    return this.getStars(levelId-1)>0;
+  }
+};
+
+// ---------------- PhysicsSystem ----------------
+const PhysicsSystem = {
+  displacedVolume(totalMass, rho){ return totalMass/rho; },
+  maxCapacity(rho, boatMass, maxVolume){
+    return rho*maxVolume*SAFE_FRACTION - boatMass;   // capacidade segura de planejamento
+  },
+  hardCapacity(rho, boatMass, maxVolume){
+    return rho*maxVolume*HARD_FRACTION - boatMass;
+  },
+  state(load, cap){
+    const r = load/cap;
+    if(r < WARN_AT) return "SEGURO";
+    if(r < CRIT_AT) return "ATENÇÃO";
+    if(r < 1) return "CRÍTICO";
+    return "NAUFRÁGIO";
+  },
+  stateClass(s){ return {SEGURO:"status-safe",ATENÇÃO:"status-warn",CRÍTICO:"status-crit",NAUFRÁGIO:"status-bad"}[s]; },
+  barColor(s){ return {SEGURO:"#3fae5a",ATENÇÃO:"#f2c14e",CRÍTICO:"#e07b39",NAUFRÁGIO:"#e05252"}[s]; }
+};
+
+// ---------------- OptimizationSolver (Bin Packing exato) ----------------
+const OptimizationSolver = {
+  // Retorna {count, bins:[[itemIndex,...],...]} com o mínimo real de viagens.
+  solve(masses, capacity){
+    const n = masses.length;
+    if(n===0) return {count:0, bins:[]};
+    const sorted = masses.map((m,i)=>({m,i})).sort((a,b)=>b.m-a.m);
+    const items = sorted.map(o=>o.m);
+    const lowerBound = Math.ceil(items.reduce((a,b)=>a+b,0)/capacity);
+    for(let k=lowerBound; k<=n; k++){
+      const bins = Array.from({length:k},()=>({sum:0, items:[]}));
+      if(this._fit(items, 0, bins, capacity)) {
+        return {count:k, bins: bins.map(b=>b.items.map(idx=>sorted[idx].i))};
+      }
+    }
+    return {count:n, bins: items.map((_,i)=>[i])}; // fallback
+  },
+  _fit(items, idx, bins, cap){
+    if(idx===items.length) return true;
+    const m = items[idx];
+    const tried = new Set();
+    for(let b=0;b<bins.length;b++){
+      if(tried.has(bins[b].sum)) continue;      // elimina estados equivalentes
+      tried.add(bins[b].sum);
+      if(bins[b].sum + m <= cap){
+        bins[b].sum += m; bins[b].items.push(idx);
+        if(this._fit(items, idx+1, bins, cap)) return true;
+        bins[b].sum -= m; bins[b].items.pop();
+      }
+      if(bins[b].sum===0) break;                // bins vazios são equivalentes
+    }
+    return false;
+  }
+};
+
+// ---------------- GameManager / estado ----------------
+const Game = {
+  level:null, items:[], trips:[], phase:"planning",
+  optimal:1, hintsUsed:0, planStartTime:0, runStartTime:0,
+  selectedItemId:null, runQueue:[], runIndex:0,
+
+  startLevel(levelId){
+    const lv = LEVELS.find(l=>l.id===levelId);
+    this.level = lv;
+    this.items = [];
+    let uid=0;
+    for(const [type,qty] of Object.entries(lv.items)){
+      for(let i=0;i<qty;i++){
+        this.items.push({id:uid++, type, mass:ITEM_TYPES[type].mass, trip:null});
+      }
+    }
+    this.trips = [{id:0, items:[]}];
+    this.phase="planning";
+    this.optimal = OptimizationSolver.solve(this.items.map(i=>i.mass), this.capacity()).count;
+    this.hintsUsed=0; this.planStartTime=performance.now();
+    this.selectedItemId=null;
+    UIManager.renderPlanner();
+    UIManager.updateHUD();
+    Renderer.resetRun();
+    showScreen("game");
+    toast(`Bem-vindo ao ${lv.name}! Organize as ${this.items.length} mercadorias em viagens.`, 4000);
+  },
+  capacity(){ return PhysicsSystem.maxCapacity(this.level.rho, this.level.boatMass, this.level.maxVolume); },
+  hardCap(){ return PhysicsSystem.hardCapacity(this.level.rho, this.level.boatMass, this.level.maxVolume); },
+  totalMass(){ return this.items.reduce((a,i)=>a+i.mass,0); },
+  availableItems(){ return this.items.filter(i=>i.trip===null); },
+  tripMass(trip){ return trip.items.reduce((a,id)=>a+this.items[id].mass,0); },
+  addTrip(){ this.trips.push({id:this.trips.length, items:[]}); UIManager.renderPlanner(); },
+  removeTrip(tripId){
+    const t=this.trips.find(t=>t.id===tripId);
+    if(!t || t.items.length>0){ toast("Só é possível excluir viagens vazias."); return; }
+    this.trips = this.trips.filter(t=>t.id!==tripId).map((t,i)=>({...t,id:i}));
+    // reindexa referências
+    this.trips.forEach((t,i)=>{ t.items.forEach(id=>{ this.items[id].trip=i; }); });
+    UIManager.renderPlanner();
+  },
+  assignItem(itemId, tripId){
+    const item=this.items[itemId];
+    const trip=this.trips[tripId];
+    if(!trip) return;
+    if(item.trip===tripId) return;
+    const newMass = this.tripMass(trip) - (item.trip===tripId?item.mass:0) + item.mass;
+    if(newMass > this.capacity()){
+      const over = newMass - this.capacity();
+      toast(`⚠️ O empuxo máximo não sustenta essa carga: ${fmt(Math.ceil(over))} kg acima do limite. Reorganize os objetos.`, 4000);
+      beep(180,0.25,"square");
+      UIManager.renderPlanner();
+      return;
+    }
+    if(item.trip!==null){
+      const old=this.trips[item.trip];
+      old.items = old.items.filter(id=>id!==itemId);
+    }
+    item.trip = tripId;
+    trip.items.push(itemId);
+    const st = PhysicsSystem.state(newMass, this.capacity());
+    if(st==="SEGURO" && newMass/this.capacity()>0.6)
+      toast(`Você adicionou ${item.mass} kg. O casco afundou um pouco mais — aproveitamento: ${(newMass/this.capacity()*100).toFixed(1)}%.`, 2600);
+    else if(st==="ATENÇÃO")
+      toast("⚠️ Atenção! O barco está próximo do volume máximo de deslocamento.", 3000);
+    else if(st==="CRÍTICO"){
+      toast("🔴 CRÍTICO! Muito próximo do limite de flutuação.", 3000); beep(300,0.2,"square");
+    }
+    UIManager.renderPlanner();
+  },
+  returnItem(itemId){
+    const item=this.items[itemId];
+    if(item.trip!==null){
+      const t=this.trips[item.trip];
+      t.items=t.items.filter(id=>id!==itemId);
+      item.trip=null;
+      UIManager.renderPlanner();
+    }
+  },
+  planValid(){
+    if(this.availableItems().length>0) return {ok:false, msg:"Distribua todas as mercadorias em viagens."};
+    if(this.trips.some(t=>t.items.length===0)) return {ok:false, msg:"Remova as viagens vazias antes de iniciar."};
+    for(const t of this.trips){
+      const m=this.tripMass(t);
+      if(m>this.capacity()) return {ok:false, msg:`A viagem ${t.id+1} excede a capacidade segura.`};
+    }
+    return {ok:true};
+  },
+  startTransport(){
+    const v=this.planValid();
+    if(!v.ok){ toast("⛔ "+v.msg, 3500); beep(200,0.2,"square"); return; }
+    this.phase="running";
+    this.runStartTime=performance.now();
+    this.runQueue = this.trips.filter(t=>t.items.length>0);
+    this.runIndex = 0;
+    Renderer.startRun(this.runQueue.map(t=>({items:t.items.slice(), mass:this.tripMass(t)})));
+    UIManager.renderPlanner();
+    toast("🚢 Transporte iniciado! Observe o empuxo em ação.", 3000);
+  },
+  finishRun(){
+    this.phase="done";
+    const tripsUsed = this.runQueue.length;
+    const extra = tripsUsed - this.optimal;
+    const stars = extra===0?3 : extra===1?2 : 1;
+    SaveSystem.setStars(this.level.id, stars);
+    const avg = this.runQueue.reduce((a,t)=>a+t.mass/this.capacity(),0)/tripsUsed*100;
+    const planTime=(this.runStartTime-this.planStartTime)/1000;
+    const runTime=(performance.now()-this.runStartTime)/1000;
+    UIManager.showResult({stars, tripsUsed, optimal:this.optimal, avg, planTime, runTime});
+    if(stars===3) toast("🎉 Parabéns! Você encontrou uma solução ótima para o problema logístico!", 5000);
+  }
+};
+
+// ---------------- UIManager ----------------
+const UIManager = {
+  renderPlanner(){
+    const g=Game;
+    // Itens disponíveis
+    const avail=$("#available-items"); avail.innerHTML="";
+    const grouped={};
+    g.availableItems().forEach(it=>{ (grouped[it.type]=grouped[it.type]||[]).push(it); });
+    for(const [type,list] of Object.entries(grouped)){
+      const t=ITEM_TYPES[type];
+      const chip=document.createElement("div");
+      chip.className="item-chip"; chip.dataset.itemId=list[0].id; chip.dataset.type=type;
+      chip.innerHTML=`<span class="item-icon">${t.icon}</span>${t.name} <small>(${list.length}× ${t.mass} kg)</small>`;
+      if(g.selectedItemId!==null && g.items[g.selectedItemId].type===type) chip.classList.add("selected");
+      avail.appendChild(chip);
+    }
+    $("#avail-count").textContent = `${g.availableItems().length} restantes`;
+    // Viagens
+    const area=$("#trips-area"); area.innerHTML="";
+    g.trips.forEach(trip=>{
+      const mass=g.tripMass(trip), cap=g.capacity();
+      const st=PhysicsSystem.state(mass,cap);
+      const pct=clamp(mass/cap*100,0,100);
+      const card=document.createElement("div");
+      card.className="trip-card"+(mass>cap?" invalid":"");
+      card.dataset.tripId=trip.id;
+      card.innerHTML=`
+        <div class="trip-head">VIAGEM ${String(trip.id+1).padStart(2,"0")}
+          ${trip.items.length===0?`<button class="trip-del" data-del="${trip.id}" title="Excluir viagem vazia">🗑️</button>`:""}
+        </div>
+        <div class="trip-mass">Carga: ${fmt(mass)} kg / ${fmt(Math.round(cap))} kg (${pct.toFixed(1)}%)</div>
+        <div class="bar"><div style="width:${pct}%;background:${PhysicsSystem.barColor(st)}"></div></div>
+        <div class="trip-status ${PhysicsSystem.stateClass(st)}">Estado: ${st}</div>
+        <div class="trip-items">
+          ${trip.items.map(id=>{
+            const it=g.items[id], t=ITEM_TYPES[it.type];
+            return `<div class="item-chip" data-item-id="${id}" data-in-trip="1"><span class="item-icon">${t.icon}</span>${t.mass}kg</div>`;
+          }).join("")}
+        </div>`;
+      area.appendChild(card);
+    });
+    // botão iniciar
+    const v=g.planValid();
+    $("#btn-start").disabled = !(v.ok) || g.phase!=="planning";
+    $("#btn-start").textContent = g.phase==="planning" ? "🚢 INICIAR TRANSPORTE" : "⏳ TRANSPORTE EM ANDAMENTO...";
+    $("#btn-add-trip").disabled = g.phase!=="planning";
+    $("#btn-hint").disabled = g.phase!=="planning" || g.hintsUsed>=3;
+  },
+  updateHUD(){
+    const g=Game, lv=g.level;
+    $("#hud-level").textContent = `#${lv.id} — ${lv.name}`;
+    $("#hud-env").textContent = lv.env;
+    $("#hud-rho").textContent = `${fmt(lv.rho)} kg/m³`;
+    $("#hud-count").textContent = `${g.items.length} objetos`;
+    $("#hud-total").textContent = `${fmt(g.totalMass())} kg`;
+    $("#hud-cap").textContent = `${fmt(Math.round(g.capacity()))} kg`;
+    const done = g.items.filter(i=>i.trip!==null).length;
+    $("#hud-progress").textContent = g.phase==="planning"
+      ? `${done}/${g.items.length} distribuídos`
+      : `Viagem ${Math.min(g.runIndex+1,g.runQueue.length)}/${g.runQueue.length}`;
+  },
+  showHint(){
+    const g=Game;
+    if(g.hintsUsed>=3) return;
+    g.hintsUsed++;
+    const sol=OptimizationSolver.solve(g.items.map(i=>i.mass), g.capacity());
+    const box=$("#hint-box"); box.style.display="block";
+    if(g.hintsUsed===1){
+      const heaviest=[...g.items].sort((a,b)=>b.mass-a.mass)[0];
+      box.innerHTML=`💡 <b>Dica 1:</b> Comece pelos objetos mais pesados (como o ${ITEM_TYPES[heaviest.type].name.toLowerCase()} de ${heaviest.mass} kg). Eles limitam as combinações possíveis — coloque-os primeiro e complete as viagens com cargas leves.`;
+    } else if(g.hintsUsed===2){
+      const bin=sol.bins[0].map(i=>`${ITEM_TYPES[g.items[i].type].icon}${g.items[i].mass}kg`).join(" + ");
+      box.innerHTML=`💡 <b>Dica 2:</b> Uma combinação que funciona para a primeira viagem: ${bin} (${fmt(sol.bins[0].reduce((a,i)=>a+g.items[i].mass,0))} kg). Existem outras distribuições igualmente válidas.`;
+    } else {
+      const lines=sol.bins.map((b,i)=>`Viagem ${i+1}: `+b.map(i=>`${ITEM_TYPES[g.items[i].type].icon}${g.items[i].mass}`).join(" + ")).join("<br>");
+      box.innerHTML=`💡 <b>Dica 3:</b> Uma distribuição ótima (${sol.count} viagens):<br>${lines}<br><small>Você pode usar qualquer distribuição que também alcance ${sol.count} viagens.</small>`;
+    }
+    UIManager.renderPlanner();
+  },
+  showResult(res){
+    $("#result-stars").textContent = "★".repeat(res.stars)+"☆".repeat(3-res.stars);
+    $("#result-msg").textContent = res.stars===3
+      ? "🎉 Solução ótima! Você usou o número mínimo de viagens."
+      : res.stars===2 ? "👍 Bom trabalho! Faltou apenas 1 viagem para o ótimo."
+      : "✅ Nível concluído! Tente reduzir o número de viagens.";
+    $("#res-mass").textContent = fmt(Game.totalMass())+" kg";
+    $("#res-trips").textContent = res.tripsUsed;
+    $("#res-optimal").textContent = res.optimal+" viagens";
+    $("#res-optimal").textContent = `${res.optimal} viagens`;
+    $("#res-avg").textContent = res.avg.toFixed(1)+"%";
+    $("#res-plan-time").textContent = res.planTime.toFixed(1)+" s";
+    $("#res-run-time").textContent = res.runTime.toFixed(1)+" s";
+    $("#btn-next-level").style.display = Game.level.id<LEVELS.length ? "" : "none";
+    openModal("modal-result");
+  }
+};
+
+// ---------------- InputManager (Pointer Events + Drag&Drop) ----------------
+const InputManager = {
+  drag:null, startX:0, startY:0, moved:false,
+  init(){
+    document.addEventListener("pointerdown", e=>this.onDown(e));
+    document.addEventListener("pointermove", e=>this.onMove(e));
+    document.addEventListener("pointerup", e=>this.onUp(e));
+    document.addEventListener("pointercancel", e=>this.onUp(e));
+    // Botões
+    $("#btn-play").onclick=()=>{ const next=LEVELS.find(l=>SaveSystem.isUnlocked(l.id)&&SaveSystem.getStars(l.id)===0)||LEVELS[0]; Game.startLevel(next.id); };
+    $("#btn-levels").onclick=()=>{ UIManager2_renderLevels(); showScreen("levels"); };
+    $("#btn-back-home").onclick=()=>showScreen("home");
+    $("#btn-physics").onclick=()=>openModal("modal-physics");
+    $("#btn-physics2").onclick=()=>openModal("modal-physics");
+    $("#btn-howto").onclick=()=>openModal("modal-howto");
+    $("#btn-add-trip").onclick=()=>Game.addTrip();
+    $("#btn-start").onclick=()=>Game.startTransport();
+    $("#btn-reset-plan").onclick=()=>{ if(Game.phase==="planning"){ Game.trips=[{id:0,items:[]}]; Game.items.forEach(i=>i.trip=null); UIManager.renderPlanner(); } };
+    $("#btn-hint").onclick=()=>UIManager.showHint();
+    $("#btn-exit").onclick=()=>{ if(Game.phase!=="running"){ showScreen("levels"); UIManager2_renderLevels(); } else toast("Aguarde o transporte terminar."); };
+    document.querySelectorAll(".close-modal").forEach(b=>b.onclick=()=>closeModals());
+    $("#btn-replay").onclick=()=>{ closeModals(); Game.startLevel(Game.level.id); };
+    $("#btn-next-level").onclick=()=>{ closeModals(); const nx=LEVELS.find(l=>l.id===Game.level.id+1); if(nx) Game.startLevel(nx.id); };
+    $("#btn-see-physics").onclick=()=>{ closeModals(); openModal("modal-physics"); };
+  },
+  onDown(e){
+    const chip=e.target.closest(".item-chip");
+    if(!chip || Game.phase!=="planning") return;
+    const itemId=parseInt(chip.dataset.itemId);
+    // Chips agrupados na área disponível representam o tipo; seleciona o primeiro disponível
+    let id=itemId;
+    if(!chip.dataset.inTrip){
+      const avail=Game.availableItems().filter(i=>i.type===Game.items[itemId].type);
+      id = avail[0] ? avail[0].id : itemId;
+    }
+    this.drag={itemId:id, ghost:null, fromTrip:chip.dataset.inTrip==="1"};
+    this.startX=e.clientX; this.startY=e.clientY; this.moved=false;
+    Game.selectedItemId=id;
+    UIManager.renderPlanner();
+  },
+  onMove(e){
+    if(!this.drag) return;
+    if(!this.moved && Math.hypot(e.clientX-this.startX, e.clientY-this.startY)>8){
+      this.moved=true;
+      const g=document.createElement("div");
+      g.className="item-chip"; g.style.position="fixed"; g.style.zIndex=100;
+      g.style.pointerEvents="none"; g.style.boxShadow="0 8px 20px rgba(0,0,0,.3)";
+      const it=Game.items[this.drag.itemId], t=ITEM_TYPES[it.type];
+      g.innerHTML=`<span class="item-icon">${t.icon}</span>${t.mass} kg`;
+      document.body.appendChild(g);
+      this.drag.ghost=g;
+      beep(520,0.05,"sine",0.04);
+    }
+    if(this.drag.ghost){
+      this.drag.ghost.style.left=(e.clientX-40)+"px";
+      this.drag.ghost.style.top=(e.clientY-20)+"px";
+      document.querySelectorAll(".trip-card").forEach(c=>c.classList.remove("drop-hover"));
+      const el=document.elementFromPoint(e.clientX,e.clientY);
+      const card=el && el.closest(".trip-card");
+      if(card) card.classList.add("drop-hover");
+    }
+  },
+  onUp(e){
+    if(!this.drag) return;
+    const {itemId, ghost, moved}=this.drag;
+    if(ghost) ghost.remove();
+    document.querySelectorAll(".trip-card").forEach(c=>c.classList.remove("drop-hover"));
+    if(moved){
+      const el=document.elementFromPoint(e.clientX,e.clientY);
+      const card=el && el.closest(".trip-card");
+      if(card) Game.assignItem(itemId, parseInt(card.dataset.tripId));
+      else {
+        const avail=el && el.closest("#available-items");
+        if(avail) Game.returnItem(itemId);
+      }
+    } else {
+      // Toque simples: se já selecionado e solto sobre uma viagem via segundo toque — tratado abaixo
+      const el=document.elementFromPoint(e.clientX,e.clientY);
+      const card=el && el.closest(".trip-card");
+      if(card && Game.selectedItemId!==null){
+        Game.assignItem(Game.selectedItemId, parseInt(card.dataset.tripId));
+        Game.selectedItemId=null;
+      }
+    }
+    this.drag=null;
+    UIManager.renderPlanner();
+  }
+};
+function UIManager2_renderLevels(){
+  const grid=$("#levels-grid"); grid.innerHTML="";
+  LEVELS.forEach(lv=>{
+    const unlocked=SaveSystem.isUnlocked(lv.id);
+    const stars=SaveSystem.getStars(lv.id);
+    const card=document.createElement("div");
+    card.className="level-card"+(unlocked?"":" locked");
+    card.innerHTML=`
+      <div class="env-icon">${lv.envIcon}</div>
+      <h3>Nível ${lv.id} — ${lv.name}</h3>
+      <div class="meta">Ambiente: ${lv.env}</div>
+      <div class="meta">Densidade: ${fmt(lv.rho)} kg/m³</div>
+      <div class="meta">Dificuldade: <span class="diff ${lv.diff}">${lv.diffLabel}</span></div>
+      <div class="stars">${"★".repeat(stars)}${"☆".repeat(3-stars)}</div>
+      <button ${unlocked?"":"disabled"} class="${unlocked?"green":"secondary"}">${unlocked?"▶ JOGAR":"🔒 BLOQUEADO"}</button>`;
+    if(unlocked) card.querySelector("button").onclick=()=>Game.startLevel(lv.id);
+    grid.appendChild(card);
+  });
+}
+
+// ---------------- Navegação de telas / modais ----------------
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $("#screen-"+id).classList.add("active");
+  if(id==="game") Renderer.resize();
+}
+function openModal(id){ $("#"+id).classList.add("open"); }
+function closeModals(){ document.querySelectorAll(".modal-backdrop").forEach(m=>m.classList.remove("open")); }
+
+// ---------------- Renderer (Canvas 2D) ----------------
+const Renderer = {
+  canvas:null, ctx:null, W:0, H:0, t:0, last:0,
+  run:null, // {queue, index, phase, phaseT, boatX, boatDir, load, sinking, sinkT, particles:[]}
+  resetRun(){ this.run=null; },
+  startRun(queue){
+    this.run={queue, index:0, phase:"load", phaseT:0, boatX:0.18, load:0, sinking:false, sinkT:0, particles:[], results:[]};
+  },
+  init(){
+    this.canvas=$("#game-canvas");
+    this.ctx=this.canvas.getContext("2d");
+    window.addEventListener("resize",()=>this.resize());
+    this.resize();
+    requestAnimationFrame(ts=>this.loop(ts));
+  },
+  resize(){
+    const r=this.canvas.getBoundingClientRect();
+    const dpr=window.devicePixelRatio||1;
+    this.canvas.width=r.width*dpr; this.canvas.height=r.height*dpr;
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+    this.W=r.width; this.H=r.height;
+  },
+  loop(ts){
+    const dt=Math.min((ts-this.last)/1000, 0.05)||0.016;
+    this.last=ts; this.t+=dt;
+    this.update(dt);
+    this.draw();
+    requestAnimationFrame(t=>this.loop(t));
+  },
+  update(dt){
+    const r=this.run;
+    if(!r) return;
+    const g=Game;
+    if(r.sinking){
+      r.sinkT+=dt;
+      if(r.sinkT>0.05) for(let i=0;i<2;i++) r.particles.push(this.makeBubble());
+      r.particles.forEach(p=>{p.y-=p.vy*dt; p.x+=Math.sin(this.t*3+p.seed)*0.3; p.life-=dt;});
+      r.particles=r.particles.filter(p=>p.life>0);
+      return;
+    }
+    const trip=r.queue[r.index];
+    const cap=g.capacity();
+    const DURATION={load:1.4, cross:2.6, unload:1.2, ret:2.2};
+    r.phaseT+=dt;
+    if(r.phase==="load"){
+      const p=clamp(r.phaseT/DURATION.load,0,1);
+      r.load=trip.mass*p;
+      if(p>=1){ r.phase="cross"; r.phaseT=0; beep(600,0.1,"triangle",0.05); }
+    } else if(r.phase==="cross"){
+      const p=clamp(r.phaseT/DURATION.cross,0,1);
+      r.boatX=0.18+(0.82-0.18)*this.easeInOut(p);
+      if(p>=1){ r.phase="unload"; r.phaseT=0; }
+    } else if(r.phase==="unload"){
+      const p=clamp(r.phaseT/DURATION.unload,0,1);
+      r.load=trip.mass*(1-p);
+      if(p>=1){
+        r.results.push(trip.mass);
+        r.index++;
+        if(r.index>=r.queue.length){ Game.finishRun(); return; }
+        r.phase="ret"; r.phaseT=0;
+      }
+    } else if(r.phase==="ret"){
+      const p=clamp(r.phaseT/DURATION.ret,0,1);
+      r.boatX=0.82-(0.82-0.18)*this.easeInOut(p);
+      if(p>=1){ r.phase="load"; r.phaseT=0; UIManager.updateHUD(); }
+    }
+    // Naufrágio (não deve ocorrer com validação, mas a física permanece correta)
+    if(r.load>g.hardCap()){ r.sinking=true; beep(120,0.6,"sawtooth",0.1); toast("💥 Naufrágio! O empuxo máximo foi ultrapassado.",5000); }
+    UIManager.updateHUD();
+  },
+  easeInOut(p){ return p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2; },
+  makeBubble(){
+    return {x:this.W*(0.3+Math.random()*0.4), y:this.H*0.75, vy:30+Math.random()*40, r:2+Math.random()*4, life:1+Math.random(), seed:Math.random()*10};
+  },
+  draw(){
+    const ctx=this.ctx, W=this.W, H=this.H, g=Game;
+    const waterY=H*0.62;
+    // Céu
+    const sky=ctx.createLinearGradient(0,0,0,waterY);
+    sky.addColorStop(0,"#8fd3f0"); sky.addColorStop(1,"#d8f0fa");
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,waterY);
+    // Nuvens
+    ctx.fillStyle="rgba(255,255,255,.85)";
+    for(let i=0;i<4;i++){
+      const cx=((this.t*12+i*W/3.2)%(W+160))-80, cy=H*0.10+ (i%2)*H*0.07;
+      ctx.beginPath();
+      ctx.arc(cx,cy,18,0,7); ctx.arc(cx+22,cy-8,14,0,7); ctx.arc(cx+44,cy,16,0,7);
+      ctx.fill();
+    }
+    // Sol
+    ctx.fillStyle="#ffe9a8"; ctx.beginPath(); ctx.arc(W*0.88,H*0.12,26,0,7); ctx.fill();
+    // Portos (areia + doca)
+    this.drawPort(ctx, 0, waterY, W*0.16, H);
+    this.drawPort(ctx, W, waterY, W*0.16, H, true);
+    // Vegetação
+    this.drawVegetation(ctx, W*0.06, waterY, g.level?g.level.env:"");
+    this.drawVegetation(ctx, W*0.94, waterY, g.level?g.level.env:"", true);
+    // Água
+    const water=ctx.createLinearGradient(0,waterY,0,H);
+    const rho=g.level?g.level.rho:1000;
+    const wc = rho>=1200?["#1b6ca8","#0e4a75"] : rho<=800?["#4a6b3a","#2c4426"] : ["#2e9ccf","#16608c"];
+    water.addColorStop(0,wc[0]); water.addColorStop(1,wc[1]);
+    ctx.fillStyle=water; ctx.fillRect(0,waterY,W,H-waterY);
+    // Ondas
+    ctx.strokeStyle="rgba(255,255,255,.35)"; ctx.lineWidth=2;
+    for(let row=0;row<3;row++){
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=8){
+        const y=waterY+8+row*14+Math.sin(x*0.03+this.t*(1.5+row*0.4)+row)*4;
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    // Barco
+    this.drawBoat(ctx, waterY);
+    // Partículas / bolhas
+    ctx.fillStyle="rgba(255,255,255,.6)";
+    (this.run?this.run.particles:[]).forEach(p=>{
+      ctx.globalAlpha=clamp(p.life,0,1);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  },
+  drawPort(ctx, edgeX, waterY, pw, H, right){
+    const x0 = right? edgeX-pw : edgeX;
+    ctx.fillStyle="#e8d5a3";
+    ctx.fillRect(x0, waterY-30, pw, H-waterY+30);
+    ctx.fillStyle="#d4bd8a";
+    ctx.fillRect(x0, waterY-30, pw, 8);
+    // Doca de madeira
+    ctx.fillStyle="#8b5a2b";
+    ctx.fillRect(x0+(right?pw*0.15:pw*0.45), waterY-38, pw*0.4, 10);
+    ctx.strokeStyle="#6e4520"; ctx.lineWidth=3;
+    ctx.strokeRect(x0+(right?pw*0.15:pw*0.45), waterY-38, pw*0.4, 10);
+  },
+  drawVegetation(ctx, x, waterY, env, right){
+    ctx.fillStyle= env.includes("ântano")?"#3d6b2f":"#3fae5a";
+    for(let i=0;i<4;i++){
+      const bx=x+(right?-1:1)*i*14;
+      ctx.beginPath();
+      ctx.ellipse(bx, waterY-6, 5, 18+((i*7)%12), 0, 0, 7);
+      ctx.fill();
+    }
+  },
+  drawBoat(ctx, waterY){
+    const g=Game, W=this.W, H=this.H;
+    const r=this.run;
+    // Carga atual para renderização
+    let load=0, items=[];
+    if(r && (r.phase==="load"||r.phase==="cross"||r.phase==="unload")){
+      load=r.load;
+      const trip=r.queue[Math.min(r.index,r.queue.length-1)];
+      if(trip) items=trip.items;
+    } else if(g.phase==="planning"){
+      // Pré-visualização: viagem selecionada via último item adicionado (aproximação didática)
+      const lastTrip=g.trips.filter(t=>t.items.length>0).pop();
+      if(lastTrip){ load=g.tripMass(lastTrip); items=lastTrip.items; }
+    }
+    const rho=g.level?g.level.rho:1000;
+    const totalMass=(g.level?g.level.boatMass:100)+load;
+    const Vdisp=PhysicsSystem.displacedVolume(totalMass, rho);
+    const frac=clamp(Vdisp/(g.level?g.level.maxVolume:0.3), 0, 1.05);
+    // Geometria do barco
+    const bw=Math.min(W*0.24, 240), bh=bw*0.34;
+    const bx=W*(r?r.boatX:0.18)-bw/2;
+    const bob=Math.sin(this.t*1.8)*3;
+    // Inclinação pelo centro de massa da carga
+    let tilt=0;
+    if(items.length>1){
+      const cx=items.reduce((a,id)=>a+g.items[id].mass*(g.items[id].id%2===0?-1:1),0);
+      tilt=clamp(cx/(items.reduce((a,id)=>a+g.items[id].mass,0)||1),-1,1)*0.10;
+    }
+    const sub=frac*bh; // profundidade submersa
+    const by=waterY+sub-bh+bob; // topo do casco
+    ctx.save();
+    ctx.translate(bx+bw/2, by+bh/2);
+    ctx.rotate(tilt*Math.sin(this.t*1.2)*0.5+tilt*0.5);
+    ctx.translate(-(bx+bw/2), -(by+bh/2));
+    // Casco (trapézio)
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bx+bw, by);
+    ctx.lineTo(bx+bw*0.82, by+bh);
+    ctx.lineTo(bx+bw*0.18, by+bh);
+    ctx.closePath();
+    const hull=ctx.createLinearGradient(0,by,0,by+bh);
+    hull.addColorStop(0,"#a9743f"); hull.addColorStop(1,"#6e4520");
+    ctx.fillStyle=hull; ctx.fill();
+    ctx.strokeStyle="#4a2e14"; ctx.lineWidth=3; ctx.stroke();
+    // Linha de Plimsoll
+    ctx.strokeStyle="#f2c14e"; ctx.lineWidth=3; ctx.setLineDash([6,4]);
+    const plY=by+bh*0.28;
+    ctx.beginPath(); ctx.moveTo(bx+bw*0.08,plY); ctx.lineTo(bx+bw*0.92,plY); ctx.stroke();
+    ctx.setLineDash([]);
+    // Convés / mastro
+    ctx.fillStyle="#5b3a1a";
+    ctx.fillRect(bx+bw*0.45, by-26, 5, 26);
+    ctx.fillStyle="#e05252";
+    ctx.beginPath(); ctx.moveTo(bx+bw*0.45+5, by-26); ctx.lineTo(bx+bw*0.45+5, by-14); ctx.lineTo(bx+bw*0.45+30, by-20); ctx.closePath(); ctx.fill();
+    // Carga empilhada
+    if(items.length>0 && load>0){
+      let cx0=bx+bw*0.18, cy0=by-8, col=0, row=0;
+      const shown=Math.ceil(items.length*clamp(load/ (g.tripMass(g.trips.find(t=>t.items.length>0)||{items:[]})||1),0,1));
+      items.slice(0, Math.max(1,shown)).forEach((id,i)=>{
+        const it=g.items[id], t=ITEM_TYPES[it.type];
+        const s=14+ (t.mass/80)*10;
+        const px=cx0+col*(s+4), py=cy0-row*(s+4);
+        ctx.fillStyle=t.color;
+        if(it.type==="barril"){
+          ctx.beginPath(); ctx.ellipse(px+s/2,py-s/2,s/2,s/2,0,0,7); ctx.fill();
+          ctx.strokeStyle="#4a5a68"; ctx.stroke();
+        } else if(it.type==="minerio"){
+          ctx.beginPath();
+          ctx.moveTo(px,py); ctx.lineTo(px+s,py); ctx.lineTo(px+s/2,py-s);
+          ctx.closePath(); ctx.fill();
+        } else {
+          ctx.fillRect(px,py-s,s,s);
+          ctx.strokeStyle="#5a3a1a"; ctx.strokeRect(px,py-s,s,s);
+        }
+        col++; if(col>4){col=0;row++;}
+      });
+    }
+    ctx.restore();
+    // Indicador de estado
+    if(g.level){
+      const cap=g.capacity();
+      const st=PhysicsSystem.state(load,cap);
+      if(st!=="SEGURO" && load>0){
+        ctx.fillStyle=PhysicsSystem.barColor(st);
+        ctx.font="bold 14px sans-serif"; ctx.textAlign="center";
+        ctx.fillText(st, bx+bw/2, by-40);
+      }
+    }
+  }
+};
+
+// ---------------- Boot ----------------
+document.addEventListener("DOMContentLoaded", ()=>{
+  InputManager.init();
+  Renderer.init();
+  UIManager2_renderLevels();
+});
+</script>
+</body>
+</html>
