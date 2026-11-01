@@ -1,53 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <!-- Página Inicial -->
   <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/index.html</loc>
-    <lastmod>2026-10-06</lastmod>
+    <loc>https://erik-bernardo.github.io/SimuLabb/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Página de Simulações -->
+  <url>
+    <loc>https://erik-bernardo.github.io/SimuLabb/simulacoes.html</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Página de Jogos -->
   <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/sobre.html</loc>
-    <lastmod>2026-10-06</lastmod>
+    <loc>https://erik-bernardo.github.io/SimuLabb/games.html</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Página Sobre -->
   <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/recursos.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.8</priority>
+    <loc>https://erik-bernardo.github.io/SimuLabb/sobre.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/simulacoes.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/simulacoes/tabela_periodica.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/games/admin</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/games.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/materias.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/stm3.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://erik-bernardo.github.io/SimuLab/simulacoes/geometria_plana.html</loc>
-    <lastmod>2026-10-06</lastmod>
-    <priority>0.7</priority>
-  </url>
+
 </urlset>
