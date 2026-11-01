@@ -1,0 +1,29 @@
+# SimuLab
+
+> O SimuLab é uma plataforma educacional que aproxima teoria e experiência prática por meio de simuladores interativos e jogos educativos, transformando conteúdos escolares em descobertas.
+
+URL: https://erik-bernardo.github.io/SimuLabb/
+Criadores: Equipe EDMA (Projeto de estudantes do Ensino Médio)
+Alinhamento: ODS 4 — Educação de Qualidade
+
+## Sobre o Projeto
+O SimuLab nasceu de uma pergunta simples: "Como tornar o aprendizado mais próximo da prática quando nem sempre há um laboratório físico disponível?". O projeto começou como um trabalho da disciplina de "Projetos Livres" no segundo ano do ensino médio e evoluiu para uma plataforma funcional. Inspirado por iniciativas como o PhET, o foco é permitir que conceitos abstratos sejam fáceis de explorar, testar e visualizar.
+
+## Principais Recursos
+A plataforma reúne duas formas principais de explorar o conhecimento:
+- **Simulações para investigar:** Ferramentas interativas onde o usuário pode alterar variáveis e observar fenômenos. (Exemplo: Laboratório Virtual de Física - Dilatação Térmica, onde é possível controlar a temperatura de uma barra metálica e observar a mudança no seu comprimento).
+- **Jogos para desafiar:** Experiências gamificadas projetadas para praticar o que foi aprendido de forma dinâmica, propostas a partir da sugestão de educadores.
+
+## Público-Alvo
+- **Para Professores:** Uma ferramenta de apoio para ser aberta durante as aulas, ajudando a demonstrar fenômenos, visualizar conceitos abstratos junto com a turma e tornar as explicações mais concretas.
+- **Para Estudantes:** Um ambiente seguro e estimulante para explorar jogos e simuladores de forma autônoma, revisar conteúdos no próprio ritmo e aprender ativamente ("aprender fazendo").
+
+## A Equipe (EDMA)
+Uma construção coletiva de quatro estudantes:
+- **Erik Bernardo:** Programação principal e implementação técnica.
+- **Davi Luiz:** Desenvolvimento, ideias, programação de páginas e recursos do site.
+- **Mariana Alice:** Pesquisa de conteúdo escolar e investigação de representação de fenômenos.
+- **Antonio Carlos:** Marketing, divulgação, produção de conteúdo para redes sociais e estratégia de alcance.
+
+## Visão e Futuro
+Transformar explicações em experiências. O objetivo é que o SimuLab seja uma ferramenta útil e contínua no dia a dia da aprendizagem, dentro e fora da sala de aula.
