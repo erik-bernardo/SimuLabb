@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folha de Redação ENEM - Treinamento Limpo</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter & Lora -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+
+    /* Estilo da Folha de Papel A4 Realista */
+    .paper-sheet {
+      background-color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+
+    /* Linhas Pautadas Contínuas (Fundo de 32px por linha) */
+    .paper-lines-grid {
+      background-image: repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        #cbd5e1 31px,
+        #cbd5e1 32px
+      );
+      background-attachment: local;
+    }
+
+    /* Estilo Limpo dos Textareas (Sem bordas, sem fundo, sem separadores) */
+    .seamless-textarea {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 15px;
+      line-height: 32px;
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      resize: none;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+      display: block;
+      color: #1e293b;
+    }
+
+    .seamless-textarea::placeholder {
+      color: #94a3b8;
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .mirror-div {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 15px;
+      line-height: 32px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      pointer-events: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Desativação completa de corretores ortográficos e sublinhados vermelhos */
+    textarea, input {
+      spellcheck: false !important;
+      -webkit-spellcheck: false !important;
+    }
+    textarea::spelling-error, textarea::grammar-error,
+    input::spelling-error, input::grammar-error {
+      text-decoration: none !important;
+      display: none !important;
+    }
+
+    /* Transição suave nas barras do minimapa */
+    .minimap-bar {
+      transition: width 0.12s ease-out, opacity 0.2s ease;
+    }
+
+    /* Animação para mensagens Toasts */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-toast {
+      animation: slideUp 0.3s ease-out forwards;
+    }
+
+    /* Suporte a impressão oficial */
+    @media print {
+      body { background-color: #ffffff; }
+      .no-print { display: none !important; }
+      .paper-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- BARRA DE NAVEGAÇÃO / TOOLBAR -->
+  <header class="no-print bg-slate-900 text-white sticky top-0 z-30 shadow-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Título -->
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-600 text-white p-2 rounded-lg flex items-center justify-center">
+          <i class="fa-solid fa-pen-nib text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">Folha de Redação</h1>
+          <p class="text-xs text-slate-400">Modelo Oficial ENEM</p>
+        </div>
+      </div>
+
+      <!-- Contador de Linhas da Redação -->
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+          <i class="fa-solid fa-lines-leaning text-indigo-400 mr-2 text-sm"></i>
+          <span class="text-xs text-slate-400 mr-2 uppercase font-medium">Linhas:</span>
+          <span id="line-counter-badge" class="font-bold text-sm text-amber-400">0 / 30</span>
+          <span id="status-pill" class="ml-2 text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-700 text-slate-300">
+            Insuficiente (&lt;7)
+          </span>
+        </div>
+
+        <!-- Cronômetro -->
+        <div class="hidden md:flex items-center bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 space-x-2">
+          <i class="fa-solid fa-stopwatch text-slate-400 text-sm"></i>
+          <span id="timer-display" class="font-mono text-sm text-slate-200">00:00</span>
+          <button id="btn-timer-toggle" onclick="toggleTimer()" class="text-xs bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-slate-200 transition">
+            <i class="fa-solid fa-play text-[10px]" id="timer-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="flex items-center space-x-2">
+        <button onclick="confirmClear()" class="p-2 text-slate-400 hover:text-red-400 transition rounded-lg hover:bg-slate-800" title="Limpar Redação">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+        <button onclick="window.print()" class="p-2 text-slate-400 hover:text-indigo-400 transition rounded-lg hover:bg-slate-800" title="Imprimir / PDF">
+          <i class="fa-solid fa-print"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- DICA DE TECLADO / INSTRUÇÕES -->
+  <div class="no-print max-w-7xl mx-auto w-full px-4 mt-5">
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 flex items-center justify-between text-indigo-900 text-xs shadow-sm flex-wrap gap-2">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-lightbulb text-indigo-600 text-base"></i>
+        <span>
+          Aperte <kbd class="bg-indigo-200 px-1.5 py-0.5 rounded font-mono font-bold text-indigo-950">Enter</kbd> para pular sequencialmente entre as partes (Introdução &rarr; Dev 1 &rarr; Dev 2 &rarr; Conclusão). Use <kbd class="bg-indigo-200 px-1.5 py-0.5 rounded font-mono font-bold text-indigo-950">Shift + Enter</kbd> para pular linha dentro do mesmo parágrafo.
+        </span>
+      </div>
+      <div class="text-indigo-700 font-semibold flex items-center gap-1">
+        <i class="fa-solid fa-bolt text-amber-500"></i> Minimapa dinâmico ativado
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL (FOLHA A4 + MINIMAPA DIREITO) -->
+  <main class="max-w-7xl mx-auto w-full px-2 sm:px-4 my-5 flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- COLUNA ESQUERDA: FOLHA DE REDAÇÃO A4 TOTALMENTE LIMPA -->
+      <div class="lg:col-span-8 xl:col-span-8">
+        <div class="paper-sheet p-4 sm:p-8 text-slate-900">
+          
+          <!-- Cabeçalho Oficial ENEM -->
+          <div class="border-2 border-slate-800 p-4 mb-5 bg-white">
+            <h2 class="text-center font-extrabold text-xl sm:text-2xl tracking-wider text-slate-900 uppercase border-b-2 border-slate-800 pb-2.5 mb-3">
+              Folha de Redação
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs mb-3">
+              <div class="sm:col-span-3">
+                <label class="block uppercase font-bold text-slate-700 mb-1">Nome do Aluno:</label>
+                <input type="text" id="student-name" placeholder="Digite seu nome completo" spellcheck="false" autocomplete="off"
+                       class="w-full border-b border-slate-400 focus:border-slate-800 outline-none pb-0.5 font-medium bg-transparent">
+              </div>
+              <div>
+                <label class="block uppercase font-bold text-slate-700 mb-1">Data:</label>
+                <input type="date" id="essay-date" 
+                       class="w-full border-b border-slate-400 focus:border-slate-800 outline-none pb-0.5 font-medium bg-transparent">
+              </div>
+            </div>
+
+            <div>
+              <label class="block uppercase font-bold text-slate-700 mb-1">Tema da Redação:</label>
+              <input type="text" id="essay-theme" placeholder="Escreva o tema da redação aqui..." spellcheck="false" autocomplete="off"
+                     class="w-full border-b-2 border-slate-700 focus:border-indigo-600 outline-none pb-0.5 font-semibold text-slate-900 bg-transparent">
+            </div>
+          </div>
+
+          <!-- ÁREA DE ESCRITA PAUTADA (LINHAS 1 A 30 TOTALMENTE UNIFORMES E LIMPAS) -->
+          <div class="flex border-2 border-slate-800 bg-white">
+            
+            <!-- Numeração Lateral das Linhas (1 a 30) -->
+            <div class="w-10 sm:w-12 bg-slate-50 border-r-2 border-slate-800 flex flex-col justify-start select-none font-mono text-xs text-slate-600 font-semibold text-center">
+              <div id="line-numbers-container"></div>
+            </div>
+
+            <!-- Corpo Continuo sem Divisores Visuais -->
+            <div class="flex-1 paper-lines-grid relative" id="essay-paper-body">
+              
+              <div id="text-mirror" class="mirror-div"></div>
+              
+              <textarea id="main-essay-text" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off"
+                        placeholder="Comece sua redação aqui. O 1º parágrafo será a Introdução. Aperte Enter para os próximos parágrafos..."
+                        class="seamless-textarea h-[960px]"></textarea>
+
+            </div>
+          </div>
+
+          <!-- Rodapé de Métricas da Folha -->
+          <div class="mt-4 pt-3 border-t border-slate-300 flex flex-wrap justify-between items-center text-xs text-slate-600 font-medium">
+            <div class="flex space-x-4">
+              <span>Palavras: <strong id="word-count" class="text-slate-900">0</strong></span>
+              <span>Caracteres: <strong id="char-count" class="text-slate-900">0</strong></span>
+            </div>
+            <div class="text-slate-500 italic">
+              Desenvolvido para treino no padrão ENEM (Mín. 7 | Máx. 30 linhas)
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- COLUNA DIREITA: MINIMAPA DE ESTRUTURA VISUAL DINÂMICO -->
+      <div class="no-print lg:col-span-4 xl:col-span-4 sticky top-20">
+        <div class="bg-slate-900 rounded-3xl p-5 shadow-2xl border border-slate-800 text-white flex flex-col items-center">
+          
+          <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-chart-simple text-amber-400"></i>
+              <h3 class="font-bold text-sm text-slate-100 tracking-wide">Minimapa de Estrutura</h3>
+            </div>
+            <span class="text-[10px] bg-slate-800 text-indigo-300 px-2 py-0.5 rounded font-mono border border-slate-700">Tempo Real</span>
+          </div>
+
+          <!-- Legenda de Cores -->
+          <div class="w-full grid grid-cols-2 gap-2 text-[11px] mb-4 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-amber-400 shadow-sm"></span>
+              <span class="text-slate-300 font-medium">Introdução</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-sm"></span>
+              <span class="text-slate-300 font-medium">Dev 1</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-red-500 shadow-sm"></span>
+              <span class="text-slate-300 font-medium">Dev 2</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-slate-300 shadow-sm"></span>
+              <span class="text-slate-300 font-medium">Conclusão</span>
+            </div>
+          </div>
+
+          <!-- CONTAINER DO MINIMAPA COM BARRAS QUE CRESCEM CONFORME VOCÊ DIGITA -->
+          <div class="w-full bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-inner flex flex-col justify-start min-h-[380px] space-y-2 relative" id="minimap-container">
+            <!-- As barras de cada linha serão geradas dinamicamente via JS -->
+            <div id="minimap-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-slate-600">
+              <i class="fa-solid fa-keyboard text-3xl mb-2 opacity-30"></i>
+              <p class="text-xs">Digite na folha para ver o progresso e o tamanho das linhas crescerem em tempo real.</p>
+            </div>
+          </div>
+
+          <!-- Porcentagem de Proporção dos Parágrafos -->
+          <div class="w-full mt-4 text-[11px] text-slate-400 space-y-1.5 pt-3 border-t border-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Introdução:</span>
+              <span id="pct-intro" class="font-mono font-bold text-slate-200">0%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Dev 1:</span>
+              <span id="pct-dev1" class="font-mono font-bold text-slate-200">0%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> Dev 2:</span>
+              <span id="pct-dev2" class="font-mono font-bold text-slate-200">0%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> Conclusão:</span>
+              <span id="pct-concl" class="font-mono font-bold text-slate-200">0%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTÕES INFERIORES DE AÇÃO -->
+    <div class="no-print mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <button onclick="copyRawText()" 
+              class="w-full sm:w-auto px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+        <i class="fa-regular fa-copy"></i>
+        <span>Copiar Redação Limpa</span>
+      </button>
+
+      <button onclick="openAiPromptModal()" 
+              class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-robot"></i>
+        <span>Copiar com Prompt de IA (ENEM)</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- MODAL: PROMPT DE IA -->
+  <div id="ai-modal" class="no-print fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div class="flex items-center space-x-2 text-indigo-600">
+          <i class="fa-solid fa-robot text-xl"></i>
+          <h3 class="font-bold text-lg text-slate-900">Prompt de Correção por IA (ENEM)</h3>
+        </div>
+        <button onclick="closeAiPromptModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="my-4 flex-1 overflow-y-auto bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs font-mono text-slate-700 leading-relaxed whitespace-pre-wrap" id="prompt-preview-text">
+        <!-- Preenchido via JavaScript -->
+      </div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-slate-200">
+        <span class="text-xs text-slate-500">Cole este prompt no ChatGPT, Claude ou Gemini para avaliar sua redação.</span>
+        <div class="flex space-x-2">
+          <button onclick="closeAiPromptModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">
+            Fechar
+          </button>
+          <button onclick="copyAiPromptText()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition flex items-center space-x-2">
+            <i class="fa-solid fa-copy"></i>
+            <span>Copiar Prompt para IA</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO DE LIMPEZA -->
+  <div id="clear-modal" class="no-print fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
+      <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+      </div>
+      <h3 class="font-bold text-lg text-slate-900 mb-2">Limpar Redação?</h3>
+      <p class="text-sm text-slate-600 mb-6">Esta ação apagará todo o texto digitado até o momento.</p>
+      <div class="flex justify-center space-x-3">
+        <button onclick="closeClearModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg text-sm transition">
+          Cancelar
+        </button>
+        <button onclick="clearAllFields()" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg text-sm transition">
+          Sim, Limpar Tudo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICAÇÃO TOAST FLUTUANTE -->
+  <div id="toast" class="no-print fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center space-x-3 z-50 hidden border border-slate-700">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+    <span id="toast-message" class="text-sm font-medium">Texto copiado com sucesso!</span>
+  </div>
+
+  <!-- RODAPÉ DA PÁGINA -->
+  <footer class="no-print py-4 text-center text-xs text-slate-500 border-t border-slate-200 bg-white">
+    Simulador de Redação ENEM &bull; Treinamento e Prática de Escrita
+  </footer>
+
+  <!-- SCRIPT PRINCIPAL -->
+  <script>
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    window.onload = function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('essay-date').value = today;
+
+      renderLineNumbers();
+
+      const textarea = document.getElementById('main-essay-text');
+
+      textarea.addEventListener('input', () => {
+        updateCalculations();
+        saveToLocalStorage();
+      });
+
+      // Impede digitação (exceto apagar) se chegar a 30 linhas exatas
+      textarea.addEventListener('keydown', (e) => {
+        const totalLines = parseInt(document.getElementById('line-counter-badge').innerText.split(' ')[0]) || 0;
+        
+        if (totalLines >= 30 && e.key === 'Enter') {
+           e.preventDefault();
+           showToast('Limite de 30 linhas atingido!', 'warning');
+        }
+      });
+
+      loadFromLocalStorage();
+      updateCalculations();
+    };
+
+    function renderLineNumbers() {
+      const container = document.getElementById('line-numbers-container');
+      let html = '';
+      for (let i = 1; i <= 30; i++) {
+        const isFive = (i % 5 === 0);
+        const bgClass = isFive ? 'bg-slate-300 font-bold text-slate-900 border-y border-slate-400' : '';
+        html += `<div class="h-[32px] flex items-center justify-center border-b border-slate-200 ${bgClass}">${i}</div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    // Atualiza cálculos de linhas e renderiza o MINIMAPA DINÂMICO
+    function updateCalculations() {
+      const textarea = document.getElementById('main-essay-text');
+      const mirror = document.getElementById('text-mirror');
+      const text = textarea.value;
+      
+      const clientWidth = textarea.clientWidth || 550;
+      mirror.style.width = clientWidth + 'px';
+      
+      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      const totalWords = text.trim() === '' ? 0 : words.length;
+      const totalChars = text.length;
+
+      let totalLines = 0;
+      let minimapBarsHtml = '';
+      
+      const charsPerLine = Math.max(30, Math.floor(clientWidth / 9.0));
+      const paragraphs = text.split('\n');
+      
+      let sectionLineCounts = [0, 0, 0, 0];
+
+      if (text !== '') {
+        for (let i = 0; i < paragraphs.length; i++) {
+          const p = paragraphs[i];
+          
+          // Index 0 = Amarelo (Intro), 1 = Azul (Dev1), 2 = Vermelho (Dev2), 3+ = Cinza (Conclusão)
+          const secIdx = Math.min(i, 3);
+          let colorClass = 'bg-slate-300';
+          if (secIdx === 0) colorClass = 'bg-amber-400';
+          else if (secIdx === 1) colorClass = 'bg-cyan-400';
+          else if (secIdx === 2) colorClass = 'bg-red-500';
+
+          // Se a pessoa apenas deu Enter sem digitar, conta 1 linha visual 15%
+          if (p.length === 0) {
+            if (totalLines < 30) {
+              minimapBarsHtml += `<div class="h-3.5 ${colorClass} rounded-full minimap-bar shadow-sm opacity-90" style="width: 15%;"></div>`;
+              totalLines++;
+              sectionLineCounts[secIdx]++;
+            }
+            continue;
+          }
+
+          // Usa o espelho para ver a altura física do texto real
+          mirror.textContent = p;
+          const pHeight = mirror.offsetHeight;
+          const physicalLines = Math.max(1, Math.round(pHeight / 32));
+
+          // Calcula proporção apenas para a última linha do parágrafo
+          const remainder = p.length % charsPerLine;
+          let lastLinePct = Math.min(100, Math.max(15, Math.round((remainder / charsPerLine) * 100)));
+          if (remainder === 0) lastLinePct = 100;
+
+          // Cria as barras baseadas nas quebras reais calculadas
+          for (let j = 0; j < physicalLines; j++) {
+            if (totalLines >= 30) break;
+
+            const widthPct = (j === physicalLines - 1) ? lastLinePct : 100;
+            minimapBarsHtml += `<div class="h-3.5 ${colorClass} rounded-full minimap-bar shadow-sm opacity-90" style="width: ${widthPct}%;"></div>`;
+            totalLines++;
+            sectionLineCounts[secIdx]++;
+          }
+          if (totalLines >= 30) break;
+        }
+      }
+
+      // Atualiza visualização do Minimapa Lateral
+      const minimapContainer = document.getElementById('minimap-container');
+      
+      if (totalLines > 0) {
+        minimapContainer.innerHTML = minimapBarsHtml;
+      } else {
+        minimapContainer.innerHTML = `
+          <div id="minimap-empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-slate-600">
+            <i class="fa-solid fa-keyboard text-3xl mb-2 opacity-30"></i>
+            <p class="text-xs">Digite na folha para ver o progresso e o tamanho das linhas crescerem em tempo real.</p>
+          </div>
+        `;
+      }
+
+      // Porcentagens de Proporção
+      const safeTotal = totalLines > 0 ? totalLines : 1;
+      document.getElementById('pct-intro').innerText = totalLines > 0 ? `${Math.round((sectionLineCounts[0] / safeTotal) * 100)}%` : '0%';
+      document.getElementById('pct-dev1').innerText  = totalLines > 0 ? `${Math.round((sectionLineCounts[1] / safeTotal) * 100)}%` : '0%';
+      document.getElementById('pct-dev2').innerText  = totalLines > 0 ? `${Math.round((sectionLineCounts[2] / safeTotal) * 100)}%` : '0%';
+      document.getElementById('pct-concl').innerText = totalLines > 0 ? `${Math.round((sectionLineCounts[3] / safeTotal) * 100)}%` : '0%';
+
+      // Contador e Status Superior
+      const lineCounterBadge = document.getElementById('line-counter-badge');
+      const statusPill = document.getElementById('status-pill');
+
+      lineCounterBadge.innerText = `${totalLines} / 30`;
+
+      document.getElementById('word-count').innerText = totalWords;
+      document.getElementById('char-count').innerText = totalChars;
+
+      // Status do limites ENEM
+      if (totalLines < 7) {
+        lineCounterBadge.className = "font-bold text-sm text-red-400";
+        statusPill.className = "ml-2 text-[10px] px-2 py-0.5 rounded font-semibold bg-red-900/60 text-red-200";
+        statusPill.innerText = "Insuficiente (<7)";
+      } else if (totalLines >= 7 && totalLines < 20) {
+        lineCounterBadge.className = "font-bold text-sm text-amber-400";
+        statusPill.className = "ml-2 text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-900/60 text-amber-200";
+        statusPill.innerText = "Razoável (7-19)";
+      } else if (totalLines >= 20 && totalLines <= 30) {
+        lineCounterBadge.className = "font-bold text-sm text-emerald-400";
+        statusPill.className = "ml-2 text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-900/60 text-emerald-200";
+        statusPill.innerText = "Ideal (20-30)";
+      }
+    }
+
+    // Retorna a redação limpa completa
+    function buildFullEssayText() {
+      const theme = document.getElementById('essay-theme').value.trim();
+      const text = document.getElementById('main-essay-text').value.trim();
+
+      let output = "";
+      if (theme) {
+        output += `TEMA: ${theme}\n\n`;
+      }
+      
+      output += text;
+      return output;
+    }
+
+    function copyRawText() {
+      const text = buildFullEssayText();
+      if (!text.trim()) {
+        showToast('Escreva algo na redação antes de copiar.', 'warning');
+        return;
+      }
+      copyToClipboard(text);
+      showToast('Redação copiada com sucesso!', 'success');
+    }
+
+    // Gera o Prompt de IA oficial modelo ENEM (5 Competências)
+    function generateAiPrompt() {
+      const theme = document.getElementById('essay-theme').value.trim() || "[Tema não especificado]";
+      const student = document.getElementById('student-name').value.trim() || "Aluno";
+      const essayBody = document.getElementById('main-essay-text').value.trim() || "[Redação em branco]";
+
+      const totalLines = document.getElementById('line-counter-badge').innerText;
+      const wordCount = document.getElementById('word-count').innerText;
+
+      return `Atue como um corretor e avaliador oficial da banca examinadora do ENEM. 
+
+Por favor, faça uma correção minuciosa da redação abaixo com base no manual de avaliação oficial do ENEM. Atribua notas de 0 a 200 pontos para cada uma das 5 Competências.
+
+---
+INFORMAÇÕES DA REDAÇÃO:
+- Aluno(a): ${student}
+- Tema: ${theme}
+- Total de Linhas: ${totalLines}
+- Total de Palavras: ${wordCount} palavras
+
+TEXTO DA REDAÇÃO:
+
+${essayBody}
+---
+
+FORMATO DE RESPOSTA DESEJADO:
+
+1. NOTA POR COMPETÊNCIA (0 a 200 cada):
+   - Competência 1 (Norma Culta): [Nota]/200 - Análise de gramática, pontuação e sintaxe.
+   - Competência 2 (Compreensão do Tema e Repertório Legítimo): [Nota]/200 - Análise de adequação temática e uso produtivos dos repertórios.
+   - Competência 3 (Projeto de Texto e Argumentação): [Nota]/200 - Avaliação da tese, encadeamento de ideias e ponto de vista.
+   - Competência 4 (Coesão e Conectivos): [Nota]/200 - Avaliação dos operadores argumentativos inter e intra-parágrafos.
+   - Competência 5 (Proposta de Intervenção): [Nota]/200 - Detalhamento dos 5 elementos (Agente, Ação, Meio/Modo, Efeito e Detalhamento).
+
+2. NOTA FINAL: [Soma Total]/1000 pontos.
+
+3. CORREÇÕES DE PORTUGUÊS / GRAMÁTICA:
+   - Apontar erros específicos e como corrigi-los.
+
+4. PONTOS DE MELHORIA E DICAS PRÁTICAS.`;
+    }
+
+    function openAiPromptModal() {
+      const promptText = generateAiPrompt();
+      document.getElementById('prompt-preview-text').innerText = promptText;
+      document.getElementById('ai-modal').classList.remove('hidden');
+    }
+
+    function closeAiPromptModal() {
+      document.getElementById('ai-modal').classList.add('hidden');
+    }
+
+    function copyAiPromptText() {
+      const promptText = generateAiPrompt();
+      copyToClipboard(promptText);
+      closeAiPromptModal();
+      showToast('Prompt copiado! Cole no ChatGPT, Claude ou Gemini.', 'success');
+    }
+
+    function copyToClipboard(str) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(str);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = str;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    }
+
+    function confirmClear() {
+      document.getElementById('clear-modal').classList.remove('hidden');
+    }
+
+    function closeClearModal() {
+      document.getElementById('clear-modal').classList.add('hidden');
+    }
+
+    function clearAllFields() {
+      document.getElementById('essay-theme').value = '';
+      document.getElementById('main-essay-text').value = '';
+      updateCalculations();
+      localStorage.removeItem('enem_essay_draft');
+      closeClearModal();
+      showToast('Folha de redação limpa!', 'info');
+    }
+
+    function saveToLocalStorage() {
+      const data = {
+        theme: document.getElementById('essay-theme').value,
+        name: document.getElementById('student-name').value,
+        date: document.getElementById('essay-date').value,
+        text: document.getElementById('main-essay-text').value
+      };
+      localStorage.setItem('enem_essay_draft', JSON.stringify(data));
+    }
+
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('enem_essay_draft');
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        if (data.theme) document.getElementById('essay-theme').value = data.theme;
+        if (data.name) document.getElementById('student-name').value = data.name;
+        if (data.date) document.getElementById('essay-date').value = data.date;
+        if (data.text) document.getElementById('main-essay-text').value = data.text;
+      } catch (e) {
+        console.error('Erro ao carregar rascunho', e);
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMessage.innerText = message;
+
+      if (type === 'success') {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+      } else if (type === 'warning') {
+        toastIcon.className = "fa-solid fa-circle-exclamation text-amber-400 text-lg";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-lg";
+      }
+
+      toast.classList.remove('hidden');
+      toast.classList.add('animate-toast');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('animate-toast');
+      }, 3500);
+    }
+
+    function toggleTimer() {
+      const icon = document.getElementById('timer-icon');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        icon.className = "fa-solid fa-play text-[10px]";
+      } else {
+        timerRunning = true;
+        icon.className = "fa-solid fa-pause text-[10px]";
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+          const secs = String(timerSeconds % 60).padStart(2, '0');
+          document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+        }, 1000);
+      }
+    }
+  </script>
+</body>
+</html>
