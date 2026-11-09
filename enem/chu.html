@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HumanasQuest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   HumanasQuest — MVP
+   Tokens de design
+   ========================================================== */
+:root{
+  --bg:#f3f6fb; --card:#fff; --ink:#1d2742; --muted:#66728f;
+  --line:#dde4f0; --line-dark:#c7d0e2;
+  --primary:#d9534f; --primary-dark:#9c3431; --primary-tint:#ffe8e7;
+  --ok:#2dbf5e; --ok-dark:#1e9a47; --ok-bg:#d9f7e2; --ok-ink:#15793a;
+  --bad:#f0505a; --bad-dark:#c73a43; --bad-bg:#ffe1e3; --bad-ink:#b02530;
+  --gold:#ffb52e; --gold-dark:#d98f00; --heart:#ff4d6d;
+  --mascot:#e6a04e; --mascot-dark:#b37632; --screen:#17213d; --glow:#fcebb6;
+  --c0:#4c6fff; --c1:#ff8a3d; --c2:#a45cff; --c3:#14b8a6;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{
+  font-family:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--ink); font-weight:700;
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.active{display:flex;flex-direction:column;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes bounce{30%{transform:translateY(-12px) scale(1.04)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
+@keyframes pop{30%{transform:scale(1.35)}}
+@keyframes float{50%{transform:translateY(-3px)}}
+
+.btn{
+  font-weight:900; font-size:15px; line-height:1; letter-spacing:.01em;
+  border:0; border-radius:14px; padding:15px 22px; cursor:pointer; color:#fff;
+  background:var(--primary); box-shadow:0 4px 0 var(--primary-dark);
+  transition:transform .06s, box-shadow .06s, filter .15s;
+}
+.btn.big{font-size:17px;padding:16px 26px}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 transparent}
+.btn:disabled{background:#e3e8f2;color:#9ba6bf;box-shadow:0 4px 0 #cfd6e6;cursor:not-allowed}
+.btn.ok{background:var(--ok);box-shadow:0 4px 0 var(--ok-dark)}
+.btn.bad{background:var(--bad);box-shadow:0 4px 0 var(--bad-dark)}
+.btn.ghost{background:#fff;color:var(--primary);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.ghost.danger{color:var(--bad)}
+.icon-btn{background:none;border:0;padding:6px;border-radius:10px;cursor:pointer;color:#98a3bd;display:grid;place-items:center}
+.icon-btn:hover{color:var(--ink)}
+.icon-btn svg{width:26px;height:26px}
+
+.mascot{flex:none;width:84px;height:92px}
+.mascot svg{width:100%;height:100%;overflow:visible;animation:float 3s ease-in-out infinite}
+.mascot.big{width:150px;height:165px}
+.mascot.bounce{animation:bounce .55s}
+.mascot.shake{animation:shake .45s}
+.say{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.bubble{
+  position:relative; background:#fff; border:2px solid var(--line); border-radius:16px;
+  padding:14px 16px; font-size:18px; line-height:1.4; margin-top:6px; flex:1;
+}
+.bubble::before{
+  content:""; position:absolute; left:-9px; top:22px; width:14px; height:14px; background:#fff;
+  border-left:2px solid var(--line); border-bottom:2px solid var(--line); transform:rotate(45deg);
+}
+
+.home-top{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+.home-top-in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{font-weight:900;font-size:24px;letter-spacing:-.02em}
+.brand span{color:var(--primary)}
+.stats{display:flex;gap:16px;align-items:center}
+.stat{display:flex;align-items:center;gap:5px;font-weight:900;font-size:17px}
+.stat .emo{font-size:18px}
+.stat.hearts-stat{color:var(--heart)}
+.stat svg{width:24px;height:24px}
+.home-main{width:100%;max-width:560px;margin:0 auto;padding:20px 16px 48px}
+.world{background:var(--primary);color:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 5px 0 var(--primary-dark);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.world small{display:block;opacity:.85;font-weight:800;font-size:14px}
+.world h1{margin:2px 0 0;font-size:21px;line-height:1.2}
+.world-sub{font-size:13px;opacity:.9;text-align:right;line-height:1.3}
+.home-say{margin:22px 0 4px}
+.heart-timer{min-height:20px;text-align:center;color:var(--muted);font-size:14px;margin:6px 0}
+.path{display:flex;flex-direction:column;align-items:center;padding:20px 0 0}
+.node-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin-bottom:26px;transform:translateX(var(--dx,0))}
+.node{position:relative;width:86px;height:78px;border:0;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:#fff;transition:transform .08s,box-shadow .08s}
+.node svg{width:38px;height:38px}
+.node.current{background:var(--primary);box-shadow:0 8px 0 var(--primary-dark)}
+.node.done{background:var(--ok);box-shadow:0 8px 0 var(--ok-dark)}
+.node.locked{background:#e3e8f2;box-shadow:0 8px 0 #c9d1e3;color:#a7b1c8}
+.node:active{transform:translateY(6px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.node.current::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:4px solid var(--primary-tint);animation:ring 1.8s ease-out infinite}
+@keyframes ring{from{transform:scale(.92);opacity:1}to{transform:scale(1.15);opacity:0}}
+.node.nope{animation:shake .4s}
+.node-label{font-size:14px;color:var(--muted);max-width:190px;line-height:1.3}
+.start-tip{position:relative;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 14px;font-weight:900;color:var(--primary);font-size:15px;animation:hop 1.2s ease-in-out infinite}
+.start-tip::after{content:"absolute";bottom:-7px;left:50%;width:10px;height:10px;background:#fff;border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+@keyframes hop{50%{transform:translateY(-5px)}}
+.sec-title{font-size:18px;margin:26px 0 12px}
+.next-worlds{display:grid;gap:10px}
+.nw{display:flex;gap:12px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--muted)}
+.nw svg{width:22px;height:22px;flex:none;color:#a7b1c8}
+.nw b{display:block;color:var(--ink);font-size:16px}
+.nw span{font-size:13px}
+.reset{display:block;margin:30px auto 0;background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
+
+.screen.lesson.active{height:100vh;height:100dvh}
+.topbar-in{max-width:760px;margin:0 auto;width:100%;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.progress{flex:1;height:16px;border-radius:99px;background:#e3e8f2;overflow:hidden}
+.fill{position:relative;height:100%;width:0;border-radius:99px;background:var(--ok);transition:width .5s cubic-bezier(.3,1.3,.5,1)}
+.fill::after{content:"";position:absolute;top:4px;left:8px;right:8px;height:4px;border-radius:4px;background:rgba(255,255,255,.35)}
+.hearts{display:flex;align-items:center;gap:5px;font-weight:900;color:var(--heart);font-size:19px}
+.hearts svg{width:28px;height:28px}
+.hearts.pop{animation:pop .5s}
+.stage{flex:1;min-height:0;overflow-y:auto;padding:8px 16px 28px}
+.stage-in{max-width:760px;margin:0 auto}
+.instr{font-weight:900;font-size:25px;line-height:1.25;margin:6px 0 18px}
+.instr small{font-size:14px;color:var(--gold-dark);background:#fff3d6;border-radius:8px;padding:3px 8px;margin-left:8px;vertical-align:middle}
+
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;padding:14px 16px;font-size:18px;font-weight:800;cursor:pointer;transition:background .12s,border-color .12s,transform .06s}
+.opt:hover{background:#f7f9fd}
+.opt:active{transform:translateY(2px)}
+.opt .key{flex:none;width:30px;height:30px;border:2px solid var(--line);border-radius:9px;display:grid;place-items:center;font-size:14px;color:var(--muted)}
+.opt.selected{border-color:var(--primary);background:var(--primary-tint);color:var(--primary-dark)}
+.opt.selected .key{border-color:var(--primary);color:var(--primary)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);color:var(--ok-ink)}
+.opt.right .key{border-color:var(--ok);color:var(--ok-ink)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--bad-ink);animation:shake .4s}
+.opt.dim{opacity:.55}
+.options.locked{pointer-events:none}
+
+.match{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.match .col{display:grid;gap:14px;align-content:start}
+.mi{position:relative;text-align:left;background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:14px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;min-height:68px;transition:background .12s,border-color .12s}
+.mi:hover{background:#f7f9fd}
+.mi.selected{border-color:var(--primary);background:var(--primary-tint)}
+.mi.linked{border-color:var(--lc);background:#f4f6ff;background:color-mix(in srgb,var(--lc) 12%,#fff)}
+.mi .badge{position:absolute;top:-10px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--lc);color:#fff;font-size:13px;font-weight:900;display:grid;place-items:center}
+.mi.right{border-color:var(--ok);background:var(--ok-bg);color:var(--ok-ink)}
+.mi.right .badge{background:var(--ok)}
+.mi.wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--bad-ink)}
+.mi.wrong .badge{background:var(--bad)}
+
+.sentence{font-size:21px;line-height:2.6;margin:0 0 20px;font-weight:800}
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:120px;height:50px;margin:0 4px;vertical-align:middle;border-radius:13px;background:#eef2fa;border:2px dashed var(--line-dark);transition:background .15s,border-color .15s}
+.slot.over{background:var(--primary-tint);border-color:var(--primary)}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:44px;padding:0 16px;font-size:20px;font-weight:900;background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:12px;cursor:grab;user-select:none;-webkit-user-select:none}
+.chip:active{cursor:grabbing}
+.bank{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:18px 8px;border-top:2px solid var(--line);border-bottom:2px solid var(--line);min-height:88px}
+.bank .chip.used{background:#eef2fa;border-color:transparent;color:transparent;pointer-events:none}
+.slot.right .chip{border-color:var(--ok);background:var(--ok-bg);color:var(--ok-ink)}
+.slot.wrong .chip{border-color:var(--bad);background:var(--bad-bg);color:var(--bad-ink)}
+.fill-root.locked .chip{cursor:default}
+
+.footer{border-top:2px solid var(--line);background:#fff;padding:16px 16px calc(16px + env(safe-area-inset-bottom));transition:background .25s,border-color .25s}
+.footer.ok{background:var(--ok-bg);border-color:var(--ok-bg)}
+.footer.bad{background:var(--bad-bg);border-color:var(--bad-bg)}
+.footer-in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:flex-end;gap:18px}
+.footer .btn{min-width:170px}
+.feedback{flex:1;display:flex;gap:14px;align-items:flex-start;animation:rise .32s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.fb-icon{flex:none;width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.fb-icon svg{width:30px;height:30px}
+.footer.ok .fb-icon{color:var(--ok)}
+.footer.bad .fb-icon{color:var(--bad)}
+.fb-title{margin:0;font-size:22px;font-weight:900}
+.fb-text{font-size:15px;margin-top:4px;line-height:1.45}
+.fb-text ol{margin:6px 0 0;padding-left:20px}
+.fb-text li{margin:2px 0}
+.footer.ok .fb-title,.footer.ok .fb-text{color:var(--ok-ink)}
+.footer.bad .fb-title,.footer.bad .fb-text{color:var(--bad-ink)}
+.lose{display:inline-block;margin-left:8px;background:#fff;color:var(--bad);border-radius:99px;padding:2px 10px;font-size:14px;vertical-align:middle}
+
+.modal{position:fixed;inset:0;background:rgba(20,28,50,.55);display:grid;place-items:center;padding:20px;z-index:40}
+.modal-card{background:#fff;border-radius:22px;padding:24px;max-width:380px;width:100%;text-align:center;display:grid;gap:12px;justify-items:center}
+.modal-card h3{margin:0;font-size:22px}
+.modal-card p{margin:0;color:var(--muted);font-weight:700}
+.modal-card .btn{width:100%}
+.modal .mascot{width:90px;height:98px}
+
+.center{justify-content:space-between}
+.center-in{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 16px;max-width:560px;margin:0 auto;width:100%}
+.center-in h1{font-size:30px;margin:14px 0 6px}
+.center-in p{margin:0;color:var(--muted);font-size:17px;line-height:1.45}
+.cards{display:flex;gap:12px;justify-content:center;margin:24px 0 14px;flex-wrap:wrap}
+.cs{border-radius:16px;border:2px solid var(--c);min-width:104px;background:#fff;overflow:hidden}
+.cs h4{margin:0;padding:5px 0;background:var(--c);color:#fff;font-size:13px;font-weight:900}
+.cs div{padding:14px 8px;font-size:26px;font-weight:900;color:var(--c)}
+.res-streak{font-weight:900;color:var(--ink)!important}
+.bar{border-top:2px solid var(--line);background:#fff;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.bar-in{max-width:760px;margin:0 auto;display:flex;gap:14px;justify-content:space-between}
+.bar-in .btn{flex:1}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.confetti i{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(108vh) rotate(720deg)}}
+
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-weight:800;z-index:60;max-width:92vw;text-align:center;box-shadow:0 8px 24px rgba(20,28,50,.25)}
+
+@media (max-width:620px){
+  .footer-in{flex-direction:column;align-items:stretch;gap:14px}
+  .footer .btn{width:100%}
+  .fb-icon{width:42px;height:42px}
+  .fb-icon svg{width:24px;height:24px}
+  .fb-title{font-size:20px}
+  .fb-text{font-size:14px}
+  .instr{font-size:22px}
+  .match{gap:12px}
+  .mi{font-size:15px;padding:12px}
+  .stats{gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- ================= HOME / TRILHA ================= -->
+<section id="screen-home" class="screen active" aria-label="Trilha de aprendizado">
+  <header class="home-top"><div class="home-top-in">
+    <div class="brand">Humanas<span>Quest</span></div>
+    <div class="stats" aria-label="Seu progresso">
+      <div class="stat" title="Ofensiva: dias seguidos"><span class="emo" aria-hidden="true">🔥</span><span id="stStreak">0</span></div>
+      <div class="stat" title="Moedas"><span class="emo" aria-hidden="true">🪙</span><span id="stCoins">0</span></div>
+      <div class="stat" title="XP"><span class="emo" aria-hidden="true">⚡</span><span id="stXp">0</span></div>
+      <div class="stat hearts-stat" title="Corações"><span data-heart></span><span id="stHearts">5</span></div>
+    </div>
+  </div></header>
+
+  <main class="home-main">
+    <div class="world">
+      <div><small id="worldSub">Mundo 1</small><h1 id="worldTitle">História do Brasil e Geral</h1></div>
+      <div class="world-sub">ENEM</div>
+    </div>
+    <div class="say home-say"><div class="mascot" id="mascotHome"></div><div class="bubble" id="homeBubble"></div></div>
+    <div id="heartTimer" class="heart-timer"></div>
+    
+    <!-- O caminho vai renderizar as Lições do Mundo ATUAL -->
+    <div class="path" id="path"></div>
+
+    <!-- Se houver mundos bloqueados ainda, eles aparecem aqui -->
+    <div id="nextWorldsContainer">
+      <h2 class="sec-title">Próximos Mundos</h2>
+      <div class="next-worlds" id="nextWorlds"></div>
+    </div>
+    
+    <button class="reset" id="btnReset" type="button">Reiniciar progresso (demo)</button>
+  </main>
+</section>
+
+<!-- ================= LIÇÃO ================= -->
+<section id="screen-lesson" class="screen lesson" aria-label="Lição">
+  <header class="topbar"><div class="topbar-in">
+    <button class="icon-btn" id="btnClose" type="button" aria-label="Sair da lição">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="progress" id="progress" role="progressbar" aria-label="Progresso da lição" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
+    <button class="icon-btn" id="btnSound" type="button" aria-label="Ligar ou desligar o som"></button>
+    <div class="hearts" id="hudHeartsBox" role="status" aria-label="Corações restantes"><span data-heart></span><span id="hudHearts">5</span></div>
+  </div></header>
+
+  <main class="stage" id="stage"><div class="stage-in">
+    <p class="instr" id="instr"></p>
+    <div class="say"><div class="mascot" id="mascotLesson"></div><div class="bubble" id="bubble"></div></div>
+    <div id="viz"></div>
+    <div id="answer"></div>
+  </div></main>
+
+  <footer class="footer" id="footer"><div class="footer-in">
+    <div class="feedback" id="feedback" hidden role="status" aria-live="polite">
+      <div class="fb-icon" id="fbIcon"></div>
+      <div class="fb-body"><h3 class="fb-title" id="fbTitle"></h3><div class="fb-text" id="fbText"></div></div>
+    </div>
+    <button class="btn big" id="btnCheck" type="button" disabled>Verificar</button>
+  </div></footer>
+
+  <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="mascot" id="mascotModal"></div>
+      <h3 id="modalTitle">Quer mesmo sair?</h3>
+      <p>Todo o progresso desta lição será perdido.</p>
+      <button class="btn big" id="btnStay" type="button">Continuar a lição</button>
+      <button class="btn big ghost danger" id="btnQuit" type="button">Sair da lição</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTADO ================= -->
+<section id="screen-result" class="screen center" aria-label="Resultado da lição">
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="center-in">
+    <div class="mascot big" id="mascotResult"></div>
+    <h1 id="resTitle">Lição concluída!</h1>
+    <p id="resSub"></p>
+    <div class="cards">
+      <div class="cs" style="--c:var(--gold)"><h4>XP ganho</h4><div id="resXp">0</div></div>
+      <div class="cs" style="--c:var(--ok)"><h4>Precisão</h4><div id="resAcc">0%</div></div>
+      <div class="cs" style="--c:var(--c2)"><h4>Moedas</h4><div id="resCoins">0</div></div>
+    </div>
+    <p class="res-streak" id="resStreak"></p>
+  </div>
+  <div class="bar"><div class="bar-in">
+    <button class="btn big ghost" id="btnRetry" type="button">Refazer</button>
+    <button class="btn big" id="btnResHome" type="button">Continuar</button>
+  </div></div>
+</section>
+
+<!-- ================= SEM VIDAS ================= -->
+<section id="screen-over" class="screen center" aria-label="Sem corações">
+  <div class="center-in">
+    <div class="mascot big" id="mascotOver"></div>
+    <h1>Seus corações acabaram</h1>
+    <p>Treine a lição sem perder vidas e ganhe 1 coração ao terminar, ou espere um coração regenerar.</p>
+    <p id="overTimer" class="res-streak" style="margin-top:16px"></p>
+  </div>
+  <div class="bar"><div class="bar-in">
+    <button class="btn big ghost" id="btnOverHome" type="button">Voltar ao início</button>
+    <button class="btn big" id="btnPractice" type="button">Treinar e ganhar coração</button>
+  </div></div>
+</section>
+
+<script>
+'use strict';
+
+/* ==========================================================
+   1. CONTEÚDO · MUNDOS E LIÇÕES (20 QUESTÕES ENEM ADICIONADAS)
+   ========================================================== */
+const COURSE = [
+  {
+    title: 'História do Brasil & Geral', subtitle: 'Mundo 1',
+    lessons: [
+      { 
+        name: 'Lição 1: República Velha (1889-1930)', 
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'O Convênio de Taubaté (1906) estabeleceu um acordo entre os principais estados produtores de café no Brasil. Qual era o objetivo central dessa política socioeconômica?',
+            options: [
+              'Diversificar a produção agrícola nacional financiando a cultura do algodão e da borracha.',
+              'Assegurar os lucros dos cafeicultores por meio da compra dos excedentes pelo Estado com empréstimos externos.',
+              'Estimular a imigração europeia para substituir a mão de obra escrava nos cafezais paulistas.',
+              'Promover a industrialização acelerada do estado de São Paulo com impostos de exportação.',
+              'Subvencionar o consumo interno do café por meio do tabelamento de preços na capital federal.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['O Convênio de Taubaté estatizou os prejuízos dos cafeicultores ao comprar excedentes utilizando dívida externa.'],
+            tip: 'Lembre-se da política de valorização do café pelas oligarquias.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Durante a Primeira República, o mecanismo político conhecido como "Política dos Governadores" fundamentava-se no(a):',
+            options: [
+              'Alternância do poder federal estritamente entre os partidos políticos dos estados do Sul e Nordeste.',
+              'Compromisso de não intervenção federal nos estados em troca do apoio prestado pelas bancadas estaduais ao Executivo federal.',
+              'Centralização do poder eleitoral na figura do Presidente da República com supressão da autonomia estadual.',
+              'Fortalecimento do Poder Judiciário como órgão moderador das disputas eleitorais regionais.',
+              'Sufrágio universal direto e secreto garantido pela Comissão Verificadora de Poderes.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Havia uma troca contínua de favores políticos entre o Executivo Federal e as oligarquias estaduais dominantes.'],
+            tip: 'Troca de apoio entre governo federal e governadores estaduais.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Revolta da Vacina (1904), ocorrida na cidade do Rio de Janeiro, teve como pano de fundo a modernização urbana promovida por Pereira Passos e Oswaldo Cruz. O movimento expressou:',
+            options: [
+              'A rejeição popular aos princípios científicos e o apoio ao retorno da Monarquia.',
+              'A insatisfação da população pobre contra a violência do desabrigo forçado e o autoritarismo sanitário.',
+              'O descontentamento dos cafeicultores paulistas com os gastos públicos na infraestrutura carioca.',
+              'A aliança entre operários anarquistas e militares positivistas contra o governo republicano.',
+              'A oposição dos médicos sanitaristas às campanhas de imunização em massa na capital.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Ocorreu pela união da insatisfação com a reforma urbana do "bota-abaixo" à vacinação obrigatória imposta.'],
+            tip: 'Reflita sobre a insatisfação social das reformas e o autoritarismo estático.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O Tenentismo foi um movimento de contestação política ocorrido na década de 1920 protagonizado por jovens oficiais das Forças Armadas. Uma de suas principais reivindicações era:',
+            options: [
+              'A implantação do socialismo soviético e a coletivização das propriedades rurais no Brasil.',
+              'O fim do voto cabresto por meio do voto secreto e a reforma do sistema eleitoral republicano.',
+              'A restauração da Monarquia Constitucional sob a liderança dos herdeiros da família real.',
+              'O aumento imediato dos subsídios estaduais à produção cafeeira no Vale do Paraíba.',
+              'A separação definitiva dos estados do Sul e Sudeste em relação à União Federal.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Os tenentes defendiam a moralização da política, o fim do voto de cabresto, o voto secreto e a centralização administrativa.'],
+            tip: 'O foco do movimento era combater as fraudes eleitorais oligárquicas.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Guerra de Canudos (1896-1897), liderada por Antônio Conselheiro no sertão baiano, é classificada como um movimento social messiânico que assustou as elites republicanas porque:',
+            options: [
+              'Defendia o separatismo baiano e contava com apoio financeiro de potências estrangeiras.',
+              'Propunha a tomada das fábricas urbanas e a abolição da propriedade privada em escala nacional.',
+              'Agrupava milhares de sertanejos miseráveis em uma comunidade autônoma e crítica à ordem republicana.',
+              'Contava com a aliança oficial do Alto Clero da Igreja Católica contra o Estado laico.',
+              'Organizou um exército regular moderno equipado com armamento importado da Europa.'
+            ],
+            answer: 2,
+            fixed: true,
+            solution: ['Canudos reuniu milhares de excluídos sob liderança messiânica, desafiando a estrutura fundiária e a ordem republicana recente.'],
+            tip: 'Pensar na vida autônoma e comunitária do sertão baiano.'
+          }
+        ]
+      },
+      { 
+        name: 'Lição 2: Era Vargas (1930-1945)', 
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Durante o Governo Provisório (1930-1934), Getúlio Vargas adotou medidas centralizadoras que geraram forte oposição, culminando na Revolução Constitucionalista de 1932 em São Paulo. O principal argumento dos paulistas era:',
+            options: [
+              'O combate à criação das leis trabalhistas pela recém-criada Justiça do Trabalho.',
+              'A exigência de reconstitucionalização do país e o fim da nomeação de interventores federais.',
+              'A defesa do retorno da oligarquia cafeeira ao comando da presidência da República.',
+              'A exigência da entrada imediata do Brasil na Segunda Guerra Mundial ao lado dos Aliados.',
+              'O apoio irrestrito às diretrizes econômicas e políticas da Ação Integralista Brasileira.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['São Paulo exigia o fim do governo provisório de Vargas, uma nova Carta Constitucional e nomeação de interventores locais.'],
+            tip: 'Exigência de uma Constituição escrita e autonomia estadual.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A propaganda política e o controle dos meios de comunicação foram pilares de sustentação do Estado Novo (1937-1945). O órgão governamental responsável por essa atuação foi o(a):',
+            options: [
+              'Departamento de Imprensa e Propaganda (DIP).',
+              'Conselho Nacional do Petróleo (CNP).',
+              'Carteira de Trabalho e Previdência Social (CTPS).',
+              'Serviço Nacional de Aprendizagem Industrial (SENAI).',
+              'Departamento Administrativo do Serviço Público (DASP).'
+            ],
+            answer: 0,
+            fixed: true,
+            solution: ['O DIP centralizou a censura aos meios de comunicação e promoveu o culto à imagem de Getúlio Vargas durante o Estado Novo.'],
+            tip: 'Sigla associada à propaganda oficial e censura na Era Vargas.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Consolidação das Leis do Trabalho (CLT), promulgada em 1943 no governo de Getúlio Vargas, representou uma importante marca social. Do ponto de vista político, o trabalhismo varguista visava:',
+            options: [
+              'Fortalecer a autonomia dos sindicatos independentes sem interferência tutelar do Estado.',
+              'Garantir direitos sociais e ao mesmo tempo atrelar a classe trabalhadora à estrutura estatal (peleguismo).',
+              'Incentivar as greves gerais operárias como instrumento de pressão contra o patronato industrial.',
+              'Suprimir a indenização por demissão sem justa causa para atrair investimentos estrangeiros.',
+              'Extinguir o salário mínimo unificado e descentralizar as negociações por estado.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['A CLT concedeu direitos trabalhistas inéditos, porém atrelou os sindicatos diretamente ao controle do Ministério do Trabalho.'],
+            tip: 'Conciliação entre benefícios aos trabalhadores e controle estatal.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O modelo econômico adotado na Era Vargas ficou conhecido como "Industrialização por Substituição de Importações". Sua principal característica foi:',
+            options: [
+              'A privatização de empresas estatais para captação de recursos e abatimento da dívida pública.',
+              'A atuação direta do Estado nos setores de indústria de base e infraestrutura (siderurgia e energia).',
+              'A abertura irrestrita do mercado nacional aos produtos manufaturados norte-americanos.',
+              'O foco exclusivo na exportação de bens de consumo duráveis para os países da América Latina.',
+              'O abandono do setor primário-exportador de café e açúcar em favor da agricultura familiar.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Getúlio Vargas priorizou empresas públicas de indústria pesada (CSN, Vale do Rio Doce) para sustentar a industrialização.'],
+            tip: 'Investimento do Estado na indústria pesada (siderurgia/energia).'
+          },
+          {
+            type: 'choice',
+            prompt: 'No contexto internacional da Segunda Guerra Mundial, o Brasil manteve postura de neutralidade até 1942, quando declarou guerra ao Eixo. O fator decisivo para o alinhamento aos Aliados foi:',
+            options: [
+              'O ataque de submarinos alemães a navios mercantes brasileiros e acordos econômicos com os EUA.',
+              'A invasão alemã no território brasileiro na região do Nordeste (Fernando de Noronha).',
+              'O financiamento direto da União Soviética para o reaparelhamento do Exército Brasileiro.',
+              'A exigência formal da Liga das Nações sob pena de sanções econômicas severas.',
+              'A vitória imediata dos pracinhas da FEB na Batalha de Monte Castello em 1941.'
+            ],
+            answer: 0,
+            fixed: true,
+            solution: ['O afundamento de navios nacionais por alemães aliado aos dólares americanos para a criação da CSN selaram a aliança.'],
+            tip: 'Submarinos do Eixo afundando embarcações brasileiras.'
+          }
+        ]
+      },
+      { 
+        name: 'Lição 3: Ditadura Militar (1964-1985)', 
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'O Ato Institucional nº 5 (AI-5), baixado em dezembro de 1968 durante o governo de Costa e Silva, é considerado o instrumento mais duro do regime militar porque:',
+            options: [
+              'Fechou definitivamente os sindicatos operários e baniu o direito de greve no setor de transportes.',
+              'Concedeu plenos poderes ao Executivo para fechar o Congresso, cassar mandatos e suspender o habeas corpus.',
+              'Rompeu relações diplomáticas com os Estados Unidos e confiscou empresas multinacionais.',
+              'Instituiu o bipartidarismo obrigatório criando a ARENA e o MDB para a disputa eleitoral.',
+              'Extinguiu a Força Expedicionária Brasileira e unificou as polícias militares estaduais.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['O AI-5 concedeu poderes absolutistas ao presidente, autorizou o fechamento do Congresso e suspendeu direitos constitucionais.'],
+            tip: 'O ato de maior recrudescimento da repressão e suspensão de garantias.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O período compreendido entre 1969 e 1973 ficou conhecido como "Milagre Econômico". Do ponto de vista social e econômico, esse momento caracterizou-se por:',
+            options: [
+              'Alto crescimento do PIB com expressiva distribuição de renda para as camadas populares.',
+              'Elevadas taxas de crescimento econômico acompanhadas de arrocho salarial e concentração de renda.',
+              'Queda drástica da dívida externa brasileira devido ao superávit da balança comercial.',
+              'Redução acentuada da inflação combinada com a estagnação do setor de construção civil.',
+              'Redução das desigualdades regionais com investimentos prioritários no semiárido nordestino.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Foi uma fase de forte crescimento industrial e do PIB, porém assentada no arrocho salarial e ampliação das desigualdades.'],
+            tip: 'Crescimento econômico acompanhado da célebre frase "esperar o bolo crescer".'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Lei da Anistia, promulgada em 1979 no governo de João Figueiredo, foi um marco importante no processo de transição política. Uma de suas características fundamentais foi ter sido uma anistia:',
+            options: [
+              'Restrita apenas aos militares acusados de crimes de tortura e violação dos direitos humanos.',
+              '"Ampla, geral e irrestrita" na letra da lei, porém interpretada de forma a perdoar também os agentes da repressão estatal.',
+              'Formulada e aprovada exclusivamente pelos líderes dos movimentos guerrilheiros de esquerda.',
+              'Rejeitada pela maioria da sociedade civil por impedir o retorno de banidos e exilados políticos.',
+              'Condicionada ao pagamento de reparações financeiras imediatas às famílias dos mortos e desaparecidos.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['A lei permitiu o retorno dos perseguidos políticos, mas estendeu a impunidade (reciprocidade) aos torturadores do Estado.'],
+            tip: 'Inclusão tanto de opositores exilados quanto de agentes da repressão estatal.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A campanha das "Diretas Já" (1983-1984) mobilizou milhões de brasileiros em todo o país. O objetivo imediato desse movimento de massa era aprovar a Emenda Constitucional Dante de Oliveira, que previa:',
+            options: [
+              'A realização de eleições diretas para a Presidência da República em 1985.',
+              'A convocação imediata de uma Assembleia Nacional Constitucional exclusiva.',
+              'A legalização do Partido Comunista Brasileiro e o fim da censura aos jornais.',
+              'O impeachment do presidente João Figueiredo e a posse de Tancredo Neves.',
+              'A estatização do sistema financeiro nacional e a moratória da dívida externa.'
+            ],
+            answer: 0,
+            fixed: true,
+            solution: ['Propunha restabelecer o voto popular direto para a escolha do próximo Presidente da República.'],
+            tip: 'Reivindicação pelo voto popular direto para presidente.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A MPB (Música Popular Brasileira) e o movimento Tropicalista exerceram papel relevante durante a Ditadura Militar no Brasil. A produção cultural da época destacou-se por:',
+            options: [
+              'Apoiar abertamente os programas ufanistas promovidos pelo Departamento de Imprensa e Propaganda.',
+              'Utilizar metáforas e linguagem figurada como estratégia para contornar a censura e criticar a repressão.',
+              'Restringir-se ao entretenimento de alienação sem qualquer diálogo com a conjuntura política do país.',
+              'Receber financiamento oficial do governo federal para a divulgação do "Milagre Econômico" no exterior.',
+              'Defender abertamente a aliança geopolítica do Brasil com o bloco socialista da União Soviética.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Os compositores e artistas recorriam a analogias, metáforas e duplos sentidos para contornar a censura prévia militar.'],
+            tip: 'Uso de linguagem poética e figurada para driblar os censores.'
+          }
+        ]
+      },
+      { 
+        name: 'Lição 4: Guerra Fria (1945-1991)', 
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'A Doutrina Truman e o Plano Marshall, anunciados pelos Estados Unidos no final da década de 1940, tinham como propósito estratégico principal:',
+            options: [
+              'Promover o desarmamento nuclear global e fortalecer a governança diplomática da ONU.',
+              'Conter a expansão do comunismo fornecendo ajuda econômica e financeira para a reconstrução da Europa Ocidental.',
+              'Financiar a reconstrução econômica da União Soviética após os devastadores estragos da Segunda Guerra.',
+              'Estimular a descolonização imediata das colônias africanas e asiáticas dominadas pela Grã-Bretanha.',
+              'Criar um bloco comercial sul-americano integrado para rivalizar com a Comunidade Econômica Europeia.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['A política visava a contenção geopolítica do bloco soviético por meio do socorro financeiro ao capitalismo europeu.'],
+            tip: 'Iniciativa americana para reconstrução e contenção do avanço comunista na Europa.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A "Crise dos Mísseis" em Cuba, ocorrida em outubro de 1962 entre Estados Unidos e União Soviética, é considerada o momento de maior tensão da Guerra Fria porque:',
+            options: [
+              'Resultou no primeiro combate armado direto com uso de bombas atômicas entre os EUA e a URSS.',
+              'Colocou o mundo à beira de um conflito nuclear direto após a descoberta de mísseis soviéticos em Cuba.',
+              'Provocou a imediata queda do governo socialista de Fidel Castro por tropas da OTAN.',
+              'Envolveu a invasão direta do território soviético por fuzileiros navais norte-americanos.',
+              'Marcou a dissolução imediata do Pacto de Varsóvia e o fim da corrida armamentista.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['A presença de bases nucleares soviéticas a poucos quilômetros do litoral americano gerou o maior risco atômico da história.'],
+            tip: 'Instalação de armas nucleares perto do território dos EUA.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Guerra do Vietnã (1959-1975) foi um dos conflitos mais emblemáticos do período da Guerra Fria. O envolvimento militar dos Estados Unidos na região justificava-se geopoliticamente pela:',
+            options: [
+              'Defesa das reservas petrolíferas estratégicas do Sudeste Asiático pertencentes a empresas americanas.',
+              '"Teoria do Dominó", que previa que a vitória do comunismo no Vietnã levaria à queda dos países vizinhos.',
+              'Exigência do Conselho de Segurança da ONU para impedir o avanço de regimes fascistas na Ásia.',
+              'Tentativa de anexar o território vietnamita como novo estado integrante da federação norte-americana.',
+              'Aliança militar dos EUA com a República Popular da China para neutralizar a influência soviética.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['Segundo a Teoria do Dominó, a queda de uma nação frente ao comunismo contagiaria em cadeia os países vizinhos no Sudeste Asiático.'],
+            tip: 'Efeito em cadeia onde um país arrastaria os vizinhos ao socialismo.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Na década de 1980, o líder soviético Mikhail Gorbachev promoveu um conjunto de reformas estruturais conhecidas como Perestroika e Glasnost. Essas medidas visavam, respectivamente:',
+            options: [
+              'À reestruturação econômica com abertura gradual ao mercado e à transparência política com liberdade de expressão.',
+              'Ao fortalecimento do planejamento estatal centralizado e ao fechamento definitivo da imprensa independente.',
+              'À estatização do setor agrícola e à criação do Pacto de Varsóvia com países do Leste Europeu.',
+              'Ao alinhamento incondicional com as políticas do FMI e ao banimento do Partido Comunista Soviético.',
+              'À corrida espacial contra os EUA e ao envio de tropas soviéticas para ocupação da Europa Ocidental.'
+            ],
+            answer: 0,
+            fixed: true,
+            solution: ['Perestroika referia-se à reestruturação econômica e Glasnost à abertura política e transparência da informação.'],
+            tip: 'Uma tratava da economia e a outra da transparência e liberdade política.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A Queda do Muro de Berlim em novembro de 1989 simbolizou o fim de uma era no cenário internacional. Esse acontecimento representou historicamente:',
+            options: [
+              'A consolidação do bloco soviético no Leste Europeu sob forte controle militar.',
+              'O colapso do socialismo real na Europa e o preâmbulo do fim da Guerra Fria e reunificação alemã.',
+              'A criação da Organização do Tratado do Atlântico Norte (OTAN) para conter a ameaça soviética.',
+              'O início da disputa ideológica entre os modelos capitalista e socialista no continente americano.',
+              'A divisão definitiva da Alemanha em quatro zonas de ocupação administradas pelos Aliados.'
+            ],
+            answer: 1,
+            fixed: true,
+            solution: ['O evento foi o marco do colapso do bloco soviético no Leste Europeu e abriu caminho para o fim da Guerra Fria.'],
+            tip: 'A ruína do símbolo de divisão e colapso do bloco soviético europeu.'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+const INSTR = { choice:'Escolha a resposta correta', match:'Ligue os pontos', fill:'Complete a frase com os blocos' };
+const PRAISE = ['Perfeito!','Isso aí!','Mandou bem!','Correto!','Excelente!','Na mosca!'];
+
+/* ==========================================================
+   2. ESTADO PERSISTENTE
+   ========================================================== */
+const MAX_HEARTS = 5;
+const REGEN_MS   = 15 * 60 * 1000;
+const STORE_KEY  = 'humanasquest:mvp:v3';
+const DEFAULTS   = () => ({
+  hearts:MAX_HEARTS, heartsAt:Date.now(), xp:0, coins:0, streak:0, lastDay:null,
+  progress: [0] // Qtd de lições concluídas no Mundo de História
+});
+
+let save = loadSave();
+function loadSave(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) return Object.assign(DEFAULTS(), JSON.parse(raw)); }catch(e){}
+  return DEFAULTS();
+}
+function persist(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(save)); }catch(e){} }
+
+function regenHearts(){
+  if(save.hearts >= MAX_HEARTS){ save.hearts = MAX_HEARTS; save.heartsAt = Date.now(); return; }
+  const n = Math.floor((Date.now() - save.heartsAt) / REGEN_MS);
+  if(n > 0){
+    save.hearts = Math.min(MAX_HEARTS, save.hearts + n);
+    save.heartsAt = save.hearts >= MAX_HEARTS ? Date.now() : save.heartsAt + n * REGEN_MS;
+  }
+}
+function loseHeart(){
+  if(save.hearts >= MAX_HEARTS) save.heartsAt = Date.now();
+  save.hearts = Math.max(0, save.hearts - 1);
+  persist();
+}
+function dayStr(offset){
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function currentStreak(){ return (save.lastDay === dayStr(0) || save.lastDay === dayStr(-1)) ? save.streak : 0; }
+function bumpStreak(){
+  const t = dayStr(0);
+  if(save.lastDay === t) return;
+  save.streak = (save.lastDay === dayStr(-1)) ? save.streak + 1 : 1;
+  save.lastDay = t;
+}
+
+function getActiveWorldIdx() {
+  const idx = save.progress.findIndex((doneCount, i) => doneCount < COURSE[i].lessons.length);
+  return idx === -1 ? COURSE.length - 1 : idx;
+}
+
+/* ==========================================================
+   3. UTILITÁRIOS E ÍCONES
+   ========================================================== */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const fmtTime = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ t.hidden = true; }, 2600);
+}
+
+const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+const ICON_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+
+function mascotSVG(mood){
+  const g = 'var(--glow)';
+  const face = {
+    idle: `<circle cx="32" cy="40" r="4.2" fill="${g}"/><circle cx="48" cy="40" r="4.2" fill="${g}"/><path d="M33 50 Q40 55 47 50"/>`,
+    happy:`<path d="M27.5 42 Q32 34 36.5 42"/><path d="M43.5 42 Q48 34 52.5 42"/><path d="M30 48 Q40 60 50 48 Z" fill="${g}"/>`,
+    sad:  `<circle cx="32" cy="43" r="4.2" fill="${g}" stroke="none"/><circle cx="48" cy="43" r="4.2" fill="${g}" stroke="none"/><path d="M26 38 L36 34"/><path d="M54 38 L44 34"/><path d="M33 54 Q40 48 47 54"/>`
+  }[mood] || '';
+  return `<svg viewBox="0 0 80 88" role="img" aria-label="Mascote">
+    <line x1="40" y1="9" x2="40" y2="18" stroke="var(--mascot-dark)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="40" cy="7" r="5" fill="var(--gold)"/>
+    <rect x="3" y="36" width="9" height="18" rx="4.5" fill="var(--mascot-dark)"/>
+    <rect x="68" y="36" width="9" height="18" rx="4.5" fill="var(--mascot-dark)"/>
+    <rect x="9" y="17" width="62" height="54" rx="19" fill="var(--mascot)"/>
+    <rect x="17" y="26" width="46" height="34" rx="13" fill="var(--screen)"/>
+    <g fill="none" stroke="${g}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${face}</g>
+    <rect x="24" y="72" width="32" height="13" rx="6.5" fill="var(--mascot-dark)"/>
+    <text x="40" y="82" text-anchor="middle" font-size="10" font-weight="900" fill="#fff" font-family="Nunito,system-ui,sans-serif">Aa</text>
+  </svg>`;
+}
+function setMood(el, mood, animate){
+  el.innerHTML = mascotSVG(mood);
+  el.classList.remove('bounce','shake');
+  if(animate && (mood === 'happy' || mood === 'sad')){
+    void el.offsetWidth;
+    el.classList.add(mood === 'happy' ? 'bounce' : 'shake');
+  }
+}
+
+let audioCtx = null, soundOn = true;
+function beep(notes){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    let t = audioCtx.currentTime;
+    notes.forEach(([freq, dur, type, vol]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t + dur + 0.03);
+      t += dur * 0.8;
+    });
+  }catch(e){}
+}
+const sfx = {
+  ok:  () => beep([[659,.12,'triangle'],[880,.22,'triangle']]),
+  bad: () => beep([[220,.18,'sawtooth',.1],[165,.3,'sawtooth',.1]]),
+  win: () => beep([[523,.12,'triangle'],[659,.12,'triangle'],[784,.12,'triangle'],[1047,.38,'triangle']])
+};
+
+/* ==========================================================
+   4. RENDERIZADORES DE EXERCÍCIO
+   ========================================================== */
+function renderChoice(q, area, onReady){
+  const base = q.options.map((t, i) => ({t, ok: i === q.answer})); 
+  const opts = q.fixed ? base : shuffle(base);
+  area.innerHTML = `<div class="options" role="radiogroup" aria-label="Alternativas">${
+    opts.map((o, i) => `<button type="button" class="opt" role="radio" aria-checked="false"><span class="key">${String.fromCharCode(65+i)}</span><span>${esc(o.t)}</span></button>`).join('')
+  }</div>`;
+  const root = area.firstElementChild;
+  const btns = [...root.querySelectorAll('.opt')];
+  let sel = -1, locked = false;
+  function select(i){
+    if(locked || !btns[i]) return;
+    sel = i;
+    btns.forEach((b, j) => { b.classList.toggle('selected', j === i); b.setAttribute('aria-checked', String(j === i)); });
+    onReady(true);
+  }
+  btns.forEach((b, i) => b.addEventListener('click', () => select(i)));
+  return {
+    select,
+    evaluate: () => sel >= 0 && opts[sel].ok,
+    reveal(){
+      locked = true; root.classList.add('locked');
+      btns.forEach((b, i) => {
+        b.classList.remove('selected');
+        if(opts[i].ok) b.classList.add('right');
+        else if(i === sel) b.classList.add('wrong');
+        else b.classList.add('dim');
+      });
+    }
+  };
+}
+
+const RENDERERS = {choice:renderChoice};
+
+function correctSummary(q){
+  if(q.type === 'choice') return q.options[q.answer];
+  return '';
+}
+
+/* ==========================================================
+   5. NAVEGAÇÃO ENTRE TELAS E LÓGICA DO JOGO
+   ========================================================== */
+const screens = {home:$('#screen-home'), lesson:$('#screen-lesson'), result:$('#screen-result'), over:$('#screen-over')};
+let currentScreen = 'home';
+function show(name){
+  currentScreen = name;
+  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('active', k === name));
+  $('#toast').hidden = true;
+  window.scrollTo(0, 0);
+  if(name === 'home') renderHome();
+  if(name === 'over') renderOver();
+}
+
+function renderStats(){
+  $('#stStreak').textContent = currentStreak();
+  $('#stCoins').textContent  = save.coins;
+  $('#stXp').textContent     = save.xp;
+  $('#stHearts').textContent = save.hearts;
+  $('#heartTimer').textContent = save.hearts < MAX_HEARTS ? 'Próximo coração em ' + fmtTime(REGEN_MS - (Date.now() - save.heartsAt)) : '';
+}
+
+function renderHome(){
+  regenHearts();
+  renderStats();
+
+  const wIdx = getActiveWorldIdx();
+  const world = COURSE[wIdx];
+  const doneCount = save.progress[wIdx];
+  const allDone = wIdx === COURSE.length - 1 && doneCount === world.lessons.length;
+
+  $('#worldSub').textContent = world.subtitle;
+  $('#worldTitle').textContent = world.title;
+
+  $('#path').innerHTML = world.lessons.map((l, i) => {
+    const st = i < doneCount ? 'done' : (i === doneCount ? 'current' : 'locked');
+    const icon = st === 'done' ? ICON_CHECK : st === 'current' ? ICON_STAR : ICON_LOCK;
+    const tip = st === 'current' ? '<div class="start-tip">Começar</div>' : '';
+    return `<div class="node-wrap" style="--dx:${[0,-54,-6,48][i%4]}px">${tip}`
+         + `<button type="button" class="node ${st}" data-lesson="${i}" aria-label="${esc(l.name)}">${icon}</button>`
+         + `<span class="node-label">${esc(l.name)}</span></div>`;
+  }).join('');
+
+  const nextContainer = $('#nextWorldsContainer');
+  if (wIdx < COURSE.length - 1) {
+    nextContainer.hidden = false;
+    const nextWorlds = COURSE.slice(wIdx + 1);
+    $('#nextWorlds').innerHTML = nextWorlds.map(w => `<div class="nw">${ICON_LOCK}<div><b>${esc(w.title)}</b><span>Bloqueado</span></div></div>`).join('');
+  } else {
+    nextContainer.hidden = true;
+  }
+
+  setMood($('#mascotHome'), save.hearts === 0 ? 'sad' : 'idle');
+  $('#homeBubble').textContent =
+      save.hearts === 0 ? 'Seus corações acabaram. Treine para recuperar um ou espere o tempo passar.'
+    : allDone ? 'Parabéns! Você gabaritou todos os módulos de História do ENEM!'
+    : `Complete as lições de ${world.title} para dominar a prova do ENEM.`;
+}
+
+function renderOver(){
+  setMood($('#mascotOver'), 'sad');
+  updateOverTimer();
+}
+function updateOverTimer(){
+  $('#overTimer').textContent = save.hearts < MAX_HEARTS ? 'Próximo coração em ' + fmtTime(REGEN_MS - (Date.now() - save.heartsAt)) : '';
+}
+
+let L = null; 
+
+$('#path').addEventListener('click', e => {
+  const b = e.target.closest('.node'); if(!b) return;
+  const lIdx = +b.dataset.lesson;
+  if(b.classList.contains('locked')){
+    b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope');
+    toast('Conclua a lição anterior para desbloquear.');
+    return;
+  }
+  startLesson(false, getActiveWorldIdx(), lIdx);
+});
+
+document.querySelectorAll('[data-heart]').forEach(el => { el.innerHTML = HEART; });
+$('#btnReset').addEventListener('click', () => { save = DEFAULTS(); persist(); renderHome(); toast('Progresso reiniciado.'); });
+
+setInterval(() => {
+  if(currentScreen !== 'home' && currentScreen !== 'over') return;
+  const before = save.hearts;
+  regenHearts();
+  if(before !== save.hearts) persist();
+  if(currentScreen === 'home') renderStats(); else updateOverTimer();
+}, 1000);
+
+const btnCheck = $('#btnCheck'), footer = $('#footer');
+
+function startLesson(practice, worldIdx, lessonIdx){
+  regenHearts();
+  if(!practice && save.hearts <= 0){ show('over'); return; }
+
+  if (worldIdx === undefined) worldIdx = getActiveWorldIdx();
+  if (lessonIdx === undefined) lessonIdx = save.progress[worldIdx] || 0;
+  
+  if(lessonIdx >= COURSE[worldIdx].lessons.length) lessonIdx = COURSE[worldIdx].lessons.length - 1;
+
+  const lessonData = COURSE[worldIdx].lessons[lessonIdx];
+  const isNewProgression = !practice && (lessonIdx === save.progress[worldIdx]);
+
+  L = {
+    practice: !!practice,
+    worldIdx, lessonIdx, isNewProgression,
+    queue: lessonData.qs.map(q => ({q, retry:false})),
+    pos: 0, total: lessonData.qs.length,
+    solved: 0, firstTry: 0, mistakes: 0, xp: 0,
+    checked: false, gameOver: false, item: null, ctrl: null
+  };
+  show('lesson');
+  updateHud(false);
+  loadQuestion();
+}
+
+function updateHud(pop){
+  const pct = Math.round(L.solved / L.total * 100);
+  $('#fill').style.width = pct + '%';
+  $('#progress').setAttribute('aria-valuenow', pct);
+  $('#hudHearts').textContent = L.practice ? '∞' : save.hearts;
+  if(pop){
+    const box = $('#hudHeartsBox');
+    box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+  }
+}
+
+function setFooterNeutral(){
+  footer.className = 'footer';
+  $('#feedback').hidden = true;
+  btnCheck.className = 'btn big';
+  btnCheck.textContent = 'Verificar';
+  btnCheck.disabled = true;
+}
+
+function loadQuestion(){
+  const item = L.queue[L.pos], q = item.q;
+  L.item = item; L.checked = false;
+  $('#instr').innerHTML = esc(INSTR[q.type] || 'Responda') + (item.retry ? '<small>Revisão</small>' : '');
+  $('#bubble').textContent = q.prompt;
+  $('#viz').innerHTML = ''; 
+  setMood($('#mascotLesson'), 'idle');
+  const area = $('#answer'); area.innerHTML = '';
+  L.ctrl = RENDERERS[q.type](q, area, ready => { if(!L.checked) btnCheck.disabled = !ready; });
+  setFooterNeutral();
+  $('#stage').scrollTop = 0;
+}
+
+function checkAnswer(){
+  const q = L.item.q, retry = L.item.retry;
+  const ok = L.ctrl.evaluate();
+  L.checked = true;
+  L.ctrl.reveal(ok);
+
+  if(ok){
+    L.solved++;
+    if(retry) L.xp += 5; else { L.firstTry++; L.xp += 10; }
+    sfx.ok();
+    setMood($('#mascotLesson'), 'happy', true);
+  }else{
+    L.mistakes++;
+    L.queue.push({q, retry:true});
+    if(!L.practice){
+      loseHeart();
+      if(save.hearts <= 0) L.gameOver = true;
+    }
+    sfx.bad();
+    setMood($('#mascotLesson'), 'sad', true);
+  }
+  updateHud(!ok && !L.practice);
+  showFeedback(ok, q);
+}
+
+function showFeedback(ok, q){
+  footer.className = 'footer ' + (ok ? 'ok' : 'bad');
+  const fb = $('#feedback');
+  fb.hidden = false;
+  fb.style.animation = 'none'; void fb.offsetWidth; fb.style.animation = '';
+  $('#fbIcon').innerHTML = ok ? ICON_CHECK : ICON_X;
+  if(ok){
+    $('#fbTitle').textContent = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+    $('#fbText').innerHTML = q.tip ? `<div>${esc(q.tip)}</div>` : '';
+  }else{
+    $('#fbTitle').innerHTML = 'Não foi dessa vez' + (L.practice ? '' : '<span class="lose">−1 ♥</span>');
+    const sum = correctSummary(q);
+    $('#fbText').innerHTML =
+        (sum ? `<div>Resposta correta: <b>${esc(sum)}</b></div>` : '')
+      + `<ol>${q.solution.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
+  }
+  btnCheck.className = 'btn big ' + (ok ? 'ok' : 'bad');
+  btnCheck.textContent = 'Continuar';
+  btnCheck.disabled = false;
+}
+
+function advance(){
+  if(L.gameOver){ show('over'); L = null; return; }
+  L.pos++;
+  if(L.pos >= L.queue.length) return finish();
+  loadQuestion();
+}
+
+btnCheck.addEventListener('click', () => {
+  if(!L) return;
+  if(!L.checked) checkAnswer(); else advance();
+});
+
+function finish(){
+  const perfect = L.mistakes === 0;
+  const xp = L.xp + (perfect ? 10 : 0), coins = 5 + (perfect ? 5 : 0);
+  const acc = Math.round(L.firstTry / L.total * 100);
+  
+  save.xp += xp; save.coins += coins; 
+  if(L.isNewProgression) save.progress[L.worldIdx]++;
+  bumpStreak();
+
+  if(L.practice) save.hearts = Math.min(MAX_HEARTS, save.hearts + 1);
+  regenHearts();
+  persist();
+
+  $('#resXp').textContent = '+' + xp;
+  $('#resAcc').textContent = acc + '%';
+  $('#resCoins').textContent = '+' + coins;
+  
+  const worldDoneNow = (save.progress[L.worldIdx] === COURSE[L.worldIdx].lessons.length);
+  $('#resTitle').textContent = worldDoneNow ? 'Mundo Concluído!' : 'Lição Concluída!';
+
+  $('#resSub').textContent =
+      (perfect ? 'Perfeito, sem nenhum erro!' : `Você errou ${L.mistakes} vezes, mas acertou tudo no final.`)
+    + (worldDoneNow ? ' Você completou todas as lições de História!' : '')
+    + (L.practice ? ' Você recuperou 1 coração.' : '');
+
+  const st = currentStreak();
+  $('#resStreak').textContent = '🔥 Ofensiva: ' + st + (st === 1 ? ' dia' : ' dias');
+  
+  setMood($('#mascotResult'), 'happy', true);
+  const prevL = L; L = null;
+  sfx.win(); confetti(); show('result');
+  
+  $('#btnRetry').onclick = () => { startLesson(false, prevL.worldIdx, prevL.lessonIdx); };
+}
+
+function confetti(){
+  const box = $('#confetti'), colors = ['#d9534f','#ffb52e','#2dbf5e','#e6a04e','#a45cff','#14b8a6'];
+  box.innerHTML = '';
+  for(let i = 0; i < 46; i++){
+    const p = document.createElement('i');
+    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i % colors.length]};animation-duration:${2.2 + Math.random()*2}s;animation-delay:${Math.random()*.6}s`;
+    box.appendChild(p);
+  }
+  setTimeout(() => { box.innerHTML = ''; }, 5400);
+}
+
+const modal = $('#modal');
+function openModal(){ setMood($('#mascotModal'), 'sad'); modal.hidden = false; $('#btnStay').focus(); }
+function closeModal(){ modal.hidden = true; }
+$('#btnClose').addEventListener('click', openModal);
+$('#btnStay').addEventListener('click', closeModal);
+$('#btnQuit').addEventListener('click', () => { closeModal(); L = null; show('home'); });
+
+function paintSound(){ $('#btnSound').innerHTML = soundOn ? ICON_SOUND_ON : ICON_SOUND_OFF; }
+$('#btnSound').addEventListener('click', () => { soundOn = !soundOn; paintSound(); if(soundOn) sfx.ok(); });
+paintSound();
+
+$('#btnResHome').addEventListener('click', () => show('home'));
+$('#btnOverHome').addEventListener('click', () => show('home'));
+$('#btnPractice').addEventListener('click', () => startLesson(true));
+
+document.addEventListener('keydown', e => {
+  if(currentScreen !== 'lesson' || !L) return;
+  if(!modal.hidden){ if(e.key === 'Escape') closeModal(); return; }
+  if(e.key === 'Enter'){ e.preventDefault(); if(!e.repeat && !btnCheck.disabled) btnCheck.click(); return; }
+  if(e.key === 'Escape'){ openModal(); return; }
+  if(!L.checked && /^[1-9]$/.test(e.key) && L.ctrl && L.ctrl.select) L.ctrl.select(+e.key - 1);
+});
+
+/* ---------- Início ---------- */
+renderHome();
+</script>
+</body>
+</html>
