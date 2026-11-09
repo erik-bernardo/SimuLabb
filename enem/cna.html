@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NaturezaQuest — ENEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   NaturezaQuest — Design Tokens & UI (Estilo Duolingo)
+   ========================================================== */
+:root{
+  --bg:#f3f6fb; --card:#fff; --ink:#1d2742; --muted:#66728f;
+  --line:#dde4f0; --line-dark:#c7d0e2;
+  --primary:#10b981; --primary-dark:#047857; --primary-tint:#e6f4ea;
+  --ok:#2dbf5e; --ok-dark:#1e9a47; --ok-bg:#d9f7e2; --ok-ink:#15793a;
+  --bad:#f0505a; --bad-dark:#c73a43; --bad-bg:#ffe1e3; --bad-ink:#b02530;
+  --gold:#ffb52e; --gold-dark:#d98f00; --heart:#ff4d6d;
+  --mascot:#3b82f6; --mascot-dark:#1d4ed8; --screen:#17213d; --glow:#bfdbfe;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{
+  font-family:"Nunito",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--ink); font-weight:700;
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.active{display:flex;flex-direction:column;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes bounce{30%{transform:translateY(-12px) scale(1.04)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
+@keyframes pop{30%{transform:scale(1.35)}}
+@keyframes float{50%{transform:translateY(-3px)}}
+
+.btn{
+  font-weight:900; font-size:15px; line-height:1; letter-spacing:.01em;
+  border:0; border-radius:14px; padding:15px 22px; cursor:pointer; color:#fff;
+  background:var(--primary); box-shadow:0 4px 0 var(--primary-dark);
+  transition:transform .06s, box-shadow .06s, filter .15s;
+}
+.btn.big{font-size:17px;padding:16px 26px}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
+.btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 transparent}
+.btn:disabled{background:#e3e8f2;color:#9ba6bf;box-shadow:0 4px 0 #cfd6e6;cursor:not-allowed}
+.btn.ok{background:var(--ok);box-shadow:0 4px 0 var(--ok-dark)}
+.btn.bad{background:var(--bad);box-shadow:0 4px 0 var(--bad-dark)}
+.btn.ghost{background:#fff;color:var(--primary);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.ghost.danger{color:var(--bad)}
+.icon-btn{background:none;border:0;padding:6px;border-radius:10px;cursor:pointer;color:#98a3bd;display:grid;place-items:center}
+.icon-btn:hover{color:var(--ink)}
+.icon-btn svg{width:26px;height:26px}
+
+.mascot{flex:none;width:84px;height:92px}
+.mascot svg{width:100%;height:100%;overflow:visible;animation:float 3s ease-in-out infinite}
+.mascot.big{width:150px;height:165px}
+.mascot.bounce{animation:bounce .55s}
+.mascot.shake{animation:shake .45s}
+.say{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.bubble{
+  position:relative; background:#fff; border:2px solid var(--line); border-radius:16px;
+  padding:14px 16px; font-size:17px; line-height:1.4; margin-top:6px; flex:1;
+}
+.bubble::before{
+  content:""; position:absolute; left:-9px; top:22px; width:14px; height:14px; background:#fff;
+  border-left:2px solid var(--line); border-bottom:2px solid var(--line); transform:rotate(45deg);
+}
+
+.home-top{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+.home-top-in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{font-weight:900;font-size:24px;letter-spacing:-.02em}
+.brand span{color:var(--primary)}
+.stats{display:flex;gap:16px;align-items:center}
+.stat{display:flex;align-items:center;gap:5px;font-weight:900;font-size:17px}
+.stat .emo{font-size:18px}
+.stat.hearts-stat{color:var(--heart)}
+.stat svg{width:24px;height:24px}
+.home-main{width:100%;max-width:560px;margin:0 auto;padding:20px 16px 48px}
+.world{background:var(--primary);color:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 5px 0 var(--primary-dark);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.world small{display:block;opacity:.85;font-weight:800;font-size:14px}
+.world h1{margin:2px 0 0;font-size:21px;line-height:1.2}
+.world-sub{font-size:13px;opacity:.9;text-align:right;line-height:1.3}
+.home-say{margin:22px 0 4px}
+.heart-timer{min-height:20px;text-align:center;color:var(--muted);font-size:14px;margin:6px 0}
+.path{display:flex;flex-direction:column;align-items:center;padding:20px 0 0}
+.node-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin-bottom:26px;transform:translateX(var(--dx,0))}
+.node{position:relative;width:86px;height:78px;border:0;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:#fff;transition:transform .08s,box-shadow .08s}
+.node svg{width:38px;height:38px}
+.node.current{background:var(--primary);box-shadow:0 8px 0 var(--primary-dark)}
+.node.done{background:var(--ok);box-shadow:0 8px 0 var(--ok-dark)}
+.node.locked{background:#e3e8f2;box-shadow:0 8px 0 #c9d1e3;color:#a7b1c8}
+.node:active{transform:translateY(6px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.node.current::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:4px solid var(--primary-tint);animation:ring 1.8s ease-out infinite}
+@keyframes ring{from{transform:scale(.92);opacity:1}to{transform:scale(1.15);opacity:0}}
+.node.nope{animation:shake .4s}
+.node-label{font-size:14px;color:var(--muted);max-width:190px;line-height:1.3}
+.start-tip{position:relative;background:#fff;border:2px solid var(--line);border-radius:12px;padding:6px 14px;font-weight:900;color:var(--primary);font-size:15px;animation:hop 1.2s ease-in-out infinite}
+.start-tip::after{content:"absolute";bottom:-7px;left:50%;width:10px;height:10px;background:#fff;border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+@keyframes hop{50%{transform:translateY(-5px)}}
+.sec-title{font-size:18px;margin:26px 0 12px}
+.next-worlds{display:grid;gap:10px}
+.nw{display:flex;gap:12px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--muted)}
+.nw svg{width:22px;height:22px;flex:none;color:#a7b1c8}
+.nw b{display:block;color:var(--ink);font-size:16px}
+.nw span{font-size:13px}
+.reset{display:block;margin:30px auto 0;background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
+
+.screen.lesson.active{height:100vh;height:100dvh}
+.topbar-in{max-width:760px;margin:0 auto;width:100%;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.progress{flex:1;height:16px;border-radius:99px;background:#e3e8f2;overflow:hidden}
+.fill{position:relative;height:100%;width:0;border-radius:99px;background:var(--ok);transition:width .5s cubic-bezier(.3,1.3,.5,1)}
+.fill::after{content:"";position:absolute;top:4px;left:8px;right:8px;height:4px;border-radius:4px;background:rgba(255,255,255,.35)}
+.hearts{display:flex;align-items:center;gap:5px;font-weight:900;color:var(--heart);font-size:19px}
+.hearts svg{width:28px;height:28px}
+.hearts.pop{animation:pop .5s}
+.stage{flex:1;min-height:0;overflow-y:auto;padding:8px 16px 28px}
+.stage-in{max-width:760px;margin:0 auto}
+.instr{font-weight:900;font-size:22px;line-height:1.25;margin:6px 0 18px}
+.instr small{font-size:14px;color:var(--gold-dark);background:#fff3d6;border-radius:8px;padding:3px 8px;margin-left:8px;vertical-align:middle}
+
+.options{display:grid;grid-template-columns:1fr;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;padding:12px 14px;font-size:16px;font-weight:800;cursor:pointer;transition:background .12s,border-color .12s,transform .06s}
+.opt:hover{background:#f7f9fd}
+.opt:active{transform:translateY(2px)}
+.opt .key{flex:none;width:28px;height:28px;border:2px solid var(--line);border-radius:8px;display:grid;place-items:center;font-size:13px;color:var(--muted)}
+.opt.selected{border-color:var(--primary);background:var(--primary-tint);color:var(--primary-dark)}
+.opt.selected .key{border-color:var(--primary);color:var(--primary)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);color:var(--ok-ink)}
+.opt.right .key{border-color:var(--ok);color:var(--ok-ink)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);color:var(--bad-ink);animation:shake .4s}
+.opt.dim{opacity:.55}
+.options.locked{pointer-events:none}
+
+.footer{border-top:2px solid var(--line);background:#fff;padding:16px 16px calc(16px + env(safe-area-inset-bottom));transition:background .25s,border-color .25s}
+.footer.ok{background:var(--ok-bg);border-color:var(--ok-bg)}
+.footer.bad{background:var(--bad-bg);border-color:var(--bad-bg)}
+.footer-in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:flex-end;gap:18px}
+.footer .btn{min-width:170px}
+.feedback{flex:1;display:flex;gap:14px;align-items:flex-start;animation:rise .32s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes rise{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.fb-icon{flex:none;width:48px;height:48px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.fb-icon svg{width:28px;height:28px}
+.footer.ok .fb-icon{color:var(--ok)}
+.footer.bad .fb-icon{color:var(--bad)}
+.fb-title{margin:0;font-size:20px;font-weight:900}
+.fb-text{font-size:14px;margin-top:4px;line-height:1.4}
+.footer.ok .fb-title,.footer.ok .fb-text{color:var(--ok-ink)}
+.footer.bad .fb-title,.footer.bad .fb-text{color:var(--bad-ink)}
+.lose{display:inline-block;margin-left:8px;background:#fff;color:var(--bad);border-radius:99px;padding:2px 10px;font-size:13px;vertical-align:middle}
+
+.modal{position:fixed;inset:0;background:rgba(20,28,50,.55);display:grid;place-items:center;padding:20px;z-index:40}
+.modal-card{background:#fff;border-radius:22px;padding:24px;max-width:380px;width:100%;text-align:center;display:grid;gap:12px;justify-items:center}
+.modal-card h3{margin:0;font-size:22px}
+.modal-card p{margin:0;color:var(--muted);font-weight:700}
+.modal-card .btn{width:100%}
+.modal .mascot{width:90px;height:98px}
+
+.center{justify-content:space-between}
+.center-in{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 16px;max-width:560px;margin:0 auto;width:100%}
+.center-in h1{font-size:30px;margin:14px 0 6px}
+.center-in p{margin:0;color:var(--muted);font-size:17px;line-height:1.45}
+.cards{display:flex;gap:12px;justify-content:center;margin:24px 0 14px;flex-wrap:wrap}
+.cs{border-radius:16px;border:2px solid var(--c);min-width:104px;background:#fff;overflow:hidden}
+.cs h4{margin:0;padding:5px 0;background:var(--c);color:#fff;font-size:13px;font-weight:900}
+.cs div{padding:14px 8px;font-size:26px;font-weight:900;color:var(--c)}
+.res-streak{font-weight:900;color:var(--ink)!important}
+.bar{border-top:2px solid var(--line);background:#fff;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.bar-in{max-width:760px;margin:0 auto;display:flex;gap:14px;justify-content:space-between}
+.bar-in .btn{flex:1}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.confetti i{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(108vh) rotate(720deg)}}
+
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-weight:800;z-index:60;max-width:92vw;text-align:center;box-shadow:0 8px 24px rgba(20,28,50,.25)}
+
+@media (max-width:620px){
+  .footer-in{flex-direction:column;align-items:stretch;gap:14px}
+  .footer .btn{width:100%}
+  .fb-icon{width:42px;height:42px}
+  .fb-icon svg{width:24px;height:24px}
+  .fb-title{font-size:18px}
+  .fb-text{font-size:13px}
+  .instr{font-size:20px}
+  .opt{font-size:15px;padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- ================= HOME / TRILHA ================= -->
+<section id="screen-home" class="screen active" aria-label="Trilha de aprendizado">
+  <header class="home-top"><div class="home-top-in">
+    <div class="brand">Natureza<span>Quest</span></div>
+    <div class="stats" aria-label="Seu progresso">
+      <div class="stat" title="Ofensiva: dias seguidos"><span class="emo" aria-hidden="true">🔥</span><span id="stStreak">0</span></div>
+      <div class="stat" title="Moedas"><span class="emo" aria-hidden="true">🪙</span><span id="stCoins">0</span></div>
+      <div class="stat" title="XP"><span class="emo" aria-hidden="true">⚡</span><span id="stXp">0</span></div>
+      <div class="stat hearts-stat" title="Corações"><span data-heart></span><span id="stHearts">5</span></div>
+    </div>
+  </div></header>
+
+  <main class="home-main">
+    <div class="world">
+      <div><small id="worldSub">Mundo 1</small><h1 id="worldTitle">Biologia</h1></div>
+      <div class="world-sub">ENEM</div>
+    </div>
+    <div class="say home-say"><div class="mascot" id="mascotHome"></div><div class="bubble" id="homeBubble"></div></div>
+    <div id="heartTimer" class="heart-timer"></div>
+    
+    <div class="path" id="path"></div>
+
+    <div id="nextWorldsContainer">
+      <h2 class="sec-title">Próximos Mundos</h2>
+      <div class="next-worlds" id="nextWorlds"></div>
+    </div>
+    
+    <button class="reset" id="btnReset" type="button">Reiniciar progresso (demo)</button>
+  </main>
+</section>
+
+<!-- ================= LIÇÃO ================= -->
+<section id="screen-lesson" class="screen lesson" aria-label="Lição">
+  <header class="topbar"><div class="topbar-in">
+    <button class="icon-btn" id="btnClose" type="button" aria-label="Sair da lição">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="progress" id="progress" role="progressbar" aria-label="Progresso da lição" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill" id="fill"></div></div>
+    <button class="icon-btn" id="btnSound" type="button" aria-label="Ligar ou desligar o som"></button>
+    <div class="hearts" id="hudHeartsBox" role="status" aria-label="Corações restantes"><span data-heart></span><span id="hudHearts">5</span></div>
+  </div></header>
+
+  <main class="stage" id="stage"><div class="stage-in">
+    <p class="instr" id="instr"></p>
+    <div class="say"><div class="mascot" id="mascotLesson"></div><div class="bubble" id="bubble"></div></div>
+    <div id="viz"></div>
+    <div id="answer"></div>
+  </div></main>
+
+  <footer class="footer" id="footer"><div class="footer-in">
+    <div class="feedback" id="feedback" hidden role="status" aria-live="polite">
+      <div class="fb-icon" id="fbIcon"></div>
+      <div class="fb-body"><h3 class="fb-title" id="fbTitle"></h3><div class="fb-text" id="fbText"></div></div>
+    </div>
+    <button class="btn big" id="btnCheck" type="button" disabled>Verificar</button>
+  </div></footer>
+
+  <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="mascot" id="mascotModal"></div>
+      <h3 id="modalTitle">Quer mesmo sair?</h3>
+      <p>Todo o progresso desta lição será perdido.</p>
+      <button class="btn big" id="btnStay" type="button">Continuar a lição</button>
+      <button class="btn big ghost danger" id="btnQuit" type="button">Sair da lição</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTADO ================= -->
+<section id="screen-result" class="screen center" aria-label="Resultado da lição">
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="center-in">
+    <div class="mascot big" id="mascotResult"></div>
+    <h1 id="resTitle">Lição concluída!</h1>
+    <p id="resSub"></p>
+    <div class="cards">
+      <div class="cs" style="--c:var(--gold)"><h4>XP ganho</h4><div id="resXp">0</div></div>
+      <div class="cs" style="--c:var(--ok)"><h4>Precisão</h4><div id="resAcc">0%</div></div>
+      <div class="cs" style="--c:var(--c2)"><h4>Moedas</h4><div id="resCoins">0</div></div>
+    </div>
+    <p class="res-streak" id="resStreak"></p>
+  </div>
+  <div class="bar"><div class="bar-in">
+    <button class="btn big ghost" id="btnRetry" type="button">Refazer</button>
+    <button class="btn big" id="btnResHome" type="button">Continuar</button>
+  </div></div>
+</section>
+
+<!-- ================= SEM VIDAS ================= -->
+<section id="screen-over" class="screen center" aria-label="Sem corações">
+  <div class="center-in">
+    <div class="mascot big" id="mascotOver"></div>
+    <h1>Seus corações acabaram</h1>
+    <p>Treine a lição sem perder vidas e ganhe 1 coração ao terminar, ou espere um coração regenerar.</p>
+    <p id="overTimer" class="res-streak" style="margin-top:16px"></p>
+  </div>
+  <div class="bar"><div class="bar-in">
+    <button class="btn big ghost" id="btnOverHome" type="button">Voltar ao início</button>
+    <button class="btn big" id="btnPractice" type="button">Treinar e ganhar coração</button>
+  </div></div>
+</section>
+
+<script>
+'use strict';
+
+/* ==========================================================
+   1. CONTEÚDO · BANCO DE 60 QUESTÕES (BIOLOGIA, FÍSICA E QUÍMICA)
+   ========================================================== */
+const COURSE = [
+  {
+    title: 'Biologia', subtitle: 'Mundo 1',
+    lessons: [
+      {
+        name: 'Lição 1: Ecologia',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Em uma cadeia alimentar aquática (fitoplâncton → zooplâncton → peixes pequenos → peixes carnívoros), o que acontece com a transferência de energia ao longo dos níveis tróficos?',
+            options: [
+              'A energia aumenta progressivamente nos níveis tróficos superiores.',
+              'Os decompositores acumulam a maior quantidade de energia utilizável.',
+              'A energia disponível diminui a cada nível trófico devido às perdas metabólicas e calor.',
+              'Os consumidores secundários recebem mais energia do que os produtores.',
+              'O fluxo de energia é cíclico, retornando integralmente aos produtores.'
+            ],
+            answer: 2,
+            solution: ['A energia flui de forma unidirecional e decrescente ao longo da cadeia alimentar.'],
+            tip: 'O fluxo de energia é unidirecional e decrescente.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Plantas leguminosas associam-se a bactérias do gênero Rhizobium nas raízes. Essa relação ecológica é fundamental para qual ciclo biogeoquímico?',
+            options: [
+              'Converter o gás nitrogênio (N2) em amônia (NH3), fixando-o na matéria orgânica.',
+              'Oxidar o nitrito a nitrato no processo de nitratação.',
+              'Transformar nitrato em gás nitrogênio livre por desnitrificação.',
+              'Decompor matéria orgânica liberando N2 para as folhas.',
+              'Sintetizar glicose a partir do nitrogênio das rochas.'
+            ],
+            answer: 0,
+            solution: ['Bactérias Rhizobium fixam N2 atmosférico transformando-o em amônia utilizável pelas plantas.'],
+            tip: 'Elas atuam na fixação de N2.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual bioma brasileiro apresenta casca espessa, troncos tortuosos, raízes profundas e queimadas naturais periódicas que estimulam a germinação?',
+            options: ['Pantanal', 'Cerrado', 'Caatinga', 'Pampa', 'Mata Atlântica'],
+            answer: 1,
+            solution: ['Troncos tortuosos, casca espessa e adaptação ao fogo natural são típicos do Cerrado.'],
+            tip: 'Savana brasileira.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O lançamento descontrolado de esgoto com nitratos e fosfatos em um lago causa eutrofização. Qual a sequência de eventos que gera a mortandade de peixes?',
+            options: [
+              'Aumento de O2 dissolvido → Proliferação de algas → Redução de bactérias.',
+              'Proliferação de algas → Bloqueio de luz → Morte de plantas submersas → Decomposição aeróbica → Deplesão de O2.',
+              'Redução da matéria orgânica → Aumento da fotossíntese profunda.',
+              'Proliferação de predadores → Esgotamento do zooplâncton.',
+              'Diminuição de nutrientes → Morte do fitoplâncton.'
+            ],
+            answer: 1,
+            solution: ['Excesso de nutrientes gera floração de algas, bloqueio de luz, mortandade vegetal e consumo de O2 por decompositores.'],
+            tip: 'Processo que gera consumo e esgotamento de oxigênio.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 2: Citologia',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Hemácias humanas colocadas em uma solução salina muito concentrada (hipertônica) sofrem qual fenômeno?',
+            options: [
+              'Lise celular por entrada massiva de sais.',
+              'Cremação (murchamento) pela saída de água por osmose.',
+              'Turgidez celular pelo ganho de solvente.',
+              'Manutenção da forma por transporte ativo.',
+              'Endocitose dos cristais de sal.'
+            ],
+            answer: 1,
+            solution: ['Em meio hipertônico, a célula perde água para o meio por osmose, ficando murcha (crenada).'],
+            tip: 'A água sai da célula em direção ao meio mais concentrado.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual organela é afetada por uma droga que inibe a síntese de proteínas destinadas à secreção celular e à membrana plasmática?',
+            options: [
+              'Retículo endoplasmático rugoso',
+              'Retículo endoplasmático liso',
+              'Peroxissomo',
+              'Lisossomo primário',
+              'Centríolo'
+            ],
+            answer: 0,
+            solution: ['O RER sintetiza proteínas de exportação e componentes de membrana.'],
+            tip: 'Possui ribossomos aderidos.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Na Meiose I, a troca de fragmentos entre cromátides não irmãs de cromossomos homólogos é denominada:',
+            options: ['Interfase', 'Segregação independente', 'Crossing-over (permutação)', 'Citocinese', 'Cariocinese'],
+            answer: 2,
+            solution: ['O crossing-over ocorre na Prófase I aumentando a variabilidade genética.'],
+            tip: 'Permutação de segmentos de DNA.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual etapa da respiração celular aeróbica ocorre no citosol (hialoplasma) sem o consumo direto de oxigênio?',
+            options: ['Cadeia respiratória', 'Glicólise', 'Ciclo de Krebs', 'Síntese pela ATP sintase', 'Fermentação lática'],
+            answer: 1,
+            solution: ['A glicólise é a etapa anaeróbica que quebra a glicose no citosol.'],
+            tip: 'Primeira etapa da respiração.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 3: Genética',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Em cobaias, pelo preto (B) é dominante sobre pelo branco (b). Do cruzamento entre dois heterozigotos (Bb), qual a proporção fenotípica esperada?',
+            options: [
+              '100% pelo preto',
+              '50% pelo preto e 50% branco',
+              '75% pelo preto e 25% branco',
+              '25% preto, 50% cinza, 25% branco',
+              '100% pelo branco'
+            ],
+            answer: 2,
+            solution: ['Cruzamento Bb x Bb resulta em 3/4 pretos (BB, Bb, Bb) e 1/4 brancos (bb).'],
+            tip: 'Proporção 3:1 típica da 1ª Lei de Mendel.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Dois pais sem anomalia possuem uma filha afetada por doença monogênica. O padrão de herança é obrigatoriamente:',
+            options: [
+              'Autossômica dominante',
+              'Autossômica recessiva',
+              'Recessiva ligada ao X',
+              'Dominante ligada ao Y',
+              'Mitocondrial materna'
+            ],
+            answer: 1,
+            solution: ['Pais normais gerando filha afetada indicam herança autossômica recessiva.'],
+            tip: 'Se a filha é afetada e os pais não, os pais são portadores recessivos.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual a principal vantagem agronômica das plantas de milho transgênico Bt?',
+            options: [
+              'Produzir grãos com Vitamina C.',
+              'Resistir ao congelamento por geadas.',
+              'Expressar proteína tóxica a lagartas pragas, reduzindo uso de inseticidas.',
+              'Fixar N2 atmosférico nas folhas.',
+              'Crescer em solos salinos.'
+            ],
+            answer: 2,
+            solution: ['O gene Bt produz uma toxina bacteriana nociva apenas aos insetos praga.'],
+            tip: 'Proteção contra pragas sem veneno químico.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual a função primária da ferramenta biotecnológica CRISPR-Cas9?',
+            options: [
+              'Clonar animais adultos.',
+              'Editar e cortar sequências específicas de DNA de forma precisa.',
+              'Mapear aminoácidos.',
+              'Acelerar a mitose celular.',
+              'Induzir mutações por UV.'
+            ],
+            answer: 1,
+            solution: ['CRISPR-Cas9 atua como tesoura molecular de precisão para edição genômica.'],
+            tip: 'Tesoura molecular.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 4: Evolução & Fisiologia',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Segundo o Darwinismo, como se explica a resistência de bactérias aos antibióticos?',
+            options: [
+              'O antibiótico induziu mutações para a sobrevivência.',
+              'Desenvolveram resistência pelo uso frequente da defesa.',
+              'O antibiótico atuou como agente seletivo, eliminando as sensíveis e preservando as resistentes.',
+              'Transmitiram caracteres adquiridos aos descendentes.',
+              'O ambiente gerou novos genes em toda a população.'
+            ],
+            answer: 2,
+            solution: ['A seleção natural preserva os indivíduos que já possuem variações vantajosas.'],
+            tip: 'O antibiótico apenas seleciona, não cria a mutação.'
+          },
+          {
+            type: 'choice',
+            prompt: 'De acordo com o Neodarwinismo, a variabilidade genética em populações sexuadas é gerada por:',
+            options: [
+              'Seleção natural e deriva genética.',
+              'Mutações e recombinação gênica (crossing-over).',
+              'Uso e desuso de estruturas.',
+              'Isolamento reprodutivo.',
+              'Adaptação direta ao meio.'
+            ],
+            answer: 1,
+            solution: ['Mutações criam novos alelos e a recombinação rearranja os alelos existentes.'],
+            tip: 'Mutação + Recombinação.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Por que o soro antiofídico deve ser aplicado em casos de picada de cobra peçonhenta em vez de uma vacina?',
+            options: [
+              'Contém antígenos para imunidade ativa.',
+              'Fornece anticorpos prontos para imunização passiva e imediata.',
+              'Estimula células de memória a longo prazo.',
+              'É medida preventiva.',
+              'É feito de DNA recombinante.'
+            ],
+            answer: 1,
+            solution: ['O soro contém anticorpos prontos para ação rápida no organismo (imunização passiva).'],
+            tip: 'Tratamento curativo e imediato com anticorpos.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual alternativa apresenta APENAS arboviroses transmitidas pelo vetor Aedes aegypti?',
+            options: [
+              'Dengue, Chikungunya, Zika e Febre Amarela Urbana.',
+              'Malária, Leishmaniose e Doença de Chagas.',
+              'Febre Maculosa, Leptospirose e Cólera.',
+              'Esquistossomose, Teníase e Filariose.',
+              'Sarampo, Rubéola e Caxumba.'
+            ],
+            answer: 0,
+            solution: ['O Aedes aegypti transmite Dengue, Zika, Chikungunya e Febre Amarela em ciclo urbano.'],
+            tip: 'Doenças causadas pelo mosquito da Dengue.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    title: 'Física', subtitle: 'Mundo 2',
+    lessons: [
+      {
+        name: 'Lição 1: Mecânica',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Um carro a 20 m/s freia com desaceleração constante de 4 m/s². Qual a distância percorrida até parar? (Equação de Torricelli)',
+            options: ['20 m', '50 m', '100 m', '40 m', '10 m'],
+            answer: 1,
+            solution: ['v² = v0² + 2aΔS → 0 = 20² + 2(-4)ΔS → 8ΔS = 400 → ΔS = 50 m.'],
+            tip: 'Use v² = v0² + 2aΔS.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Um bloco de 2 kg é solto do topo de uma rampa sem atrito a 5 m de altura (g=10 m/s²). Qual a velocidade ao atingir a base?',
+            options: ['5 m/s', '10 m/s', '20 m/s', '100 m/s', '14 m/s'],
+            answer: 1,
+            solution: ['Epot = Ecin → mgh = mv²/2 → v = √(2gh) = √(2·10·5) = 10 m/s.'],
+            tip: 'Conservação da energia mecânica: Epot = Ecin.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual princípio físico explica por que um passageiro é projetado para a frente quando o ônibus freia bruscamente?',
+            options: [
+              'Segunda Lei de Newton',
+              'Primeira Lei de Newton (Inércia)',
+              'Terceira Lei de Newton',
+              'Lei da Gravitação Universal',
+              'Conservação da quantidade de movimento'
+            ],
+            answer: 1,
+            solution: ['A Primeira Lei de Newton afirma que o corpo tende a manter seu estado de movimento.'],
+            tip: 'Inércia.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Qual o empuxo sobre um objeto de volume V = 0,002 m³ submerso em água (d = 1000 kg/m³, g = 10 m/s²)?',
+            options: ['2 N', '20 N', '200 N', '0,2 N', '2000 N'],
+            answer: 1,
+            solution: ['Empuxo E = d · V · g = 1000 · 0,002 · 10 = 20 N.'],
+            tip: 'E = d · V · g.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 2: Ondulatória',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Uma rádio opera a f = 108 Hz (100 MHz). Com v = 3x10^8 m/s, qual o comprimento de onda λ?',
+            options: ['0,3 m', '3,0 m', '30 m', '300 m', '0,03 m'],
+            answer: 1,
+            solution: ['v = λ · f → 3x10^8 = λ · 10^8 → λ = 3 metros.'],
+            tip: 'v = λ · f.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Ao passar do ar para o vidro (refração), qual característica da onda permanece estritamente inalterada?',
+            options: ['Velocidade', 'Frequência', 'Comprimento de onda', 'Amplitude', 'Direção'],
+            answer: 1,
+            solution: ['A frequência depende apenas da fonte geradora e não muda na refração.'],
+            tip: 'Frequência depende da fonte.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O som contorna muros devido ao seu grande comprimento de onda. Esse fenômeno é a:',
+            options: ['Polarização', 'Difração', 'Dispersão', 'Refratariedade', 'Efeito Doppler'],
+            answer: 1,
+            solution: ['Difração é a capacidade da onda de contornar obstáculos.'],
+            tip: 'Capacidade de contornar obstáculos.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Quando uma voz faz um copo de cristal vibrar intensamente até quebrar na sua frequência natural, ocorre:',
+            options: ['Interferência destrutiva', 'Batimento', 'Ressonância', 'Efeito Tyndall', 'Reverberação'],
+            answer: 2,
+            solution: ['A ressonância ocorre quando a frequência externa coincide com a frequência natural do corpo.'],
+            tip: 'Vibração na frequência natural.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 3: Termologia & Eletricidade',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Qual o calor absorvido por 500 g de água (c = 1 cal/g°C) ao ser aquecida de 20 °C a 80 °C?',
+            options: ['30 000 cal', '10 000 cal', '40 000 cal', '500 cal', '60 000 cal'],
+            answer: 0,
+            solution: ['Q = m · c · ΔT = 500 · 1 · (80 - 20) = 30 000 cal.'],
+            tip: 'Q = m · c · ΔT.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Por qual mecanismo de troca de calor os aparelhos de ar-condicionado devem ser instalados na parte alta das paredes?',
+            options: ['Condução', 'Radiação', 'Convecção térmica', 'Irradiação', 'Evaporação'],
+            answer: 2,
+            solution: ['O ar frio (mais denso) desce e o ar quente (menos denso) sobe, gerando correntes de convecção.'],
+            tip: 'Correntes por diferença de densidade no ar.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Um resistor de 20 Ω é submetido a V = 120 V. Qual a corrente i?',
+            options: ['6 A', '2400 A', '0,16 A', '12 A', '60 A'],
+            answer: 0,
+            solution: ['Lei de Ohm: V = R · i → 120 = 20 · i → i = 6 A.'],
+            tip: 'V = R · i.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Um chuveiro de 6 kW (6000 W) é usado 0,5 h/dia por 30 dias. Qual o consumo mensal em kWh?',
+            options: ['180 kWh', '90 kWh', '3000 kWh', '45 kWh', '15 kWh'],
+            answer: 1,
+            solution: ['Tempo = 0,5 x 30 = 15 h. Energia E = P · t = 6 kW · 15 h = 90 kWh.'],
+            tip: 'E = P (kW) x tempo (h).'
+          }
+        ]
+      },
+      {
+        name: 'Lição 4: Óptica',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Espelhos retrovisores externos de carros são convexos porque formam imagens:',
+            options: [
+              'Reais, invertidas e ampliadas.',
+              'Virtuais, diretas e reduzidas (aumentando o campo de visão).',
+              'Virtuais, invertidas e do mesmo tamanho.',
+              'Reais e gigantes.',
+              'Projetáveis em anteparo.'
+            ],
+            answer: 1,
+            solution: ['Espelhos convexos fornecem imagens virtuais, diretas e menores, ampliando o campo visual.'],
+            tip: 'Imagem menor e campo de visão maior.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Uma pessoa míope forma a imagem antes da retina. Qual tipo de lente corrige esse problema?',
+            options: ['Convergente', 'Divergente', 'Plano-convexa', 'Bifocal', 'Cilíndrica'],
+            answer: 1,
+            solution: ['A miopia é corrigida com lentes divergentes que afastam o foco até a retina.'],
+            tip: 'Lente divergente.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O efeito visual de uma colher parecer "quebrada" dentro de um copo d\'água é causado pela:',
+            options: ['Reflexão total', 'Refração da luz', 'Difração', 'Dispersão', 'Absorção'],
+            answer: 1,
+            solution: ['A refração altera a velocidade e a trajetória da luz ao mudar de meio.'],
+            tip: 'Mudança de velocidade e desvio ao trocar de meio.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Na hipermetropia, a imagem forma-se atrás da retina. Qual lente reposiciona a imagem sobre a retina?',
+            options: ['Divergente', 'Convergente', 'Divergente-plana', 'Neutra', 'Prismática'],
+            answer: 1,
+            solution: ['A hipermetropia é corrigida com lentes convergentes.'],
+            tip: 'Lente convergente.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    title: 'Química', subtitle: 'Mundo 3',
+    lessons: [
+      {
+        name: 'Lição 1: Físico-Química',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Adicionou-se água a 100 mL de solução de NaOH 1,0 mol/L até 500 mL. Qual a nova concentração?',
+            options: ['0,2 mol/L', '0,5 mol/L', '0,1 mol/L', '2,0 mol/L', '5,0 mol/L'],
+            answer: 0,
+            solution: ['Diluição: C1·V1 = C2·V2 → 1,0 · 100 = C2 · 500 → C2 = 0,2 mol/L.'],
+            tip: 'C1 · V1 = C2 · V2.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A reação de combustão do metano possui ΔH = -890 kJ/mol. Isso indica que a reação é:',
+            options: [
+              'Endotérmica, absorvendo calor.',
+              'Exotérmica, liberando 890 kJ por mol.',
+              'Isotérmica.',
+              'Atérmica.',
+              'Reversível sem consumo.'
+            ],
+            answer: 1,
+            solution: ['ΔH negativo (<0) indica liberação de calor (reação exotérmica).'],
+            tip: 'ΔH negativo indica liberação de calor.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Uma solução possui concentração de íons H+ = 1x10^-4 mol/L. Qual o seu pH?',
+            options: ['pH = 4 (Ácida)', 'pH = 10 (Básica)', 'pH = 7 (Neutra)', 'pH = 14', 'pH = 1'],
+            answer: 0,
+            solution: ['pH = -log[H+] = -log(10^-4) = 4 (pH < 7 é ácido).'],
+            tip: 'pH = -log[H+].'
+          },
+          {
+            type: 'choice',
+            prompt: 'Na pilha de Daniell (Zinco e Cobre), o eletrodo de Zinco sofre oxidação e perde massa. Ele é o:',
+            options: ['Cátodo (polo positivo)', 'Ânodo (polo negativo)', 'Ponte salina', 'Cátodo (polo negativo)', 'Eletrólito'],
+            answer: 1,
+            solution: ['No ânodo ocorre oxidação (polo negativo na pilha). Lembre-se: CROA (Cátodo Reduz, Ânodo Oxida).'],
+            tip: 'Onde ocorre a oxidação.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 2: Química Orgânica',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Um composto com hidroxila (-OH) ligada diretamente a um anel aromático pertence à função:',
+            options: ['Álcool', 'Fenol', 'Enol', 'Éter', 'Aldeído'],
+            answer: 1,
+            solution: ['-OH ligado diretamente ao anel aromático caracteriza o Fenol.'],
+            tip: 'Hidroxila no anel aromático.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A reação entre um ácido carboxílico e um álcool produz água e uma essência com aroma de frutas da função:',
+            options: ['Éster', 'Éter', 'Amida', 'Anidrido', 'Cetona'],
+            answer: 0,
+            solution: ['Ácido Carboxílico + Álcool → Éster + Água (Esterificação).'],
+            tip: 'Reação de esterificação.'
+          },
+          {
+            type: 'choice',
+            prompt: 'A trimetilamina, responsável pelo cheiro característico de peixe podre, é da função nitrogenada:',
+            options: ['Amida', 'Amina', 'Nitrila', 'Nitrocomposto', 'Imida'],
+            answer: 1,
+            solution: ['Derivados orgânicos da amônia (NH3) pertencem às Aminas.'],
+            tip: 'Derivado da amônia.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O Polietileno de Alta Densidade (PEAD) é formado pela repetição do monômero etileno. É um polímero de:',
+            options: ['Condensação', 'Adição', 'Proteico', 'Poliamida', 'Sacarídeo'],
+            answer: 1,
+            solution: ['O polietileno é formado pela adição sucessiva com quebra da ligação dupla do etileno.'],
+            tip: 'Quebra da dupla ligação.'
+          }
+        ]
+      },
+      {
+        name: 'Lição 3: Química Ambiental',
+        qs: [
+          {
+            type: 'choice',
+            prompt: 'Na ETA, a adição de sulfato de alumínio para juntar impurezas em flocos maiores é a etapa de:',
+            options: ['Filtração', 'Coagulação / Floculação', 'Fluoretação', 'Cloração', 'Aeração'],
+            answer: 1,
+            solution: ['O sulfato de alumínio coagula as partículas suspensas formando flocos para decantação.'],
+            tip: 'Aglutinação de sujeira.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Reações de SO2 e NO2 atmosféricos provenientes de combustíveis fósseis com vapor d\'água causam:',
+            options: ['Inversão térmica', 'Chuva ácida', 'Efeito estufa reverso', 'Destruição do ozônio', 'Smog fotoquímico'],
+            answer: 1,
+            solution: ['Óxidos de enxofre e nitrogênio formam H2SO4 e HNO3 gerando chuva ácida.'],
+            tip: 'Formação de H2SO4 e HNO3 na atmosfera.'
+          },
+          {
+            type: 'choice',
+            prompt: 'O gás tóxico e escuro gerado pela decomposição do lixo que pode contaminar o lençol freático é o:',
+            options: ['Vinhaça', 'Chorume', 'Nafta', 'Lodo', 'Efluente fenólico'],
+            answer: 1,
+            solution: ['O chorume é o líquido escuro e poluente dos resíduos orgânicos.'],
+            tip: 'Líquido escuro de aterros e lixões.'
+          },
+          {
+            type: 'choice',
+            prompt: 'Em uma cadeia alimentar poluída por venenos lipossolúveis (ex: DDT), em quem haverá maior concentração?',
+            options: [
+              'Produtores',
+              'Consumidores de topo de cadeia',
+              'Consumidores primários',
+              'Decompositores',
+              'Plâncton'
+            ],
+            answer: 1,
+            solution: ['Pela bioacumulação (magnificação trófica), venenos não biodegradáveis acumulam-se no topo trófico.'],
+            tip: 'Magnificação trófica no último nível.'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+const INSTR = { choice:'Escolha a resposta correta' };
+const PRAISE = ['Perfeito!','Isso aí!','Mandou bem!','Correto!','Excelente!','Na mosca!'];
+
+/* ==========================================================
+   2. ESTADO PERSISTENTE & GERENCIAMENTO DE VIDAS
+   ========================================================== */
+const MAX_HEARTS = 5;
+const REGEN_MS   = 15 * 60 * 1000;
+const STORE_KEY  = 'naturezaquest:mvp:v1';
+const DEFAULTS   = () => ({
+  hearts:MAX_HEARTS, heartsAt:Date.now(), xp:0, coins:0, streak:0, lastDay:null,
+  progress: [0, 0, 0] // Progresso de lições em cada um dos 3 mundos
+});
+
+let save = loadSave();
+function loadSave(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) return Object.assign(DEFAULTS(), JSON.parse(raw)); }catch(e){}
+  return DEFAULTS();
+}
+function persist(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(save)); }catch(e){} }
+
+function regenHearts(){
+  if(save.hearts >= MAX_HEARTS){ save.hearts = MAX_HEARTS; save.heartsAt = Date.now(); return; }
+  const n = Math.floor((Date.now() - save.heartsAt) / REGEN_MS);
+  if(n > 0){
+    save.hearts = Math.min(MAX_HEARTS, save.hearts + n);
+    save.heartsAt = save.hearts >= MAX_HEARTS ? Date.now() : save.heartsAt + n * REGEN_MS;
+  }
+}
+function loseHeart(){
+  if(save.hearts >= MAX_HEARTS) save.heartsAt = Date.now();
+  save.hearts = Math.max(0, save.hearts - 1);
+  persist();
+}
+function dayStr(offset){
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function currentStreak(){ return (save.lastDay === dayStr(0) || save.lastDay === dayStr(-1)) ? save.streak : 0; }
+function bumpStreak(){
+  const t = dayStr(0);
+  if(save.lastDay === t) return;
+  save.streak = (save.lastDay === dayStr(-1)) ? save.streak + 1 : 1;
+  save.lastDay = t;
+}
+
+function getActiveWorldIdx() {
+  const idx = save.progress.findIndex((doneCount, i) => doneCount < COURSE[i].lessons.length);
+  return idx === -1 ? COURSE.length - 1 : idx;
+}
+
+/* ==========================================================
+   3. DOM & ÍCONES
+   ========================================================== */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const fmtTime = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
+
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ t.hidden = true; }, 2600);
+}
+
+const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICON_STAR = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+const ICON_LOCK = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
+const ICON_SOUND_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+
+function mascotSVG(mood){
+  const g = 'var(--glow)';
+  const face = {
+    idle: `<circle cx="32" cy="40" r="4.2" fill="${g}"/><circle cx="48" cy="40" r="4.2" fill="${g}"/><path d="M33 50 Q40 55 47 50"/>`,
+    happy:`<path d="M27.5 42 Q32 34 36.5 42"/><path d="M43.5 42 Q48 34 52.5 42"/><path d="M30 48 Q40 60 50 48 Z" fill="${g}"/>`,
+    sad:  `<circle cx="32" cy="43" r="4.2" fill="${g}"/><circle cx="48" cy="43" r="4.2" fill="${g}"/><path d="M26 38 L36 34"/><path d="M54 38 L44 34"/><path d="M33 54 Q40 48 47 54"/>`
+  }[mood] || '';
+  return `<svg viewBox="0 0 80 88">
+    <line x1="40" y1="9" x2="40" y2="18" stroke="var(--mascot-dark)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="40" cy="7" r="5" fill="var(--gold)"/>
+    <rect x="3" y="36" width="9" height="18" rx="4.5" fill="var(--mascot-dark)"/>
+    <rect x="68" y="36" width="9" height="18" rx="4.5" fill="var(--mascot-dark)"/>
+    <rect x="9" y="17" width="62" height="54" rx="19" fill="var(--mascot)"/>
+    <rect x="17" y="26" width="46" height="34" rx="13" fill="var(--screen)"/>
+    <g fill="none" stroke="${g}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${face}</g>
+    <rect x="24" y="72" width="32" height="13" rx="6.5" fill="var(--mascot-dark)"/>
+    <text x="40" y="82" text-anchor="middle" font-size="10" font-weight="900" fill="#fff">CN</text>
+  </svg>`;
+}
+function setMood(el, mood, animate){
+  el.innerHTML = mascotSVG(mood);
+  el.classList.remove('bounce','shake');
+  if(animate && (mood === 'happy' || mood === 'sad')){
+    void el.offsetWidth;
+    el.classList.add(mood === 'happy' ? 'bounce' : 'shake');
+  }
+}
+
+let audioCtx = null, soundOn = true;
+function beep(notes){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    let t = audioCtx.currentTime;
+    notes.forEach(([freq, dur, type, vol]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t + dur + 0.03);
+      t += dur * 0.8;
+    });
+  }catch(e){}
+}
+const sfx = {
+  ok:  () => beep([[659,.12,'triangle'],[880,.22,'triangle']]),
+  bad: () => beep([[220,.18,'sawtooth',.1],[165,.3,'sawtooth',.1]]),
+  win: () => beep([[523,.12,'triangle'],[659,.12,'triangle'],[784,.12,'triangle'],[1047,.38,'triangle']])
+};
+
+/* ==========================================================
+   4. EXERCÍCIOS
+   ========================================================== */
+function renderChoice(q, area, onReady){
+  const base = q.options.map((t, i) => ({t, ok: i === q.answer})); 
+  const opts = shuffle(base);
+  area.innerHTML = `<div class="options" role="radiogroup">${
+    opts.map((o, i) => `<button type="button" class="opt" role="radio" aria-checked="false"><span class="key">${String.fromCharCode(65+i)}</span><span>${esc(o.t)}</span></button>`).join('')
+  }</div>`;
+  const root = area.firstElementChild;
+  const btns = [...root.querySelectorAll('.opt')];
+  let sel = -1, locked = false;
+  function select(i){
+    if(locked || !btns[i]) return;
+    sel = i;
+    btns.forEach((b, j) => { b.classList.toggle('selected', j === i); b.setAttribute('aria-checked', String(j === i)); });
+    onReady(true);
+  }
+  btns.forEach((b, i) => b.addEventListener('click', () => select(i)));
+  return {
+    select,
+    evaluate: () => sel >= 0 && opts[sel].ok,
+    reveal(){
+      locked = true; root.classList.add('locked');
+      btns.forEach((b, i) => {
+        b.classList.remove('selected');
+        if(opts[i].ok) b.classList.add('right');
+        else if(i === sel) b.classList.add('wrong');
+        else b.classList.add('dim');
+      });
+    }
+  };
+}
+
+const RENDERERS = {choice:renderChoice};
+
+/* ==========================================================
+   5. CONTROLE DO JOGO & FLUXO DE TELAS
+   ========================================================== */
+const screens = {home:$('#screen-home'), lesson:$('#screen-lesson'), result:$('#screen-result'), over:$('#screen-over')};
+let currentScreen = 'home';
+function show(name){
+  currentScreen = name;
+  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('active', k === name));
+  $('#toast').hidden = true;
+  window.scrollTo(0, 0);
+  if(name === 'home') renderHome();
+  if(name === 'over') renderOver();
+}
+
+function renderStats(){
+  $('#stStreak').textContent = currentStreak();
+  $('#stCoins').textContent  = save.coins;
+  $('#stXp').textContent     = save.xp;
+  $('#stHearts').textContent = save.hearts;
+  $('#heartTimer').textContent = save.hearts < MAX_HEARTS ? 'Próximo coração em ' + fmtTime(REGEN_MS - (Date.now() - save.heartsAt)) : '';
+}
+
+function renderHome(){
+  regenHearts();
+  renderStats();
+
+  const wIdx = getActiveWorldIdx();
+  const world = COURSE[wIdx];
+  const doneCount = save.progress[wIdx];
+  const allDone = wIdx === COURSE.length - 1 && doneCount === world.lessons.length;
+
+  $('#worldSub').textContent = world.subtitle;
+  $('#worldTitle').textContent = world.title;
+
+  $('#path').innerHTML = world.lessons.map((l, i) => {
+    const st = i < doneCount ? 'done' : (i === doneCount ? 'current' : 'locked');
+    const icon = st === 'done' ? ICON_CHECK : st === 'current' ? ICON_STAR : ICON_LOCK;
+    const tip = st === 'current' ? '<div class="start-tip">Começar</div>' : '';
+    return `<div class="node-wrap" style="--dx:${[0,-54,-6,48][i%4]}px">${tip}`
+         + `<button type="button" class="node ${st}" data-lesson="${i}">${icon}</button>`
+         + `<span class="node-label">${esc(l.name)}</span></div>`;
+  }).join('');
+
+  const nextContainer = $('#nextWorldsContainer');
+  if (wIdx < COURSE.length - 1) {
+    nextContainer.hidden = false;
+    const nextWorlds = COURSE.slice(wIdx + 1);
+    $('#nextWorlds').innerHTML = nextWorlds.map(w => `<div class="nw">${ICON_LOCK}<div><b>${esc(w.title)}</b><span>Bloqueado</span></div></div>`).join('');
+  } else {
+    nextContainer.hidden = true;
+  }
+
+  setMood($('#mascotHome'), save.hearts === 0 ? 'sad' : 'idle');
+  $('#homeBubble').textContent =
+      save.hearts === 0 ? 'Seus corações acabaram. Treine para recuperar um ou espere o tempo passar.'
+    : allDone ? 'Parabéns! Você gabaritou todos os mundos de Ciências da Natureza!'
+    : `Complete as lições de ${world.title} para dominar Ciências da Natureza no ENEM.`;
+}
+
+function renderOver(){
+  setMood($('#mascotOver'), 'sad');
+  updateOverTimer();
+}
+function updateOverTimer(){
+  $('#overTimer').textContent = save.hearts < MAX_HEARTS ? 'Próximo coração em ' + fmtTime(REGEN_MS - (Date.now() - save.heartsAt)) : '';
+}
+
+let L = null; 
+
+$('#path').addEventListener('click', e => {
+  const b = e.target.closest('.node'); if(!b) return;
+  const lIdx = +b.dataset.lesson;
+  if(b.classList.contains('locked')){
+    b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope');
+    toast('Conclua a lição anterior para desbloquear.');
+    return;
+  }
+  startLesson(false, getActiveWorldIdx(), lIdx);
+});
+
+document.querySelectorAll('[data-heart]').forEach(el => { el.innerHTML = HEART; });
+$('#btnReset').addEventListener('click', () => { save = DEFAULTS(); persist(); renderHome(); toast('Progresso reiniciado.'); });
+
+setInterval(() => {
+  if(currentScreen !== 'home' && currentScreen !== 'over') return;
+  const before = save.hearts;
+  regenHearts();
+  if(before !== save.hearts) persist();
+  if(currentScreen === 'home') renderStats(); else updateOverTimer();
+}, 1000);
+
+const btnCheck = $('#btnCheck'), footer = $('#footer');
+
+function startLesson(practice, worldIdx, lessonIdx){
+  regenHearts();
+  if(!practice && save.hearts <= 0){ show('over'); return; }
+
+  if (worldIdx === undefined) worldIdx = getActiveWorldIdx();
+  if (lessonIdx === undefined) lessonIdx = save.progress[worldIdx] || 0;
+  
+  if(lessonIdx >= COURSE[worldIdx].lessons.length) lessonIdx = COURSE[worldIdx].lessons.length - 1;
+
+  const lessonData = COURSE[worldIdx].lessons[lessonIdx];
+  const isNewProgression = !practice && (lessonIdx === save.progress[worldIdx]);
+
+  L = {
+    practice: !!practice,
+    worldIdx, lessonIdx, isNewProgression,
+    queue: lessonData.qs.map(q => ({q, retry:false})),
+    pos: 0, total: lessonData.qs.length,
+    solved: 0, firstTry: 0, mistakes: 0, xp: 0,
+    checked: false, gameOver: false, item: null, ctrl: null
+  };
+  show('lesson');
+  updateHud(false);
+  loadQuestion();
+}
+
+function updateHud(pop){
+  const pct = Math.round(L.solved / L.total * 100);
+  $('#fill').style.width = pct + '%';
+  $('#progress').setAttribute('aria-valuenow', pct);
+  $('#hudHearts').textContent = L.practice ? '∞' : save.hearts;
+  if(pop){
+    const box = $('#hudHeartsBox');
+    box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+  }
+}
+
+function setFooterNeutral(){
+  footer.className = 'footer';
+  $('#feedback').hidden = true;
+  btnCheck.className = 'btn big';
+  btnCheck.textContent = 'Verificar';
+  btnCheck.disabled = true;
+}
+
+function loadQuestion(){
+  const item = L.queue[L.pos], q = item.q;
+  L.item = item; L.checked = false;
+  $('#instr').innerHTML = esc(INSTR[q.type] || 'Responda') + (item.retry ? '<small>Revisão</small>' : '');
+  $('#bubble').textContent = q.prompt;
+  $('#viz').innerHTML = ''; 
+  setMood($('#mascotLesson'), 'idle');
+  const area = $('#answer'); area.innerHTML = '';
+  L.ctrl = RENDERERS[q.type](q, area, ready => { if(!L.checked) btnCheck.disabled = !ready; });
+  setFooterNeutral();
+  $('#stage').scrollTop = 0;
+}
+
+function checkAnswer(){
+  const q = L.item.q, retry = L.item.retry;
+  const ok = L.ctrl.evaluate();
+  L.checked = true;
+  L.ctrl.reveal(ok);
+
+  if(ok){
+    L.solved++;
+    if(retry) L.xp += 5; else { L.firstTry++; L.xp += 10; }
+    sfx.ok();
+    setMood($('#mascotLesson'), 'happy', true);
+  }else{
+    L.mistakes++;
+    L.queue.push({q, retry:true});
+    if(!L.practice){
+      loseHeart();
+      if(save.hearts <= 0) L.gameOver = true;
+    }
+    sfx.bad();
+    setMood($('#mascotLesson'), 'sad', true);
+  }
+  updateHud(!ok && !L.practice);
+  showFeedback(ok, q);
+}
+
+function showFeedback(ok, q){
+  footer.className = 'footer ' + (ok ? 'ok' : 'bad');
+  const fb = $('#feedback');
+  fb.hidden = false;
+  fb.style.animation = 'none'; void fb.offsetWidth; fb.style.animation = '';
+  $('#fbIcon').innerHTML = ok ? ICON_CHECK : ICON_X;
+  if(ok){
+    $('#fbTitle').textContent = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+    $('#fbText').innerHTML = q.tip ? `<div>${esc(q.tip)}</div>` : '';
+  }else{
+    $('#fbTitle').innerHTML = 'Não foi dessa vez' + (L.practice ? '' : '<span class="lose">−1 ♥</span>');
+    const correctOption = q.options[q.answer];
+    $('#fbText').innerHTML =
+        `<div>Resposta correta: <b>${esc(correctOption)}</b></div>`
+      + `<ol>${q.solution.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
+  }
+  btnCheck.className = 'btn big ' + (ok ? 'ok' : 'bad');
+  btnCheck.textContent = 'Continuar';
+  btnCheck.disabled = false;
+}
+
+function advance(){
+  if(L.gameOver){ show('over'); L = null; return; }
+  L.pos++;
+  if(L.pos >= L.queue.length) return finish();
+  loadQuestion();
+}
+
+btnCheck.addEventListener('click', () => {
+  if(!L) return;
+  if(!L.checked) checkAnswer(); else advance();
+});
+
+function finish(){
+  const perfect = L.mistakes === 0;
+  const xp = L.xp + (perfect ? 10 : 0), coins = 5 + (perfect ? 5 : 0);
+  const acc = Math.round(L.firstTry / L.total * 100);
+  
+  save.xp += xp; save.coins += coins; 
+  if(L.isNewProgression) save.progress[L.worldIdx]++;
+  bumpStreak();
+
+  if(L.practice) save.hearts = Math.min(MAX_HEARTS, save.hearts + 1);
+  regenHearts();
+  persist();
+
+  $('#resXp').textContent = '+' + xp;
+  $('#resAcc').textContent = acc + '%';
+  $('#resCoins').textContent = '+' + coins;
+  
+  const worldDoneNow = (save.progress[L.worldIdx] === COURSE[L.worldIdx].lessons.length);
+  $('#resTitle').textContent = worldDoneNow ? 'Mundo Concluído!' : 'Lição Concluída!';
+
+  $('#resSub').textContent =
+      (perfect ? 'Perfeito, sem nenhum erro!' : `Você errou ${L.mistakes} vezes, mas acertou tudo no final.`)
+    + (worldDoneNow ? ' Você desbloqueou o próximo Mundo de Ciências da Natureza!' : '')
+    + (L.practice ? ' Você recuperou 1 coração.' : '');
+
+  const st = currentStreak();
+  $('#resStreak').textContent = '🔥 Ofensiva: ' + st + (st === 1 ? ' dia' : ' dias');
+  
+  setMood($('#mascotResult'), 'happy', true);
+  const prevL = L; L = null;
+  sfx.win(); confetti(); show('result');
+  
+  $('#btnRetry').onclick = () => { startLesson(false, prevL.worldIdx, prevL.lessonIdx); };
+}
+
+function confetti(){
+  const box = $('#confetti'), colors = ['#10b981','#ffb52e','#2dbf5e','#3b82f6','#a45cff','#14b8a6'];
+  box.innerHTML = '';
+  for(let i = 0; i < 46; i++){
+    const p = document.createElement('i');
+    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i % colors.length]};animation-duration:${2.2 + Math.random()*2}s;animation-delay:${Math.random()*.6}s`;
+    box.appendChild(p);
+  }
+  setTimeout(() => { box.innerHTML = ''; }, 5400);
+}
+
+const modal = $('#modal');
+function openModal(){ setMood($('#mascotModal'), 'sad'); modal.hidden = false; $('#btnStay').focus(); }
+function closeModal(){ modal.hidden = true; }
+$('#btnClose').addEventListener('click', openModal);
+$('#btnStay').addEventListener('click', closeModal);
+$('#btnQuit').addEventListener('click', () => { closeModal(); L = null; show('home'); });
+
+function paintSound(){ $('#btnSound').innerHTML = soundOn ? ICON_SOUND_ON : ICON_SOUND_OFF; }
+$('#btnSound').addEventListener('click', () => { soundOn = !soundOn; paintSound(); if(soundOn) sfx.ok(); });
+paintSound();
+
+$('#btnResHome').addEventListener('click', () => show('home'));
+$('#btnOverHome').addEventListener('click', () => show('home'));
+$('#btnPractice').addEventListener('click', () => startLesson(true));
+
+document.addEventListener('keydown', e => {
+  if(currentScreen !== 'lesson' || !L) return;
+  if(!modal.hidden){ if(e.key === 'Escape') closeModal(); return; }
+  if(e.key === 'Enter'){ e.preventDefault(); if(!e.repeat && !btnCheck.disabled) btnCheck.click(); return; }
+  if(e.key === 'Escape'){ openModal(); return; }
+  if(!L.checked && /^[1-9]$/.test(e.key) && L.ctrl && L.ctrl.select) L.ctrl.select(+e.key - 1);
+});
+
+/* ---------- Inicialização ---------- */
+renderHome();
+</script>
+</body>
+</html>
