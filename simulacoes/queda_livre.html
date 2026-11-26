@@ -1,880 +1,4196 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Queda e Colisão Planetária (v3.0)</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        /* ----------------------------------- */
-        /* ESTILOS GERAIS E LAYOUT */
-        /* ----------------------------------- */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f5;
-            margin: 0;
-            padding: 0; /* Remove padding para usar o máximo de espaço */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh; 
-            height: 100vh; 
-            box-sizing: border-box; /* Inclui padding e border no tamanho total */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratório de Queda Livre | SimuLab</title>
 
-        h1 {
-            color: #333;
-            font-size: 24px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
+  <!-- Tipografia Oficial SimuLab + Mono para precisão numérica -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet" />
 
-        .header-link {
-            text-decoration: none; 
-            color: #D2691E; 
-            font-weight: bold; 
-            margin-bottom: 10px;
-        }
-        
-        .container {
-            display: flex;
-            width: 100%;
-            max-width: 1200px; 
-            gap: 0px; 
-            background-color: white;
-            padding: 0; 
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-grow: 1; 
-            height: calc(100vh - 80px); /* Ocupa o restante da tela */
-        }
+  <style>
+    /* =========================================================================
+       1. DESIGN TOKENS — IDENTIDADE VISUAL SIMULAB
+       ========================================================================= */
+    :root {
+      --orange: #ff690b;
+      --orange-dark: #e95700;
+      --orange-soft: #fff3eb;
+      --orange-border: #ffd5ba;
 
-        /* ----------------------------------- */
-        /* CONTROLES (PAINEL ESQUERDO) */
-        /* ----------------------------------- */
-        .controls {
-            width: 350px; 
-            min-width: 350px;
-            padding: 20px;
-            border-right: 2px solid #ddd; 
-            overflow-y: auto; 
-        }
+      --navy: #14233d;
+      --navy-mid: #1e3358;
+      --navy-soft: #edf2f8;
 
-        .controls label, .controls button, .controls select, .controls input[type="number"], .controls input[type="range"] {
-            display: block;
-            margin-bottom: 15px;
-            width: 100%;
-        }
+      --bg: #f7f9fc;
+      --white: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --slate: #64748b;
+      --slate-light: #94a3b8;
+      --slate-dark: #334155;
 
-        /* ... estilos de botões e painéis ... */
-        .controls label {
-            font-weight: bold;
-            color: #555;
-            font-size: 14px;
-        }
+      /* Cores Semânticas da Física */
+      --vec-v: #0284c7;
+      --vec-v-soft: #e0f2fe;
+      --vec-g: #ff690b;
+      --vec-g-soft: #fff3eb;
+      --vec-p: #7c3aed;
+      --vec-p-soft: #f3e8ff;
 
-        .controls select, .controls input[type="number"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            font-size: 16px;
-        }
+      --en-ep: #0284c7;
+      --en-ec: #ff690b;
+      --en-em: #10b981;
+      --en-em-soft: #ecfdf5;
 
-        .controls button {
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            margin-bottom: 10px;
-        }
+      /* Cores para Comparação A vs B */
+      --exp-a: #ff690b;
+      --exp-b: #0284c7;
 
-        #startButton, #addBallButton {
-            background-color: #D2691E; 
-            color: white;
-        }
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
 
-        #addBallButton {
-            background-color: #4CAF50;
-        }
-        #addBallButton:hover {
-            background-color: #45a049;
-        }
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --radius-pill: 999px;
 
-        #startButton:hover {
-            background-color: #c0601a;
-            transform: translateY(-1px);
-        }
+      --shadow-xs: 0 1px 2px rgba(20, 35, 61, 0.04);
+      --shadow-card: 0 6px 22px rgba(20, 35, 61, 0.055), 0 1px 3px rgba(20, 35, 61, 0.04);
+      --shadow-btn: 0 4px 12px rgba(255, 105, 11, 0.25);
 
-        .data-panel {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fafafa;
-        }
-        
-        .data-panel h3 {
-            margin-top: 0;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-            color: #D2691E;
-        }
+      --font-sans: 'Nunito Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --ease: 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
 
-        .kinematics-panel {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px solid #f1c40f; 
-            border-radius: 5px;
-            background-color: #fffaf0; 
-        }
-        
-        /* ----------------------------------- */
-        /* ÁREA DE SIMULAÇÃO (PAINEL DIREITO) */
-        /* ----------------------------------- */
-        .simulation-area {
-            flex-grow: 1;
-            border-radius: 0 10px 10px 0; 
-            overflow: hidden;
-            position: relative;
-            
-            /* Malha Quadriculada Dinâmica */
-            --grid-color: #bdc3c7;
-            --grid-size: 50px; /* Valor base, será sobrescrito pelo JS */
-            background-color: #ecf0f1; 
-            background-image: 
-                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-            background-size: var(--grid-size) var(--grid-size);
-        }
+    /* =========================================================================
+       2. RESET & BASE
+       ========================================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .ball {
-            position: absolute;
-            border-radius: 50%;
-            z-index: 20;
-            transition: none; 
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            cursor: grab; 
-        }
-        
-        .ball.dragging {
-            cursor: grabbing;
-            box-shadow: 0 0 20px 5px #f1c40f; 
-        }
-        
-        .ball.selected {
-            outline: 4px solid #f1c40f; 
-            outline-offset: -4px;
-        }
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
 
-        #floor {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background-color: #2c3e50;
-            z-index: 10;
-        }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--navy);
+      line-height: 1.48;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-    </style>
+    button, input, select {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* =========================================================================
+       3. CABEÇALHO SIMULAB
+       ========================================================================= */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(20, 35, 61, 0.03);
+    }
+
+    .topbar-inner {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 11px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .simulab-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding-right: 14px;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .simulab-logo svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+    }
+
+    .simulab-wordmark {
+      font-weight: 800;
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .simulab-wordmark span {
+      color: var(--orange);
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .lab-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+    }
+
+    .lab-subtitle {
+      font-size: 0.83rem;
+      color: var(--slate);
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Seletor de Modo (Experimento Único vs Comparação) */
+    .mode-switch {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-btn {
+      padding: 7px 13px;
+      border-radius: 9px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--slate);
+      transition: all var(--ease);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .mode-btn:hover {
+      color: var(--navy);
+    }
+
+    .mode-btn.active {
+      background: var(--white);
+      color: var(--navy);
+      box-shadow: 0 2px 6px rgba(20, 35, 61, 0.08);
+    }
+
+    .mode-btn.active .mode-dot {
+      background: var(--orange);
+    }
+
+    .mode-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--slate-light);
+      transition: background var(--ease);
+    }
+
+    /* Botões Gerais */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 15px;
+      border-radius: 11px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: all var(--ease);
+      white-space: nowrap;
+      min-height: 38px;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: var(--white);
+      box-shadow: var(--shadow-btn);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--orange-dark);
+      box-shadow: 0 5px 15px rgba(233, 87, 0, 0.34);
+    }
+
+    .btn-navy {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .btn-navy:hover:not(:disabled) {
+      background: var(--navy-mid);
+    }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--navy);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--border-strong);
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      min-height: 33px;
+      border-radius: 9px;
+    }
+
+    /* =========================================================================
+       4. LAYOUT PRINCIPAL & CARDS
+       ========================================================================= */
+    .workspace {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 18px 22px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(350px, 0.95fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .left-col,
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .kicker {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--orange);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.01em;
+    }
+
+    .card-sub {
+      font-size: 0.82rem;
+      color: var(--slate);
+      margin-top: 2px;
+    }
+
+    /* =========================================================================
+       5. ÁREA DE SIMULAÇÃO (CANVAS 2D + VETORES + CONTROLES)
+       ========================================================================= */
+    .sim-card {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .canvas-stage {
+      position: relative;
+      width: 100%;
+      height: 455px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid #dbe4f0;
+      background: #fbfdff;
+      overflow: hidden;
+      box-shadow: inset 0 2px 10px rgba(20, 35, 61, 0.04);
+    }
+
+    #simCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Barra de Legenda e Opções de Vetores */
+    .vector-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 13px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .vector-checks {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .vec-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.79rem;
+      font-weight: 700;
+      color: var(--slate-dark);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .vec-toggle input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--orange);
+      cursor: pointer;
+    }
+
+    .vec-swatch {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .vec-scale-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--slate);
+    }
+
+    .vec-scale-wrap input[type="range"] {
+      width: 82px;
+      height: 5px;
+    }
+
+    /* Barra de Controles de Execução */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 2px;
+    }
+
+    .transport-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-drop {
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .speed-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 3px;
+    }
+
+    .speed-label {
+      font-size: 0.73rem;
+      font-weight: 800;
+      color: var(--slate);
+      padding: 0 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .speed-btn {
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: var(--slate-dark);
+      transition: all var(--ease);
+    }
+
+    .speed-btn:hover {
+      background: var(--white);
+      color: var(--navy);
+    }
+
+    .speed-btn.active {
+      background: var(--navy);
+      color: var(--white);
+      box-shadow: 0 2px 5px rgba(20, 35, 61, 0.18);
+    }
+
+    /* =========================================================================
+       6. PAINEL DE DADOS EM TEMPO REAL (9 CARDS + BARRA DE ENERGIA)
+       ========================================================================= */
+    .telemetry-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .telemetry-tabs {
+      display: none;
+      gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 3px;
+      border-radius: 10px;
+    }
+
+    .telemetry-tabs.visible {
+      display: inline-flex;
+    }
+
+    .mini-tab {
+      padding: 4px 10px;
+      border-radius: 7px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--slate);
+      transition: all var(--ease);
+    }
+
+    .mini-tab.active-a {
+      background: var(--orange);
+      color: var(--white);
+    }
+
+    .mini-tab.active-b {
+      background: var(--vec-v);
+      color: var(--white);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .tele-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+      transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .tele-card.is-changing {
+      background: var(--white);
+      border-color: var(--orange-border);
+      box-shadow: 0 2px 10px rgba(255, 105, 11, 0.08);
+    }
+
+    .tele-card.is-changing .tele-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .tele-card.impact-flash {
+      border-color: var(--en-em);
+      background: var(--en-em-soft);
+    }
+
+    .tele-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .tele-label {
+      font-size: 0.71rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--slate);
+    }
+
+    .tele-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.2s ease;
+    }
+
+    .tele-val {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.04rem;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tele-val.color-v { color: var(--vec-v); }
+    .tele-val.color-g { color: var(--orange-dark); }
+    .tele-val.color-p { color: var(--vec-p); }
+    .tele-val.color-em { color: #059669; }
+
+    /* Barra Horizontal de Proporção de Energia */
+    .energy-bar-block {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .energy-bar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: var(--slate-dark);
+    }
+
+    .energy-legend-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .energy-legend-inline span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+    }
+
+    .energy-track {
+      width: 100%;
+      height: 12px;
+      border-radius: var(--radius-pill);
+      background: #e2e8f0;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .energy-seg {
+      height: 100%;
+      transition: width 0.08s linear;
+    }
+
+    .seg-ep { background: var(--en-ep); }
+    .seg-ec { background: var(--en-ec); }
+    .seg-loss {
+      background: repeating-linear-gradient(
+        -45deg,
+        #cbd5e1,
+        #cbd5e1 5px,
+        #e2e8f0 5px,
+        #e2e8f0 10px
+      );
+    }
+
+    /* =========================================================================
+       7. PAINEL LATERAL DE CONFIGURAÇÕES
+       ========================================================================= */
+    .config-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Abas A / B no Modo Comparação */
+    .compare-config-banner {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 13px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .compare-config-banner.visible {
+      display: flex;
+    }
+
+    .exp-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .exp-tab {
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      color: var(--slate-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all var(--ease);
+    }
+
+    .exp-tab.active-a {
+      border-color: var(--exp-a);
+      background: var(--orange-soft);
+      color: var(--orange-dark);
+    }
+
+    .exp-tab.active-b {
+      border-color: var(--exp-b);
+      background: var(--vec-v-soft);
+      color: #0369a1;
+    }
+
+    .exp-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .compare-presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--slate-dark);
+      transition: all var(--ease);
+    }
+
+    .chip-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+    }
+
+    .chip-btn.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: var(--white);
+    }
+
+    /* Seção interna do painel */
+    .cfg-section {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cfg-section:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .cfg-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .cfg-label {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cfg-input-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 4px 9px;
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+    .cfg-input-box:focus-within {
+      background: var(--white);
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 105, 11, 0.13);
+    }
+
+    .cfg-num-input {
+      width: 68px;
+      border: none;
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--navy);
+      text-align: right;
+    }
+
+    .cfg-num-input:focus {
+      outline: none;
+    }
+
+    .cfg-unit {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--slate);
+    }
+
+    /* Sliders customizados */
+    input[type="range"].lab-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      cursor: pointer;
+    }
+
+    input[type="range"].lab-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--orange);
+      box-shadow: 0 2px 6px rgba(20, 35, 61, 0.22);
+      transition: transform 0.14s ease;
+    }
+
+    input[type="range"].lab-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+
+    input[type="range"].lab-slider::-moz-range-thumb {
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--orange);
+      box-shadow: 0 2px 6px rgba(20, 35, 61, 0.22);
+    }
+
+    .preset-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* Grade Visual de Seleção de Objetos */
+    .objects-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .obj-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 5px;
+      border-radius: 11px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      text-align: center;
+      transition: all var(--ease);
+    }
+
+    .obj-card:hover {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+      transform: translateY(-1px);
+    }
+
+    .obj-card.active {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+      box-shadow: 0 0 0 2px rgba(255, 105, 11, 0.18);
+    }
+
+    .obj-thumb {
+      width: 30px;
+      height: 30px;
+      display: block;
+    }
+
+    .obj-name {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.15;
+    }
+
+    .obj-mass-hint {
+      font-size: 0.66rem;
+      font-family: var(--font-mono);
+      color: var(--slate);
+    }
+
+    /* Subpainel do Objeto Personalizado */
+    .custom-obj-panel {
+      display: none;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 11px;
+      background: var(--orange-soft);
+      border: 1px solid var(--orange-border);
+    }
+
+    .custom-obj-panel.visible {
+      display: grid;
+    }
+
+    .custom-text-input {
+      width: 100%;
+      padding: 6px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: var(--white);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .shape-toggle {
+      display: inline-flex;
+      background: var(--white);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .shape-btn {
+      padding: 4px 8px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      border-radius: 6px;
+      color: var(--slate);
+    }
+
+    .shape-btn.active {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .custom-color-input {
+      width: 34px;
+      height: 32px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 2px;
+      background: var(--white);
+      cursor: pointer;
+    }
+
+    /* Nota didática da massa */
+    .didactic-note {
+      background: var(--navy-soft);
+      border-left: 3.5px solid var(--navy);
+      border-radius: 0 9px 9px 0;
+      padding: 8px 11px;
+      font-size: 0.76rem;
+      color: var(--slate-dark);
+      line-height: 1.42;
+    }
+
+    .didactic-note strong {
+      color: var(--navy);
+    }
+
+    .regime-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--slate-dark);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .regime-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    /* Experimentos Predefinidos */
+    .experiments-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .exp-preset-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      text-align: left;
+      transition: all var(--ease);
+    }
+
+    .exp-preset-btn:hover {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+      transform: translateX(2px);
+    }
+
+    .exp-preset-title {
+      font-size: 0.81rem;
+      font-weight: 800;
+      color: var(--navy);
+      display: block;
+    }
+
+    .exp-preset-meta {
+      font-size: 0.73rem;
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    .exp-preset-tag {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--orange-dark);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       8. SEÇÕES INFERIORES: COMPARAÇÃO, GRÁFICOS E ANÁLISE FÍSICA
+       ========================================================================= */
+    .compare-section {
+      display: none;
+    }
+
+    .compare-section.visible {
+      display: block;
+    }
+
+    .compare-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    .compare-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--bg);
+      color: var(--slate-dark);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .compare-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--navy);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .compare-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .compare-table td.mono {
+      font-weight: 700;
+    }
+
+    .col-a-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--orange-dark);
+    }
+
+    .col-b-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #0369a1;
+    }
+
+    .diff-equal {
+      color: #059669;
+      font-weight: 800;
+    }
+
+    .compare-summary {
+      margin-top: 13px;
+      padding: 12px 15px;
+      border-radius: 12px;
+      background: var(--orange-soft);
+      border: 1px solid var(--orange-border);
+      font-size: 0.84rem;
+      color: var(--navy);
+      line-height: 1.5;
+    }
+
+    /* Gráficos Científicos em Canvas 2D HiDPI */
+    .chart-tabs {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 3px;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .chart-tab {
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 0.81rem;
+      font-weight: 800;
+      color: var(--slate);
+      transition: all var(--ease);
+    }
+
+    .chart-tab:hover {
+      color: var(--navy);
+    }
+
+    .chart-tab.active {
+      background: var(--white);
+      color: var(--orange-dark);
+      box-shadow: 0 2px 6px rgba(20, 35, 61, 0.08);
+    }
+
+    .chart-stage {
+      position: relative;
+      width: 100%;
+      height: 295px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: #fcfdff;
+      overflow: hidden;
+    }
+
+    #chartCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(20, 35, 61, 0.94);
+      color: var(--white);
+      padding: 8px 11px;
+      border-radius: 9px;
+      font-size: 0.76rem;
+      line-height: 1.45;
+      box-shadow: 0 8px 20px rgba(20, 35, 61, 0.25);
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    .chart-tooltip.visible {
+      opacity: 1;
+    }
+
+    .chart-footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .chart-leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: var(--slate-dark);
+    }
+
+    .leg-line {
+      width: 18px;
+      height: 3px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    .leg-line.dashed {
+      background: none !important;
+      border-top: 3px dashed currentColor;
+      height: 0;
+    }
+
+    /* Análise Física (10 Fórmulas com Substituição Dinâmica) */
+    .formulas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .formula-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: border-color var(--ease);
+    }
+
+    .formula-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .formula-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .formula-name {
+      font-size: 0.83rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .formula-sym {
+      font-family: var(--font-mono);
+      font-size: 0.77rem;
+      font-weight: 700;
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+      border: 1px solid var(--orange-border);
+      padding: 2px 8px;
+      border-radius: 7px;
+    }
+
+    .formula-body {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.79rem;
+      color: var(--slate-dark);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .formula-res {
+      color: var(--orange-dark);
+      font-weight: 700;
+    }
+
+    .formula-note {
+      font-size: 0.74rem;
+      color: var(--slate);
+      font-weight: 600;
+    }
+
+    /* Toast Discreto para Validação */
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      max-width: 380px;
+      background: var(--navy);
+      color: var(--white);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.83rem;
+      font-weight: 700;
+      box-shadow: 0 12px 28px rgba(20, 35, 61, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       9. RESPONSIVIDADE (1366x768, 1920x1080, Tablets, Smartphones)
+       ========================================================================= */
+    @media (max-width: 1120px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-stage {
+        height: 410px;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .topbar-inner {
+        padding: 10px 14px;
+      }
+
+      .workspace {
+        padding: 14px 12px 32px;
+      }
+
+      .card, .sim-card {
+        padding: 14px;
+      }
+
+      .formulas-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .telemetry-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .objects-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .canvas-stage {
+        height: 365px;
+      }
+
+      .chart-stage {
+        height: 260px;
+      }
+
+      .custom-obj-panel.visible {
+        grid-template-columns: 1fr auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .simulab-logo {
+        padding-right: 10px;
+      }
+
+      .lab-title {
+        font-size: 1rem;
+      }
+
+      .lab-subtitle {
+        font-size: 0.76rem;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .telemetry-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .transport-btns {
+        width: 100%;
+      }
+
+      .btn-drop {
+        flex: 1;
+      }
+    }
+  </style>
 </head>
 <body>
-    <a href="https://erik-bernardo.github.io/SimuLab/simulacoes.html" class="header-link">
-        <i class="fas fa-arrow-left"></i> Voltar para a Plataforma
-    </a>
-    
-    <h1>Simulador de Queda Livre Planetária 2D</h1>
 
-    <div class="container">
-        <div class="controls">
-            <h2>Configurações de Física</h2>
-            
-            <label for="gravitySelect">Gravidade (Corpo Celeste):</label>
-            <select id="gravitySelect">
-                </select>
-
-            <label for="corInput">Elasticidade do Chão (COR 0.0-1.0):</label>
-            <input type="number" id="corInput" value="0.85" min="0.0" max="1.0" step="0.05">
-
-            <button id="startButton"><i class="fas fa-play"></i> Iniciar Simulação</button>
-            
-            <hr style="margin: 20px 0;">
-            
-            <h2>Adicionar Bola (Snapping de 5m)</h2>
-
-            <label for="initialHeightInput">Altura Inicial (m):</label>
-            <input type="number" id="initialHeightInput" value="50.0" min="5" step="5">
-
-            <label for="massInput">Massa da Próxima Bola (kg):</label>
-            <input type="number" id="massInput" value="1.0" min="0.1" step="0.1">
-
-            <button id="addBallButton"><i class="fas fa-plus-circle"></i> Adicionar Bola</button>
-            
-            <button id="resetAllButton" style="background-color: #e74c3c;"><i class="fas fa-trash-alt"></i> Remover Todas</button>
-
-            <div class="data-panel" style="margin-top: 20px;">
-                <h3>Escala de Visualização (Zoom)</h3>
-                <label for="zoomScaleInput">Ajuste o Nível de Zoom (Visual):</label>
-                <input type="range" id="zoomScaleInput" min="0.5" max="2.0" value="1.0" step="0.1" style="width: 100%;">
-                <p style="margin-top: 5px;">Zoom Atual: <span id="currentZoomScale">1.0x</span></p>
-                <p>Malha: <span id="gridUnitMeter">5 metros</span></p>
-            </div>
-
-
-            <div class="data-panel">
-                <h3>Status da Simulação</h3>
-                <p>Gravidade (g): <span id="gValue">9.81 m/s²</span></p>
-                <p>Total de Bolas: <span id="ballCount">0</span></p>
-                <p>COR (Chão): <span id="corValue">0.85</span></p>
-            </div>
-            
-            <div class="kinematics-panel">
-                <h3>Dados Cinemáticos (Bola <span id="selectedBallId">-</span>)</h3>
-                <p>Altura Inicial (H): <span id="initialHeightValue">N/A</span></p>
-                <p>Altura Atual (h): <span id="currentHeightValue">N/A</span></p>
-                <hr style="margin: 8px 0;">
-                <p>Tempo de Queda (t): <span id="timeOfFallValue">0.00 s</span></p>
-                <p>Velocidade Atual (v): <span id="currentVelocityValue">0.00 m/s</span></p>
-                <p>Velocidade Teórica ($v_{teo}$): <span id="theoreticalVelocityValue">0.00 m/s</span></p>
-            </div>
-
+  <!-- =======================================================================
+       CABEÇALHO SIMULAB
+       ======================================================================= -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-group">
+        <div class="simulab-logo" aria-label="SimuLab">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="40" height="40" rx="11" fill="#ff690b" />
+            <path d="M20 8.5V22.5" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M14.5 17.5L20 23L25.5 17.5" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="20" cy="29" r="3.4" fill="#14233d" stroke="#ffffff" stroke-width="2" />
+            <path d="M10 33.5H30" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.85" />
+          </svg>
+          <span class="simulab-wordmark">Simu<span>Lab</span></span>
         </div>
 
-        <div class="simulation-area">
-            <div id="floor"></div>
+        <div class="title-block">
+          <h1 class="lab-title">Laboratório de Queda Livre</h1>
+          <p class="lab-subtitle">Explore a gravidade, o movimento e as colisões</p>
         </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="mode-switch" role="tablist" aria-label="Modo de visualização">
+          <button type="button" class="mode-btn active" id="btnModeSingle" role="tab" aria-selected="true">
+            <span class="mode-dot"></span>
+            Experimento Único
+          </button>
+          <button type="button" class="mode-btn" id="btnModeCompare" role="tab" aria-selected="false">
+            <span class="mode-dot"></span>
+            Modo Comparação (A vs B)
+          </button>
+        </div>
+
+        <button type="button" class="btn btn-secondary" id="btnHeaderReset" title="Retornar objeto à altura inicial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          Reiniciar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =======================================================================
+       CONTEÚDO PRINCIPAL
+       ======================================================================= -->
+  <main class="workspace">
+    <!-- GRID SUPERIOR: SIMULAÇÃO À ESQUERDA + CONFIGURAÇÕES À DIREITA -->
+    <div class="main-grid">
+
+      <!-- ===================================================================
+           COLUNA ESQUERDA: CANVAS + CONTROLES + TELEMETRIA EM TEMPO REAL
+           =================================================================== -->
+      <div class="left-col">
+        <!-- Cartão da Simulação Física -->
+        <section class="card sim-card" aria-label="Área de simulação física">
+          <div class="canvas-stage" id="simStage">
+            <canvas id="simCanvas" aria-label="Simulação lateral de queda livre e colisões"></canvas>
+          </div>
+
+          <!-- Legenda e controles de vetores e rastro -->
+          <div class="vector-bar">
+            <div class="vector-checks">
+              <label class="vec-toggle">
+                <input type="checkbox" id="chkVecV" checked />
+                <span class="vec-swatch" style="background: var(--vec-v);"></span>
+                Velocidade (v)
+              </label>
+              <label class="vec-toggle">
+                <input type="checkbox" id="chkVecG" checked />
+                <span class="vec-swatch" style="background: var(--vec-g);"></span>
+                Gravidade (g)
+              </label>
+              <label class="vec-toggle">
+                <input type="checkbox" id="chkVecP" checked />
+                <span class="vec-swatch" style="background: var(--vec-p);"></span>
+                Força Peso (P)
+              </label>
+              <label class="vec-toggle">
+                <input type="checkbox" id="chkTrail" checked />
+                <span class="vec-swatch" style="background: var(--slate);"></span>
+                Rastro estroboscópico
+              </label>
+            </div>
+
+            <div class="vec-scale-wrap">
+              <label for="sliderVecScale">Escala vetores:</label>
+              <input type="range" id="sliderVecScale" class="lab-slider" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Escala visual dos vetores" />
+              <span class="mono" id="lblVecScale">1,0×</span>
+            </div>
+          </div>
+
+          <!-- Barra de Controles de Execução -->
+          <div class="controls-bar">
+            <div class="transport-btns">
+              <button type="button" class="btn btn-primary btn-drop" id="btnDrop">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
+                </svg>
+                <span id="btnDropText">SOLTAR OBJETO</span>
+              </button>
+
+              <button type="button" class="btn btn-navy" id="btnPauseResume" disabled>
+                <svg id="icoPause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+                <svg id="icoResume" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="6 4 20 12 6 20 6 4" fill="currentColor" />
+                </svg>
+                <span id="btnPauseText">PAUSAR</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnStep" title="Avançar exatamente 0,02 s quadro a quadro">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="5 4 15 12 5 20 5 4" />
+                  <line x1="19" y1="5" x2="19" y2="19" />
+                </svg>
+                PASSO A PASSO
+              </button>
+
+              <button type="button" class="btn btn-secondary" id="btnReset">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                REINICIAR
+              </button>
+            </div>
+
+            <div class="speed-group" role="group" aria-label="Velocidade da simulação">
+              <span class="speed-label">Vel.</span>
+              <button type="button" class="speed-btn" data-speed="0.25">0,25×</button>
+              <button type="button" class="speed-btn" data-speed="0.5">0,5×</button>
+              <button type="button" class="speed-btn active" data-speed="1">1×</button>
+              <button type="button" class="speed-btn" data-speed="2">2×</button>
+              <button type="button" class="speed-btn" data-speed="4">4×</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Painel de Dados em Tempo Real -->
+        <section class="card" aria-label="Painel de dados em tempo real">
+          <div class="telemetry-head">
+            <div>
+              <span class="kicker">Telemetria Instantânea</span>
+              <h2 class="card-title">Dados em Tempo Real</h2>
+            </div>
+
+            <div class="telemetry-tabs" id="telemetryExpTabs">
+              <button type="button" class="mini-tab active-a" data-tele-exp="A">Experimento A</button>
+              <button type="button" class="mini-tab" data-tele-exp="B">Experimento B</button>
+            </div>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="tele-card" id="teleCardY">
+              <div class="tele-top"><span class="tele-label">Altura Atual</span><span class="tele-dot"></span></div>
+              <div class="tele-val" id="teleY">10,00 m</div>
+            </div>
+
+            <div class="tele-card" id="teleCardT">
+              <div class="tele-top"><span class="tele-label">Tempo Decorrido</span><span class="tele-dot"></span></div>
+              <div class="tele-val" id="teleT">0,00 s</div>
+            </div>
+
+            <div class="tele-card" id="teleCardV">
+              <div class="tele-top"><span class="tele-label">Velocidade</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-v" id="teleV">0,00 m/s</div>
+            </div>
+
+            <div class="tele-card" id="teleCardA">
+              <div class="tele-top"><span class="tele-label">Aceleração</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-g" id="teleA">−9,81 m/s²</div>
+            </div>
+
+            <div class="tele-card" id="teleCardM">
+              <div class="tele-top"><span class="tele-label">Massa</span><span class="tele-dot"></span></div>
+              <div class="tele-val" id="teleM">0,15 kg</div>
+            </div>
+
+            <div class="tele-card" id="teleCardP">
+              <div class="tele-top"><span class="tele-label">Força Peso</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-p" id="teleP">1,47 N</div>
+            </div>
+
+            <div class="tele-card" id="teleCardEp">
+              <div class="tele-top"><span class="tele-label">Energia Potencial</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-v" id="teleEp">14,72 J</div>
+            </div>
+
+            <div class="tele-card" id="teleCardEc">
+              <div class="tele-top"><span class="tele-label">Energia Cinética</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-g" id="teleEc">0,00 J</div>
+            </div>
+
+            <div class="tele-card" id="teleCardEm">
+              <div class="tele-top"><span class="tele-label">Energia Mecânica</span><span class="tele-dot"></span></div>
+              <div class="tele-val color-em" id="teleEm">14,72 J</div>
+            </div>
+          </div>
+
+          <!-- Barra de Distribuição de Energia -->
+          <div class="energy-bar-block">
+            <div class="energy-bar-header">
+              <span>Conservação e Dissipação de Energia</span>
+              <div class="energy-legend-inline">
+                <span><i class="vec-swatch" style="background: var(--en-ep);"></i> Ep <strong class="mono" id="pctEp">100%</strong></span>
+                <span><i class="vec-swatch" style="background: var(--en-ec);"></i> Ec <strong class="mono" id="pctEc">0%</strong></span>
+                <span><i class="vec-swatch" style="background: #cbd5e1;"></i> Dissipada <strong class="mono" id="pctLoss">0%</strong></span>
+              </div>
+            </div>
+            <div class="energy-track" aria-label="Proporção de energias">
+              <div class="energy-seg seg-ep" id="barEp" style="width: 100%;"></div>
+              <div class="energy-seg seg-ec" id="barEc" style="width: 0%;"></div>
+              <div class="energy-seg seg-loss" id="barLoss" style="width: 0%;"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===================================================================
+           COLUNA DIREITA: PAINEL DE CONFIGURAÇÕES & EXPERIMENTOS PREDEFINIDOS
+           =================================================================== -->
+      <aside class="right-col" aria-label="Configurações do experimento">
+        <section class="card config-card">
+          <div class="card-head" style="margin-bottom: 0;">
+            <div>
+              <span class="kicker">Parâmetros Físicos</span>
+              <h2 class="card-title">Configurações do Experimento</h2>
+            </div>
+          </div>
+
+          <!-- Banner de Abas A / B (Visível apenas no Modo Comparação) -->
+          <div class="compare-config-banner" id="compareConfigBanner">
+            <div class="exp-tabs" role="tablist" aria-label="Selecionar experimento para configurar">
+              <button type="button" class="exp-tab active-a" id="tabCfgA" role="tab" aria-selected="true">
+                <span class="exp-dot" style="background: var(--exp-a);"></span>
+                Experimento A
+              </button>
+              <button type="button" class="exp-tab" id="tabCfgB" role="tab" aria-selected="false">
+                <span class="exp-dot" style="background: var(--exp-b);"></span>
+                Experimento B
+              </button>
+            </div>
+            <div class="compare-presets-row" aria-label="Comparações rápidas">
+              <button type="button" class="chip-btn" data-cmp-preset="earth-moon">Terra vs Lua</button>
+              <button type="button" class="chip-btn" data-cmp-preset="masses">Massas Diferentes</button>
+              <button type="button" class="chip-btn" data-cmp-preset="heights">Alturas Diferentes</button>
+              <button type="button" class="chip-btn" data-cmp-preset="elasticity">Elasticidades Diferentes</button>
+            </div>
+          </div>
+
+          <!-- 1. Seleção de Objetos -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <span class="cfg-label">Objeto do Experimento</span>
+              <span class="card-sub" id="selectedObjLabel" style="margin:0; font-weight:700;">Bola de borracha</span>
+            </div>
+
+            <div class="objects-grid" id="objectsGrid" role="radiogroup" aria-label="Selecionar objeto"></div>
+
+            <!-- Controles Extras para Objeto Personalizado -->
+            <div class="custom-obj-panel" id="customObjPanel">
+              <input type="text" id="customObjName" class="custom-text-input" maxlength="22" value="Esfera custom" placeholder="Nome do objeto" aria-label="Nome do objeto personalizado" />
+              <div class="shape-toggle" role="group" aria-label="Formato do objeto">
+                <button type="button" class="shape-btn active" data-shape="sphere">Esfera</button>
+                <button type="button" class="shape-btn" data-shape="cube">Cubo</button>
+              </div>
+              <input type="color" id="customObjColor" class="custom-color-input" value="#ff690b" aria-label="Cor do objeto personalizado" />
+            </div>
+          </div>
+
+          <!-- 2. Gravidade -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <label for="inputGravity" class="cfg-label">Gravidade (g)</label>
+              <div class="cfg-input-box">
+                <input type="text" inputmode="decimal" id="inputGravity" class="cfg-num-input" value="9,81" aria-label="Gravidade em metros por segundo ao quadrado" />
+                <span class="cfg-unit">m/s²</span>
+              </div>
+            </div>
+            <input type="range" id="sliderGravity" class="lab-slider" min="0.5" max="30" step="0.01" value="9.81" aria-label="Controle deslizante de gravidade" />
+            <div class="preset-pills" id="gravityPresets">
+              <button type="button" class="chip-btn active" data-g="9.81" data-planet="Terra">Terra (9,81)</button>
+              <button type="button" class="chip-btn" data-g="1.62" data-planet="Lua">Lua (1,62)</button>
+              <button type="button" class="chip-btn" data-g="3.71" data-planet="Marte">Marte (3,71)</button>
+              <button type="button" class="chip-btn" data-g="24.79" data-planet="Júpiter">Júpiter (24,79)</button>
+              <button type="button" class="chip-btn" data-g="custom" data-planet="Personalizada">Personalizada</button>
+            </div>
+          </div>
+
+          <!-- 3. Massa -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <label for="inputMass" class="cfg-label">Massa do Objeto (m)</label>
+              <div class="cfg-input-box">
+                <input type="text" inputmode="decimal" id="inputMass" class="cfg-num-input" value="0,15" aria-label="Massa em quilogramas" />
+                <span class="cfg-unit">kg</span>
+              </div>
+            </div>
+            <input type="range" id="sliderMass" class="lab-slider" min="0.05" max="50" step="0.05" value="0.15" aria-label="Controle deslizante de massa" />
+            <div class="preset-pills" id="massPresets">
+              <button type="button" class="chip-btn" data-m="0.1">0,1 kg</button>
+              <button type="button" class="chip-btn" data-m="0.5">0,5 kg</button>
+              <button type="button" class="chip-btn" data-m="1">1 kg</button>
+              <button type="button" class="chip-btn" data-m="5">5 kg</button>
+              <button type="button" class="chip-btn" data-m="20">20 kg</button>
+            </div>
+            <div class="didactic-note">
+              <strong>Princípio de Galileu:</strong> na queda livre ideal (sem resistência do ar), a <strong>massa não altera o tempo de queda nem a aceleração</strong> — ela altera a força peso (P), a quantidade de movimento e as energias (Ep, Ec, Em).
+            </div>
+          </div>
+
+          <!-- 4. Altura de Lançamento -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <label for="inputHeight" class="cfg-label">Altura de Lançamento (h₀)</label>
+              <div class="cfg-input-box">
+                <input type="text" inputmode="decimal" id="inputHeight" class="cfg-num-input" value="10,0" aria-label="Altura de lançamento em metros" />
+                <span class="cfg-unit">m</span>
+              </div>
+            </div>
+            <input type="range" id="sliderHeight" class="lab-slider" min="1" max="100" step="0.5" value="10" aria-label="Controle deslizante de altura" />
+            <div class="preset-pills" id="heightPresets">
+              <button type="button" class="chip-btn" data-h="5">5 m</button>
+              <button type="button" class="chip-btn active" data-h="10">10 m</button>
+              <button type="button" class="chip-btn" data-h="25">25 m</button>
+              <button type="button" class="chip-btn" data-h="50">50 m</button>
+              <button type="button" class="chip-btn" data-h="100">100 m</button>
+            </div>
+          </div>
+
+          <!-- 5. Elasticidade do Chão -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <label for="inputElasticity" class="cfg-label">Elasticidade do Chão (e)</label>
+              <div class="cfg-input-box">
+                <input type="text" inputmode="decimal" id="inputElasticity" class="cfg-num-input" value="0,70" aria-label="Coeficiente de restituição de 0 a 1" />
+                <span class="cfg-unit">e</span>
+              </div>
+            </div>
+            <input type="range" id="sliderElasticity" class="lab-slider" min="0" max="1" step="0.01" value="0.70" aria-label="Controle deslizante de elasticidade" />
+            <div class="preset-pills" id="elasticityPresets">
+              <button type="button" class="chip-btn" data-e="0">0,00</button>
+              <button type="button" class="chip-btn" data-e="0.25">0,25</button>
+              <button type="button" class="chip-btn" data-e="0.5">0,50</button>
+              <button type="button" class="chip-btn" data-e="0.75">0,75</button>
+              <button type="button" class="chip-btn" data-e="1">1,00</button>
+            </div>
+            <div class="regime-badge" id="elasticityRegime">
+              <span class="regime-dot" id="regimeDot"></span>
+              <span id="regimeText">Alta elasticidade — perde 51% da energia por quique</span>
+            </div>
+          </div>
+
+          <!-- 6. Experimentos Predefinidos -->
+          <div class="cfg-section">
+            <div class="cfg-label-row">
+              <span class="cfg-label">Experimentos Predefinidos</span>
+            </div>
+            <div class="experiments-list">
+              <button type="button" class="exp-preset-btn" data-exp-preset="1">
+                <div>
+                  <span class="exp-preset-title">1. Gravidade terrestre</span>
+                  <span class="exp-preset-meta">Bola de borracha • 9,81 m/s² • 10 m • e = 0,70</span>
+                </div>
+                <span class="exp-preset-tag">Terra</span>
+              </button>
+
+              <button type="button" class="exp-preset-btn" data-exp-preset="2">
+                <div>
+                  <span class="exp-preset-title">2. Gravidade lunar</span>
+                  <span class="exp-preset-meta">Bola de borracha • 1,62 m/s² • 10 m • e = 0,70</span>
+                </div>
+                <span class="exp-preset-tag">Lua</span>
+              </button>
+
+              <button type="button" class="exp-preset-btn" data-exp-preset="3">
+                <div>
+                  <span class="exp-preset-title">3. Superfície sem elasticidade</span>
+                  <span class="exp-preset-meta">9,81 m/s² • 10 m • e = 0,00 (sem quique)</span>
+                </div>
+                <span class="exp-preset-tag">Inelástica</span>
+              </button>
+
+              <button type="button" class="exp-preset-btn" data-exp-preset="4">
+                <div>
+                  <span class="exp-preset-title">4. Colisão perfeitamente elástica</span>
+                  <span class="exp-preset-meta">9,81 m/s² • 10 m • e = 1,00 (energia conservada)</span>
+                </div>
+                <span class="exp-preset-tag">Elástica</span>
+              </button>
+
+              <button type="button" class="exp-preset-btn" data-exp-preset="5">
+                <div>
+                  <span class="exp-preset-title">5. Influência da massa (A vs B)</span>
+                  <span class="exp-preset-meta">Tênis (0,058 kg) vs Cubo metálico (10 kg) • 10 m</span>
+                </div>
+                <span class="exp-preset-tag">Comparação</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </aside>
     </div>
 
-    <script>
-        // -----------------------------------
-        // 1. CONFIGURAÇÕES FÍSICAS E DOM
-        // -----------------------------------
-        const GRAVITIES = {
-            'Sol (g = 274.13)': 274.13,
-            'Júpiter (g = 24.79)': 24.79,
-            'Netuno (g = 11.15)': 11.15,
-            'Saturno (g = 10.44)': 10.44,
-            'Terra (g = 9.81)': 9.81,
-            'Vênus (g = 8.87)': 8.87,
-            'Urano (g = 8.69)': 8.69,
-            'Marte (g = 3.72)': 3.72,
-            'Mercúrio (g = 3.7)': 3.7,
-            'Lua (g = 1.62)': 1.62,
-            'Plutão (g = 0.62)': 0.62,
-            'Simulação Espacial (g = 0.0)': 0.00
-        };
+    <!-- =====================================================================
+         SEÇÃO INFERIOR 1: TABELA DE COMPARAÇÃO A vs B (MODO COMPARAÇÃO)
+         ===================================================================== -->
+    <section class="card compare-section" id="compareTableSection" aria-label="Comparação detalhada entre Experimento A e Experimento B">
+      <div class="card-head">
+        <div>
+          <span class="kicker">Experimentos Simultâneos</span>
+          <h2 class="card-title">Comparação Direta: Experimento A vs Experimento B</h2>
+          <p class="card-sub">Observe como cada parâmetro físico altera tempo de queda, velocidade, força peso, energia e altura dos quiques.</p>
+        </div>
+      </div>
 
-        const simulationArea = document.querySelector('.simulation-area');
-        const gravitySelect = document.getElementById('gravitySelect');
-        const corInput = document.getElementById('corInput');
-        const startButton = document.getElementById('startButton');
-        const addBallButton = document.getElementById('addBallButton');
-        const resetAllButton = document.getElementById('resetAllButton');
-        const massInput = document.getElementById('massInput');
-        
-        // NOVOS ELEMENTOS DOM
-        const initialHeightInput = document.getElementById('initialHeightInput');
-        const zoomScaleInput = document.getElementById('zoomScaleInput');
-        const currentZoomScaleOutput = document.getElementById('currentZoomScale');
-        const gridUnitMeterOutput = document.getElementById('gridUnitMeter');
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Grandeza Física</th>
+              <th><span class="col-a-badge"><span class="exp-dot" style="background: var(--exp-a);"></span> Experimento A</span></th>
+              <th><span class="col-b-badge"><span class="exp-dot" style="background: var(--exp-b);"></span> Experimento B</span></th>
+              <th>Diferença / Relação</th>
+            </tr>
+          </thead>
+          <tbody id="compareTableBody"></tbody>
+        </table>
+      </div>
 
+      <div class="compare-summary" id="compareSummary"></div>
+    </section>
 
-        const generalOutput = {
-            g: document.getElementById('gValue'),
-            cor: document.getElementById('corValue'),
-            ballCount: document.getElementById('ballCount')
-        };
-        
-        const kinematicsOutput = {
-            id: document.getElementById('selectedBallId'),
-            initialHeight: document.getElementById('initialHeightValue'),
-            currentHeight: document.getElementById('currentHeightValue'),
-            timeOfFall: document.getElementById('timeOfFallValue'),
-            currentVelocity: document.getElementById('currentVelocityValue'),
-            theoreticalVelocity: document.getElementById('theoreticalVelocityValue')
-        };
-        
-        let SIM_WIDTH_PX = 0;
-        let SIM_HEIGHT_PX = 0;
-        const FLOOR_HEIGHT_PX = 5;
+    <!-- =====================================================================
+         SEÇÃO INFERIOR 2: GRÁFICOS CIENTÍFICOS EM TEMPO REAL (CANVAS 2D)
+         ===================================================================== -->
+    <section class="card" aria-label="Gráficos científicos em tempo real">
+      <div class="card-head">
+        <div>
+          <span class="kicker">Visualização Gráfica</span>
+          <h2 class="card-title">Gráficos em Tempo Real</h2>
+          <p class="card-sub">Passe o cursor sobre o gráfico para inspecionar os valores exatos em cada instante.</p>
+        </div>
 
-        // NOVAS CONSTANTES DE ESCALA
-        const BASE_PIXELS_PER_METER = 100; // 100 pixels por metro na escala 1.0x
-        const GRID_UNIT_METER = 5; // 5 metros por quadrado de malha (para snapping e visual)
-        
-        // VARIÁVEIS DE ESCALA
-        let currentZoomScale = 1.0;
-        let PIXELS_PER_METER = BASE_PIXELS_PER_METER * currentZoomScale; 
+        <div class="chart-tabs" role="tablist" aria-label="Selecionar tipo de gráfico">
+          <button type="button" class="chart-tab active" data-chart="height" role="tab" aria-selected="true">Altura × Tempo</button>
+          <button type="button" class="chart-tab" data-chart="velocity" role="tab" aria-selected="false">Velocidade × Tempo</button>
+          <button type="button" class="chart-tab" data-chart="energy" role="tab" aria-selected="false">Energia × Tempo</button>
+        </div>
+      </div>
 
-        const BALL_COLLISION_COR = 0.95; 
-        const WALL_COR = 0.95; 
+      <div class="chart-stage" id="chartStage">
+        <canvas id="chartCanvas" aria-label="Gráfico físico em tempo real"></canvas>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
 
-        const BASE_RADIUS_M = 0.2; 
-        const COLORS = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#1abc9c', '#e67e22'];
-        let colorIndex = 0;
+      <div class="chart-footer-bar">
+        <div class="chart-legend" id="chartLegend"></div>
+        <span id="chartHint">Solte o objeto para registrar a curva em tempo real.</span>
+      </div>
+    </section>
 
-        // -----------------------------------
-        // 2. VARIÁVEIS DE ESTADO DA SIMULAÇÃO
-        // -----------------------------------
-        let isSimulating = false;
-        let animationFrameId = null;
-        let lastTime = 0;
-        let balls = [];
-        let ballIdCounter = 0;
-        let currentG = 9.81;
-        
-        let selectedBall = null;
-        let draggingBall = null;
-        let dragOffset = { x: 0, y: 0 };
-        let lastMousePos = { x: 0, y: 0 };
-        let lastDragTime = 0;
+    <!-- =====================================================================
+         SEÇÃO INFERIOR 3: ANÁLISE FÍSICA (FÓRMULAS COM SUBSTITUIÇÃO AO VIVO)
+         ===================================================================== -->
+    <section class="card" aria-label="Análise Física e cálculos matemáticos">
+      <div class="card-head">
+        <div>
+          <span class="kicker">Modelagem Matemática</span>
+          <h2 class="card-title">Análise Física</h2>
+          <p class="card-sub">Fórmulas de Cinemática, Dinâmica e Energia com substituição automática (referência: chão y = 0 m, sentido positivo para cima).</p>
+        </div>
 
+        <div class="telemetry-tabs" id="analysisExpTabs">
+          <button type="button" class="mini-tab active-a" data-analysis-exp="A">Ver Análise: Exp. A</button>
+          <button type="button" class="mini-tab" data-analysis-exp="B">Ver Análise: Exp. B</button>
+        </div>
+      </div>
 
-        // -----------------------------------
-        // 3. CLASSE BALL
-        // -----------------------------------
+      <div class="formulas-grid" id="formulasGrid">
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Velocidade durante a queda</span>
+            <span class="formula-sym">v = v₀ − g·t</span>
+          </div>
+          <div class="formula-body" id="fVelocity"></div>
+          <span class="formula-note">Em módulo na queda do repouso: |v| = g·t (cresce linearmente com o tempo).</span>
+        </div>
 
-        class Ball {
-            constructor(id, mass, start_x_px, start_y_px) {
-                this.id = id;
-                this.mass = mass;
-                this.radius_m = BASE_RADIUS_M * Math.pow(this.mass, 1/3); 
-                
-                this.color = COLORS[colorIndex++ % COLORS.length];
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Posição vertical</span>
+            <span class="formula-sym">y(t) = h₀ + v₀·t − (g·t²)/2</span>
+          </div>
+          <div class="formula-body" id="fPosition"></div>
+          <span class="formula-note">Relação quadrática entre altura e tempo de queda (movimento uniformemente variado).</span>
+        </div>
 
-                this.x_px = start_x_px;
-                this.y_px = start_y_px; 
-                this.initial_y_px = start_y_px; // Posição Y no momento da última soltura/quique
-                
-                this.vx_m = 0; 
-                this.vy_m = 0; 
-                this.time_in_air = 0;
-                this.isDragging = false;
-                
-                this.element = document.createElement('div');
-                this.element.classList.add('ball');
-                this.element.id = `ball-${this.id}`;
-                this.element.style.backgroundColor = this.color;
-                simulationArea.appendChild(this.element);
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Tempo da 1ª queda (do repouso)</span>
+            <span class="formula-sym">t = √(2h / g)</span>
+          </div>
+          <div class="formula-body" id="fFallTime"></div>
+          <span class="formula-note">Note que a massa m não aparece na fórmula: depende apenas de h₀ e g.</span>
+        </div>
 
-                this.updateScale(); // Inicializa o radius_px e o tamanho do DOM
-                this.render();
-                
-                // Adiciona listeners para seleção e arrasto
-                this.element.addEventListener('mousedown', (e) => {
-                    setSelectedBall(this); 
-                    handleDragStart(e, this);
-                });
-                this.element.addEventListener('touchstart', (e) => {
-                    e.preventDefault(); 
-                    setSelectedBall(this); 
-                    handleDragStart(e, this);
-                }, { passive: false });
-            }
-            
-            updateScale() {
-                this.radius_px = this.radius_m * PIXELS_PER_METER;
-                this.element.style.width = `${this.radius_px * 2}px`;
-                this.element.style.height = `${this.radius_px * 2}px`;
-            }
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Velocidade no 1º impacto</span>
+            <span class="formula-sym">v = √(2·g·h)</span>
+          </div>
+          <div class="formula-body" id="fImpactVel"></div>
+          <span class="formula-note">Módulo da velocidade exatamente ao atingir o chão (y = 0 m).</span>
+        </div>
 
-            updatePosition(dt) {
-                if (this.isDragging) return;
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Força Peso</span>
+            <span class="formula-sym">P = m × g</span>
+          </div>
+          <div class="formula-body" id="fWeight"></div>
+          <span class="formula-note">Permanece constante durante todo o movimento vertical em gravidade uniforme.</span>
+        </div>
 
-                let old_vy_m = this.vy_m; 
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Energia Potencial Gravitacional</span>
+            <span class="formula-sym">Ep = m × g × h</span>
+          </div>
+          <div class="formula-body" id="fEp"></div>
+          <span class="formula-note">Máxima no ponto mais alto e nula no nível do chão (y = 0 m).</span>
+        </div>
 
-                this.vy_m += currentG * dt;
-                
-                const avg_vy_m = (old_vy_m + this.vy_m) / 2;
-                
-                let dx_m = this.vx_m * dt;
-                let dy_m = avg_vy_m * dt; 
-                
-                this.x_px += dx_m * PIXELS_PER_METER;
-                this.y_px += dy_m * PIXELS_PER_METER;
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Energia Cinética</span>
+            <span class="formula-sym">Ec = (m × v²) / 2</span>
+          </div>
+          <div class="formula-body" id="fEc"></div>
+          <span class="formula-note">Cresce durante a queda conforme a energia potencial se converte em movimento.</span>
+        </div>
 
-                if (currentG > 0) {
-                    this.time_in_air += dt;
-                }
-            }
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Energia Mecânica Total</span>
+            <span class="formula-sym">Em = Ep + Ec</span>
+          </div>
+          <div class="formula-body" id="fEm"></div>
+          <span class="formula-note">Conservada durante o voo; dissipada nas colisões quando e &lt; 1.</span>
+        </div>
 
-            checkWallCollision() {
-                const cor = parseFloat(corInput.value) || 0.85; 
-                // Recalcula o chão com a escala atual
-                const floor_y_px = SIM_HEIGHT_PX - this.radius_px - FLOOR_HEIGHT_PX; 
-                
-                // Colisão com o chão
-                if (this.y_px > floor_y_px) {
-                    this.y_px = floor_y_px;
-                    
-                    if (Math.abs(this.vy_m) > 0.1) {
-                        this.vy_m *= -cor; 
-                        this.time_in_air = 0; 
-                        // Altura inicial para cálculo cinemático é a altura do chão (zero)
-                        this.initial_y_px = floor_y_px; 
-                    } else {
-                        this.vy_m = 0; 
-                        this.vx_m *= 0.95; 
-                    }
-                }
-                
-                // Colisão com o teto (apenas para evitar que a bola saia)
-                if (this.y_px < this.radius_px) {
-                    this.y_px = this.radius_px;
-                    this.vy_m *= -WALL_COR; 
-                }
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Colisão e Elasticidade</span>
+            <span class="formula-sym">e = |v_depois| / |v_antes|</span>
+          </div>
+          <div class="formula-body" id="fRestitution"></div>
+          <span class="formula-note" id="fRestitutionNote">Define a fração da velocidade preservada após o impacto com o chão.</span>
+        </div>
 
-                // Colisão com as paredes laterais
-                const left_x_px = this.radius_px;
-                const right_x_px = SIM_WIDTH_PX - this.radius_px;
+        <div class="formula-card">
+          <div class="formula-head">
+            <span class="formula-name">Altura após o 1º quique</span>
+            <span class="formula-sym">h₂ = e² × h₁</span>
+          </div>
+          <div class="formula-body" id="fBounceHeight"></div>
+          <span class="formula-note">Como a altura varia com e², em cada quique a fração de energia retida é e².</span>
+        </div>
+      </div>
+    </section>
+  </main>
 
-                if (this.x_px < left_x_px) {
-                    this.x_px = left_x_px;
-                    this.vx_m *= -WALL_COR; 
-                } else if (this.x_px > right_x_px) {
-                    this.x_px = right_x_px;
-                    this.vx_m *= -WALL_COR;
-                }
-            }
+  <!-- Toast discreto de validação -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="toast-dot"></span>
+    <span id="toastText"></span>
+  </div>
 
-            render() {
-                this.element.style.left = `${this.x_px - this.radius_px}px`;
-                this.element.style.top = `${this.y_px - this.radius_px}px`;
-            }
-            
-            setSelected(isSelected) {
-                if (isSelected) {
-                    this.element.classList.add('selected');
-                } else {
-                    this.element.classList.remove('selected');
-                }
-            }
+  <!-- =========================================================================
+       SCRIPT PRINCIPAL — MOTOR FÍSICO ANALÍTICO, RENDERIZADOR E GRÁFICOS
+       ========================================================================= -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* =======================================================================
+         1. CATÁLOGO DE OBJETOS E GRAVIDADES
+         ======================================================================= */
+      const OBJECT_CATALOG = [
+        { id: 'rubber',     name: 'Bola de borracha',    mass: 0.15,  shape: 'sphere', color: '#f95738', accent: '#ff9f87', style: 'rubber' },
+        { id: 'tennis',     name: 'Bola de tênis',       mass: 0.058, shape: 'sphere', color: '#b7df24', accent: '#ffffff', style: 'tennis' },
+        { id: 'soccer',     name: 'Bola de futebol',     mass: 0.43,  shape: 'sphere', color: '#f8fafc', accent: '#1e293b', style: 'soccer' },
+        { id: 'basketball', name: 'Bola de basquete',    mass: 0.62,  shape: 'sphere', color: '#ea580c', accent: '#1e293b', style: 'basketball' },
+        { id: 'steel',      name: 'Bola de aço',         mass: 2.00,  shape: 'sphere', color: '#94a3b8', accent: '#f1f5f9', style: 'steel' },
+        { id: 'wood',       name: 'Bloco de madeira',    mass: 1.50,  shape: 'cube',   color: '#c2854c', accent: '#8c5523', style: 'wood' },
+        { id: 'metalcube',  name: 'Cubo metálico',       mass: 5.00,  shape: 'cube',   color: '#475569', accent: '#cbd5e1', style: 'metalcube' },
+        { id: 'custom',     name: 'Personalizado',       mass: 1.00,  shape: 'sphere', color: '#ff690b', accent: '#ffffff', style: 'custom' }
+      ];
+
+      const PLANETS = [
+        { name: 'Terra',   g: 9.81 },
+        { name: 'Lua',     g: 1.62 },
+        { name: 'Marte',   g: 3.71 },
+        { name: 'Júpiter', g: 24.79 }
+      ];
+
+      /* =======================================================================
+         2. UTILITÁRIOS DE FORMATAÇÃO E VALIDAÇÃO PT-BR
+         ======================================================================= */
+      const fmt = (val, decimals = 2) => {
+        if (!Number.isFinite(val)) return '0,00';
+        const clean = Math.abs(val) < 1e-9 ? 0 : val;
+        return clean.toFixed(decimals).replace('.', ',');
+      };
+
+      const fmtSmart = (val) => {
+        if (!Number.isFinite(val)) return '0';
+        const abs = Math.abs(val);
+        if (abs === 0) return '0,00';
+        if (abs < 0.1) return fmt(val, 3);
+        if (abs >= 1000) return fmt(val, 1);
+        return fmt(val, 2);
+      };
+
+      const parseLocaleNum = (str) => {
+        if (typeof str !== 'string') return NaN;
+        const cleaned = str.trim().replace(',', '.');
+        if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(cleaned)) return NaN;
+        return Number(cleaned);
+      };
+
+      const detectPlanetName = (g) => {
+        for (const p of PLANETS) {
+          if (Math.abs(g - p.g) < 0.015) return p.name;
+        }
+        return 'Personalizada';
+      };
+
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('toast');
+        document.getElementById('toastText').textContent = msg;
+        el.classList.add('visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+      }
+
+      /* =======================================================================
+         3. MOTOR FÍSICO ANALÍTICO EXATO (FallExperiment)
+         Resolve colisões exatamente pela equação quadrática 0.5*g*τ² - v*τ - y = 0,
+         garantindo independência de FPS, conservação rigorosa em e = 1 e detecção
+         inteligente de repouso (sem efeito Zeno).
+         ======================================================================= */
+      class FallExperiment {
+        constructor(id, config = {}) {
+          this.id = id;
+          this.objectId = config.objectId || 'rubber';
+          this.customName = config.customName || 'Esfera custom';
+          this.customShape = config.customShape || 'sphere';
+          this.customColor = config.customColor || '#ff690b';
+
+          this.g = config.g ?? 9.81;
+          this.m = config.m ?? 0.15;
+          this.h0 = config.h0 ?? 10;
+          this.e = config.e ?? 0.70;
+
+          this.reset();
         }
 
-        // -----------------------------------
-        // 4. LÓGICA DE COLISÃO BOLA-BOLA (inalterada)
-        // -----------------------------------
-        
-        function resolveCollision(ballA, ballB) {
-            const dx_px = ballB.x_px - ballA.x_px;
-            const dy_px = ballB.y_px - ballA.y_px;
-            const distance_px = Math.sqrt(dx_px * dx_px + dy_px * dy_px);
-            const min_distance_px = ballA.radius_px + ballB.radius_px;
-
-            if (distance_px < min_distance_px) {
-                
-                // 1. AJUSTE DE POSIÇÃO 
-                const overlap_px = min_distance_px - distance_px;
-                const angle = Math.atan2(dy_px, dx_px);
-                const separation_x = Math.cos(angle) * (overlap_px / 2);
-                const separation_y = Math.sin(angle) * (overlap_px / 2);
-
-                ballA.x_px -= separation_x;
-                ballA.y_px -= separation_y;
-                ballB.x_px += separation_x;
-                ballB.y_px += separation_y;
-                
-                // 2. CÁLCULO DE NOVAS VELOCIDADES
-                const normalX = dx_px / distance_px;
-                const normalY = dy_px / distance_px;
-                
-                const relative_vx = ballA.vx_m - ballB.vx_m;
-                const relative_vy = ballA.vy_m - ballB.vy_m;
-                const speed = relative_vx * normalX + relative_vy * normalY;
-
-                if (speed < 0) return; 
-
-                const total_mass = ballA.mass + ballB.mass;
-                const impulse = (BALL_COLLISION_COR + 1) * speed / total_mass;
-
-                ballA.vx_m -= impulse * ballB.mass * normalX;
-                ballA.vy_m -= impulse * ballB.mass * normalY;
-                ballB.vx_m += impulse * ballA.mass * normalX;
-                ballB.vy_m += impulse * ballA.mass * normalY;
-            }
-        }
-
-
-        // -----------------------------------
-        // 5. LOOP PRINCIPAL E CINEMÁTICA
-        // -----------------------------------
-
-        function simulateLoop(timestamp) {
-            if (!isSimulating) return;
-
-            // Garante que o tamanho da simulação esteja atualizado
-            SIM_WIDTH_PX = simulationArea.offsetWidth;
-            SIM_HEIGHT_PX = simulationArea.offsetHeight;
-
-            const dt = (timestamp - lastTime) / 1000; 
-            lastTime = timestamp;
-            
-            balls.forEach(ball => {
-                ball.updatePosition(dt);
-                ball.checkWallCollision();
-            });
-
-            for (let i = 0; i < balls.length; i++) {
-                for (let j = i + 1; j < balls.length; j++) {
-                    resolveCollision(balls[i], balls[j]);
-                }
-            }
-
-            balls.forEach(ball => ball.render());
-            
-            updateKinematicsDisplay();
-
-            animationFrameId = requestAnimationFrame(simulateLoop);
-        }
-        
-        function updateKinematicsDisplay() {
-            if (!selectedBall) {
-                const N_A = 'N/A';
-                kinematicsOutput.id.textContent = '-';
-                kinematicsOutput.initialHeight.textContent = N_A;
-                kinematicsOutput.currentHeight.textContent = N_A;
-                kinematicsOutput.timeOfFall.textContent = '0.00 s';
-                kinematicsOutput.currentVelocity.textContent = '0.00 m/s';
-                kinematicsOutput.theoreticalVelocity.textContent = '0.00 m/s';
-                return;
-            }
-            
-            const ball = selectedBall;
-            const g = currentG;
-            
-            const floor_y_px = SIM_HEIGHT_PX - ball.radius_px - FLOOR_HEIGHT_PX;
-            
-            // Altura em relação ao chão (em metros)
-            const initial_height_m = (floor_y_px - ball.initial_y_px) / PIXELS_PER_METER;
-            const current_height_m = (floor_y_px - ball.y_px) / PIXELS_PER_METER;
-            
-            // Deslocamento vertical desde o ponto de partida (em metros)
-            const delta_h_m = Math.abs((ball.y_px - ball.initial_y_px) / PIXELS_PER_METER); // Usar valor absoluto
-            
-            // Velocidade Atual (Magnitude - m/s)
-            const velocity_magnitude = Math.sqrt(ball.vx_m * ball.vx_m + ball.vy_m * ball.vy_m);
-
-            let theoretical_v = 0;
-            
-            if (g > 0) {
-                // Cálculo mais preciso, considerando apenas a queda
-                // v = sqrt(v0y^2 + 2g*dh)
-                // Se a bola foi solta/quicou, consideramos v0y como 0 para o cálculo teórico
-                if (ball.time_in_air > 0) {
-                     // Velocidade de queda teórica: v = g * t
-                     theoretical_v = g * ball.time_in_air;
-                } else if (delta_h_m > 0) {
-                     // Alternativa (baseado na altura): v = sqrt(2*g*dh)
-                     theoretical_v = Math.sqrt(2 * g * delta_h_m); 
-                }
-            } else {
-                theoretical_v = velocity_magnitude;
-            }
-
-            // Atualiza a exibição
-            kinematicsOutput.id.textContent = ball.id;
-            kinematicsOutput.initialHeight.textContent = `${Math.max(0, initial_height_m).toFixed(2)} m`;
-            kinematicsOutput.currentHeight.textContent = `${Math.max(0, current_height_m).toFixed(2)} m`;
-            kinematicsOutput.timeOfFall.textContent = `${ball.time_in_air.toFixed(2)} s`;
-            kinematicsOutput.currentVelocity.textContent = `${velocity_magnitude.toFixed(2)} m/s`;
-            kinematicsOutput.theoreticalVelocity.textContent = `${theoretical_v.toFixed(2)} m/s`;
-        }
-
-        // -----------------------------------
-        // 6. LÓGICA DE DRAG & DROP E SELEÇÃO
-        // -----------------------------------
-        // ... (permanece a mesma, usando as novas variáveis de escala) ...
-        
-        function getMousePos(e) {
-            const rect = simulationArea.getBoundingClientRect();
-            let clientX, clientY;
-            
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
+        getObjectMeta() {
+          const base = OBJECT_CATALOG.find(o => o.id === this.objectId) || OBJECT_CATALOG[0];
+          if (base.id === 'custom') {
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+              ...base,
+              name: this.customName.trim() || 'Personalizado',
+              shape: this.customShape,
+              color: this.customColor
             };
+          }
+          return base;
         }
-        
-        function setSelectedBall(ball) {
-            if (selectedBall && selectedBall !== ball) {
-                selectedBall.setSelected(false);
+
+        getPlanetName() {
+          return detectPlanetName(this.g);
+        }
+
+        reset() {
+          this.t = 0;
+          this.y = this.h0;
+          this.v = 0;
+          this.resting = false;
+          this.bounces = 0;
+          this.firstFallTime = null;
+          this.firstImpactSpeed = null;
+          this.lastImpact = null; // { vBefore, vAfter, t }
+          this.peaks = [];        // Alturas máximas atingidas após cada quique
+
+          // Referência do segmento parabólico atual (para exibir v = v0 - g*t_seg se útil)
+          this.segStartT = 0;
+          this.segY0 = this.h0;
+          this.segV0 = 0;
+
+          // Animação visual de impacto (squash-and-stretch + onda no piso)
+          this.squash = 0;        // 0..1
+          this.ripples = [];      // { r, alpha, maxR }
+
+          // Rastro estroboscópico
+          this.strobePoints = [];
+          const theoreticalFall = Math.sqrt((2 * this.h0) / this.g);
+          this.strobeInterval = Math.max(0.06, Math.min(0.45, theoreticalFall / 8));
+          this.nextStrobeT = this.strobeInterval;
+
+          // Histórico de amostras para os gráficos
+          const ep0 = this.m * this.g * this.h0;
+          this.history = [{ t: 0, y: this.h0, v: 0, ep: ep0, ec: 0, em: ep0 }];
+          this.sampleInterval = 0.025;
+          this.nextSampleT = this.sampleInterval;
+        }
+
+        getEnergies() {
+          const ep = Math.max(0, this.m * this.g * this.y);
+          const ec = 0.5 * this.m * this.v * this.v;
+          return { ep, ec, em: ep + ec };
+        }
+
+        getInitialEnergy() {
+          return this.m * this.g * this.h0;
+        }
+
+        getWeight() {
+          return this.m * this.g;
+        }
+
+        getTheoreticalFallTime() {
+          return Math.sqrt((2 * this.h0) / this.g);
+        }
+
+        getTheoreticalImpactVel() {
+          return Math.sqrt(2 * this.g * this.h0);
+        }
+
+        getTheoreticalFirstBounceHeight() {
+          return this.e * this.e * this.h0;
+        }
+
+        recordHistoryPoint(t, y, v) {
+          const ep = Math.max(0, this.m * this.g * y);
+          const ec = 0.5 * this.m * v * v;
+          this.history.push({ t, y, v, ep, ec, em: ep + ec });
+          // Limite seguro de memória caso o usuário deixe e=1 rodando indefinidamente
+          if (this.history.length > 2600) {
+            this.history.splice(0, 400);
+          }
+        }
+
+        /**
+         * Avança a física exatamente dt segundos (em tempo simulado).
+         * Retorna true se ocorreu impacto durante este passo.
+         */
+        step(dt) {
+          // Decaimento suave das animações visuais mesmo em repouso
+          if (this.squash > 0) {
+            this.squash = Math.max(0, this.squash - dt * 5.5);
+          }
+          for (let i = this.ripples.length - 1; i >= 0; i--) {
+            const rp = this.ripples[i];
+            rp.r += dt * 115;
+            rp.alpha -= dt * 2.1;
+            if (rp.alpha <= 0 || rp.r >= rp.maxR) {
+              this.ripples.splice(i, 1);
             }
-            selectedBall = ball;
-            selectedBall.setSelected(true);
-        }
+          }
 
-        function handleDragStart(e, ball) {
-            e.preventDefault(); 
-            
-            draggingBall = ball;
-            
-            if (draggingBall) {
-                draggingBall.isDragging = true;
-                draggingBall.element.classList.add('dragging');
-                
-                const mousePos = getMousePos(e);
-                
-                dragOffset.x = mousePos.x - draggingBall.x_px;
-                dragOffset.y = mousePos.y - draggingBall.y_px;
-                
-                draggingBall.vx_m = 0;
-                draggingBall.vy_m = 0;
-                
-                lastMousePos = mousePos;
-                lastDragTime = performance.now();
-                
-                // Ao iniciar o arraste, a posição atual se torna a nova 'inicial'
-                draggingBall.initial_y_px = draggingBall.y_px; 
-                draggingBall.time_in_air = 0;
-            }
-        }
+          if (this.resting || dt <= 0) return false;
 
-        function handleMouseMove(e) {
-            if (!draggingBall) return;
-            e.preventDefault(); 
-            
-            const mousePos = getMousePos(e);
-            const now = performance.now();
-            const dt_ms = now - lastDragTime;
+          let rem = dt;
+          let hitImpact = false;
+          let guard = 0;
 
-            const newX = mousePos.x - dragOffset.x;
-            const newY = mousePos.y - dragOffset.y;
-            
-            const dx_px = newX - draggingBall.x_px;
-            const dy_px = newY - draggingBall.y_px;
-            
-            if (dt_ms > 0) {
-                draggingBall.temp_vx_m = (dx_px / PIXELS_PER_METER) / (dt_ms / 1000);
-                draggingBall.temp_vy_m = (dy_px / PIXELS_PER_METER) / (dt_ms / 1000);
-            }
-            
-            // Limites de Posição
-            const minX = draggingBall.radius_px;
-            const maxX = SIM_WIDTH_PX - draggingBall.radius_px;
-            const minY = draggingBall.radius_px;
-            const maxY = SIM_HEIGHT_PX - draggingBall.radius_px - FLOOR_HEIGHT_PX;
+          while (rem > 1e-11 && !this.resting && guard < 24) {
+            guard++;
 
-            draggingBall.x_px = Math.min(Math.max(newX, minX), maxX);
-            draggingBall.y_px = Math.min(Math.max(newY, minY), maxY);
-
-            draggingBall.render(); 
-            
-            lastMousePos = mousePos;
-            lastDragTime = now;
-        }
-
-        function handleMouseUp() {
-            if (draggingBall) {
-                // Transfere a velocidade calculada
-                if (draggingBall.temp_vx_m) {
-                    draggingBall.vx_m = draggingBall.temp_vx_m;
-                    draggingBall.vy_m = draggingBall.temp_vy_m;
-                }
-                
-                // Atualiza a altura inicial para o ponto de soltura
-                draggingBall.initial_y_px = draggingBall.y_px;
-                draggingBall.time_in_air = 0;
-                
-                draggingBall.isDragging = false;
-                draggingBall.element.classList.remove('dragging');
-                draggingBall = null;
-            }
-        }
-
-
-        // -----------------------------------
-        // 7. FUNÇÕES DE CONTROLE E INICIALIZAÇÃO
-        // -----------------------------------
-        
-        // NOVO: Função para atualizar a escala e o grid
-        function updateSimulationScale(newScale) {
-            currentZoomScale = newScale;
-            PIXELS_PER_METER = BASE_PIXELS_PER_METER * currentZoomScale;
-            
-            const grid_size_px = GRID_UNIT_METER * PIXELS_PER_METER;
-            
-            // 1. Atualiza a variável CSS do grid
-            simulationArea.style.setProperty('--grid-size', `${grid_size_px}px`);
-            
-            // 2. Atualiza a exibição do zoom
-            currentZoomScaleOutput.textContent = `${currentZoomScale.toFixed(1)}x`;
-            gridUnitMeterOutput.textContent = `${GRID_UNIT_METER} metros (${grid_size_px.toFixed(0)}px)`;
-
-            // 3. Recalcula o tamanho de todas as bolas
-            balls.forEach(ball => {
-                ball.updateScale(); 
-                ball.render();
-            });
-            
-            // 4. Garante que os valores de altura inicial no input sejam múltiplos de 5
-            const currentHeightVal = parseFloat(initialHeightInput.value) || 5.0;
-            initialHeightInput.value = Math.round(currentHeightVal / GRID_UNIT_METER) * GRID_UNIT_METER;
-        }
-
-        function initControls() {
-            for (const name in GRAVITIES) {
-                const option = document.createElement('option');
-                option.value = GRAVITIES[name];
-                option.textContent = name;
-                gravitySelect.appendChild(option);
-            }
-
-            currentG = parseFloat(gravitySelect.value);
-            generalOutput.g.textContent = `${currentG.toFixed(2)} m/s²`;
-            generalOutput.cor.textContent = corInput.value;
-            
-            // Inicializa a escala e o grid
-            updateSimulationScale(parseFloat(zoomScaleInput.value));
-            
-            // Listeners de Escala
-            zoomScaleInput.addEventListener('input', (e) => {
-                updateSimulationScale(parseFloat(e.target.value));
-            });
-            
-            // Listeners de Altura Inicial (garante múltiplo de 5)
-            initialHeightInput.addEventListener('input', () => {
-                let val = parseFloat(initialHeightInput.value);
-                if (val < GRID_UNIT_METER) {
-                    initialHeightInput.value = GRID_UNIT_METER;
-                } else {
-                    // Snapping visual/funcional ao múltiplo de 5 mais próximo
-                    initialHeightInput.value = Math.round(val / GRID_UNIT_METER) * GRID_UNIT_METER;
-                }
-            });
-            
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('touchmove', handleMouseMove, { passive: false });
-            document.addEventListener('touchend', handleMouseUp);
-        }
-
-        function toggleSimulation() {
-            if (balls.length === 0) {
-                 alert('Adicione pelo menos uma bola antes de iniciar!');
-                 return;
-            }
-
-            isSimulating = !isSimulating;
-            
-            if (isSimulating) {
-                startButton.textContent = 'PAUSAR SIMULAÇÃO';
-                startButton.style.backgroundColor = '#f39c12';
-                lastTime = performance.now();
-                animationFrameId = requestAnimationFrame(simulateLoop);
+            // 1. Calcular instante exato τ até a próxima colisão com o chão (y = 0)
+            let tau = Infinity;
+            if (this.y > 1e-12) {
+              // 0.5*g*τ² - v*τ - y = 0  =>  τ = (v + sqrt(v² + 2gy)) / g
+              const disc = this.v * this.v + 2 * this.g * this.y;
+              tau = (this.v + Math.sqrt(Math.max(0, disc))) / this.g;
+            } else if (this.v > 1e-9) {
+              // Saiu exatamente do chão para cima: retorna em τ = 2v/g
+              tau = (2 * this.v) / this.g;
             } else {
-                startButton.textContent = 'RETOMAR SIMULAÇÃO';
-                startButton.style.backgroundColor = '#D2691E';
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
+              this.y = 0;
+              this.v = 0;
+              this.resting = true;
+              break;
+            }
+
+            // 2. Verificar se há colisão dentro do intervalo restante
+            if (tau <= rem + 1e-11) {
+              const tStep = Math.max(0, tau);
+              const tImpact = this.t + tStep;
+
+              // Registrar pontos estroboscópicos e de amostra antes do impacto
+              this._emitIntermediateSamples(tStep);
+
+              // Velocidade exata imediatamente antes do impacto
+              const vBefore = -Math.sqrt(Math.max(0, this.v * this.v + 2 * this.g * this.y));
+
+              this.t = tImpact;
+              this.y = 0;
+              this.v = vBefore;
+
+              // Registra ponto exatamente pré-colisão no gráfico
+              this.recordHistoryPoint(this.t, 0, vBefore);
+
+              this.bounces++;
+              hitImpact = true;
+
+              if (this.firstFallTime === null) {
+                this.firstFallTime = this.t;
+                this.firstImpactSpeed = Math.abs(vBefore);
+              }
+
+              // Calcula velocidade pós-impacto
+              let vAfter = 0;
+              if (this.e >= 0.9999) {
+                // Conservação analítica rigorosa para e = 1,00 (zero deriva numérica)
+                vAfter = Math.sqrt(2 * this.g * this.h0);
+              } else if (this.e > 0) {
+                vAfter = this.e * Math.abs(vBefore);
+              }
+
+              // Dispara efeitos visuais proporcionais à velocidade de impacto
+              const normImpact = Math.min(1, Math.abs(vBefore) / Math.max(8, this.getTheoreticalImpactVel()));
+              this.squash = Math.min(0.42, 0.12 + normImpact * 0.28);
+              this.ripples.push({
+                r: 6,
+                maxR: 28 + normImpact * 46,
+                alpha: 0.72
+              });
+
+              // Detecção de repouso (evita efeito Zeno em 0 < e < 1)
+              const nextPeak = (vAfter * vAfter) / (2 * this.g);
+              const restHeightTol = Math.max(0.003, this.h0 * 0.0004);
+              if (this.e <= 0 || (this.e < 0.9999 && nextPeak < restHeightTol && vAfter < 0.15)) {
+                vAfter = 0;
+                this.v = 0;
+                this.resting = true;
+              } else {
+                this.v = vAfter;
+              }
+
+              this.lastImpact = {
+                vBefore: Math.abs(vBefore),
+                vAfter: vAfter,
+                t: this.t
+              };
+
+              this.segStartT = this.t;
+              this.segY0 = 0;
+              this.segV0 = this.v;
+
+              // Registra ponto exatamente pós-colisão (gera salto vertical perfeito em v×t e degrau em Em×t)
+              this.recordHistoryPoint(this.t, 0, this.v);
+
+              rem -= tStep;
+              if (this.resting) break;
+            } else {
+              // Sem colisão neste sub-intervalo
+              const tEnd = this.t + rem;
+
+              // Verifica se atinge ápice (pico de quique) durante este sub-intervalo
+              if (this.v > 0 && this.v - this.g * rem <= 0) {
+                const tApex = this.v / this.g;
+                const yApex = this.y + this.v * tApex - 0.5 * this.g * tApex * tApex;
+                if (this.peaks.length < 10 && yApex > 0.02) {
+                  this.peaks.push(yApex);
                 }
+                this._emitIntermediateSamples(tApex);
+                this.recordHistoryPoint(this.t + tApex, yApex, 0);
+                // Avança o restante após o ápice
+                const afterApex = rem - tApex;
+                this.t += tApex;
+                this.y = yApex;
+                this.v = 0;
+                this._emitIntermediateSamples(afterApex);
+                this.t = tEnd;
+                this.y = Math.max(0, this.y - 0.5 * this.g * afterApex * afterApex);
+                this.v = -this.g * afterApex;
+              } else {
+                this._emitIntermediateSamples(rem);
+                this.y = Math.max(0, this.y + this.v * rem - 0.5 * this.g * rem * rem);
+                this.v = this.v - this.g * rem;
+                this.t = tEnd;
+              }
+              rem = 0;
             }
-        }
-        
-        function addBall() {
-            const mass = parseFloat(massInput.value) || 1.0;
-            const initial_height_m_raw = parseFloat(initialHeightInput.value) || 5.0; 
-            
-            SIM_WIDTH_PX = simulationArea.offsetWidth;
-            SIM_HEIGHT_PX = simulationArea.offsetHeight;
-            
-            // 1. Snapping da altura inicial (múltiplo de 5m mais próximo)
-            const snapped_height_m = Math.round(initial_height_m_raw / GRID_UNIT_METER) * GRID_UNIT_METER;
-            
-            // Raio da bola na escala atual (em pixels)
-            const ball_radius_m = BASE_RADIUS_M * Math.pow(mass, 1/3);
-            const ball_radius_px = ball_radius_m * PIXELS_PER_METER;
+          }
 
-            // 2. Posição Y (Centro da bola) em pixels a partir do topo
-            // Pos Y = Altura Total - Altura Desejada - Raio - Altura do Chão
-            let start_y_px = SIM_HEIGHT_PX - (snapped_height_m * PIXELS_PER_METER) - ball_radius_m * PIXELS_PER_METER - FLOOR_HEIGHT_PX;
-            
-            // Garante que a bola não inicie acima do limite superior
-            start_y_px = Math.max(start_y_px, ball_radius_px);
-
-
-            // 3. Posição X (Centro da bola)
-            // Posição x aleatória, mas snappada ao grid também
-            let initial_x_m = ((SIM_WIDTH_PX / 2) + ((ballIdCounter % 2 === 0 ? 1 : -1) * (15 + (ballIdCounter * 5)))) / PIXELS_PER_METER;
-            const snapped_x_m = Math.round(initial_x_m / GRID_UNIT_METER) * GRID_UNIT_METER;
-            let start_x_px = snapped_x_m * PIXELS_PER_METER;
-
-            // Garante que x_px fique dentro dos limites
-            const min_x_px = ball_radius_px;
-            const max_x_px = SIM_WIDTH_PX - min_x_px;
-            start_x_px = Math.min(Math.max(start_x_px, min_x_px), max_x_px);
-
-
-            const newBall = new Ball(ballIdCounter++, mass, start_x_px, start_y_px);
-            balls.push(newBall);
-            
-            generalOutput.ballCount.textContent = balls.length;
-            
-            setSelectedBall(newBall);
-            
-            if (balls.length === 1 && !isSimulating) {
-                toggleSimulation();
-            }
+          return hitImpact;
         }
 
-        function resetAll() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
+        _emitIntermediateSamples(spanDt) {
+          const tEnd = this.t + spanDt;
+
+          // Amostras regulares do gráfico
+          while (this.nextSampleT <= tEnd + 1e-12) {
+            const ds = this.nextSampleT - this.t;
+            if (ds >= 0) {
+              const ys = Math.max(0, this.y + this.v * ds - 0.5 * this.g * ds * ds);
+              const vs = this.v - this.g * ds;
+              this.recordHistoryPoint(this.nextSampleT, ys, vs);
             }
-            isSimulating = false;
-            startButton.textContent = 'INICIAR SIMULAÇÃO';
-            startButton.style.backgroundColor = '#D2691E';
+            this.nextSampleT += this.sampleInterval;
+          }
 
-            balls.forEach(ball => ball.element.remove());
-            balls = [];
-            ballIdCounter = 0;
-            colorIndex = 0;
-            selectedBall = null;
-            generalOutput.ballCount.textContent = 0;
-            updateKinematicsDisplay(); // Limpa o painel
+          // Pontos estroboscópicos
+          while (this.nextStrobeT <= tEnd + 1e-12) {
+            const ds = this.nextStrobeT - this.t;
+            if (ds >= 0) {
+              const ys = Math.max(0, this.y + this.v * ds - 0.5 * this.g * ds * ds);
+              this.strobePoints.push({ y: ys, t: this.nextStrobeT });
+              if (this.strobePoints.length > 45) this.strobePoints.shift();
+            }
+            this.nextStrobeT += this.strobeInterval;
+          }
         }
-        
-        // Listeners
-        startButton.addEventListener('click', toggleSimulation);
-        addBallButton.addEventListener('click', addBall);
-        resetAllButton.addEventListener('click', resetAll);
+      }
 
-        gravitySelect.addEventListener('change', () => {
-            currentG = parseFloat(gravitySelect.value);
-            generalOutput.g.textContent = `${currentG.toFixed(2)} m/s²`;
+      /* =======================================================================
+         4. ESTADO GLOBAL DA APLICAÇÃO
+         ======================================================================= */
+      const app = {
+        mode: 'single',          // 'single' | 'compare'
+        configTab: 'A',          // 'A' | 'B' (no modo comparação)
+        telemetryTab: 'A',       // 'A' | 'B'
+        analysisTab: 'A',        // 'A' | 'B'
+        activeChart: 'height',   // 'height' | 'velocity' | 'energy'
+
+        status: 'ready',         // 'ready' | 'running' | 'paused' | 'finished'
+        timeScale: 1,
+        showVecV: true,
+        showVecG: true,
+        showVecP: true,
+        showTrail: true,
+        vecScale: 1.0,
+
+        expA: new FallExperiment('A', { objectId: 'rubber', g: 9.81, m: 0.15, h0: 10, e: 0.70 }),
+        expB: new FallExperiment('B', { objectId: 'rubber', g: 1.62, m: 0.15, h0: 10, e: 0.70 }),
+
+        impactFlashTimer: 0,
+        chartHoverX: null
+      };
+
+      function getExp(id) {
+        return id === 'B' ? app.expB : app.expA;
+      }
+
+      function getActiveConfigExp() {
+        return app.mode === 'compare' ? getExp(app.configTab) : app.expA;
+      }
+
+      /* =======================================================================
+         5. RENDERIZAÇÃO DOS OBJETOS (MINIATURAS E CANVAS PRINCIPAL)
+         ======================================================================= */
+      function drawObjectShape(ctx, meta, cx, cy, r, scaleX = 1, scaleY = 1) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scaleX, scaleY);
+
+        if (meta.shape === 'sphere') {
+          // Sombra interna/base 3D
+          const grad = ctx.createRadialGradient(-r * 0.34, -r * 0.36, r * 0.12, 0, 0, r);
+
+          if (meta.style === 'steel') {
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.28, '#e2e8f0');
+            grad.addColorStop(0.68, '#64748b');
+            grad.addColorStop(1, '#334155');
+          } else if (meta.style === 'soccer') {
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.7, '#f1f5f9');
+            grad.addColorStop(1, '#cbd5e1');
+          } else {
+            grad.addColorStop(0, lightenHex(meta.color, 0.38));
+            grad.addColorStop(0.55, meta.color);
+            grad.addColorStop(1, darkenHex(meta.color, 0.28));
+          }
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          // Detalhes característicos por bola
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.clip();
+
+          if (meta.style === 'tennis') {
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = Math.max(1.5, r * 0.12);
+            ctx.beginPath();
+            ctx.arc(-r * 0.85, 0, r * 0.72, -0.8, 0.8);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(r * 0.85, 0, r * 0.72, Math.PI - 0.8, Math.PI + 0.8);
+            ctx.stroke();
+          } else if (meta.style === 'basketball') {
+            ctx.strokeStyle = 'rgba(20, 35, 61, 0.72)';
+            ctx.lineWidth = Math.max(1.2, r * 0.09);
+            ctx.beginPath();
+            ctx.moveTo(-r, 0); ctx.lineTo(r, 0);
+            ctx.moveTo(0, -r); ctx.lineTo(0, r);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(-r * 0.78, 0, r * 0.65, -0.9, 0.9);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(r * 0.78, 0, r * 0.65, Math.PI - 0.9, Math.PI + 0.9);
+            ctx.stroke();
+          } else if (meta.style === 'soccer') {
+            ctx.fillStyle = '#1e293b';
+            drawPolygon(ctx, 0, 0, r * 0.34, 5, -Math.PI / 2);
+            ctx.fill();
+            for (let i = 0; i < 5; i++) {
+              const ang = -Math.PI / 2 + (i * Math.PI * 2) / 5;
+              drawPolygon(ctx, Math.cos(ang) * r * 0.92, Math.sin(ang) * r * 0.92, r * 0.28, 5, ang);
+              ctx.fill();
+            }
+          }
+
+          // Brilho especular discreto
+          ctx.beginPath();
+          ctx.ellipse(-r * 0.32, -r * 0.34, r * 0.26, r * 0.16, -0.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,0.38)';
+          ctx.fill();
+          ctx.restore();
+
+          // Borda nítida
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(20, 35, 61, 0.28)';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        } else {
+          // Formato Cubo / Bloco (altura = 2r, largura = 2r)
+          const s = r * 1.92;
+          const half = s / 2;
+          const corner = Math.max(3, r * 0.24);
+
+          const grad = ctx.createLinearGradient(-half, -half, half, half);
+          if (meta.style === 'wood') {
+            grad.addColorStop(0, '#d89b62');
+            grad.addColorStop(0.5, '#c2854c');
+            grad.addColorStop(1, '#9a6230');
+          } else if (meta.style === 'metalcube') {
+            grad.addColorStop(0, '#94a3b8');
+            grad.addColorStop(0.45, '#475569');
+            grad.addColorStop(1, '#1e293b');
+          } else {
+            grad.addColorStop(0, lightenHex(meta.color, 0.28));
+            grad.addColorStop(0.55, meta.color);
+            grad.addColorStop(1, darkenHex(meta.color, 0.24));
+          }
+
+          roundRectPath(ctx, -half, -half, s, s, corner);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          ctx.save();
+          roundRectPath(ctx, -half, -half, s, s, corner);
+          ctx.clip();
+
+          if (meta.style === 'wood') {
+            ctx.strokeStyle = 'rgba(110, 62, 20, 0.28)';
+            ctx.lineWidth = 1.3;
+            for (let y = -half + 5; y < half; y += 6) {
+              ctx.beginPath();
+              ctx.moveTo(-half, y);
+              ctx.quadraticCurveTo(0, y + (y % 2 === 0 ? 2 : -2), half, y);
+              ctx.stroke();
+            }
+          } else if (meta.style === 'metalcube') {
+            // Chanfro metálico interno + rebites nos cantos
+            ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+            ctx.lineWidth = 1.4;
+            roundRectPath(ctx, -half + 3.5, -half + 3.5, s - 7, s - 7, Math.max(2, corner - 1));
+            ctx.stroke();
+            const d = half - 6;
+            ctx.fillStyle = 'rgba(226, 232, 240, 0.65)';
+            [[-d, -d], [d, -d], [-d, d], [d, d]].forEach(([bx, by]) => {
+              ctx.beginPath();
+              ctx.arc(bx, by, 1.5, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.22)';
+            ctx.fillRect(-half, -half, s, s * 0.25);
+          }
+          ctx.restore();
+
+          roundRectPath(ctx, -half, -half, s, s, corner);
+          ctx.strokeStyle = 'rgba(20, 35, 61, 0.35)';
+          ctx.lineWidth = 1.3;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      function drawPolygon(ctx, cx, cy, r, sides, rot) {
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+          const a = rot + (i * Math.PI * 2) / sides;
+          const x = cx + Math.cos(a) * r;
+          const y = cy + Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      }
+
+      function roundRectPath(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      function hexToRgb(hex) {
+        const clean = hex.replace('#', '');
+        const n = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+        return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+      }
+
+      function lightenHex(hex, amount) {
+        const { r, g, b } = hexToRgb(hex);
+        return `rgb(${Math.round(r + (255 - r) * amount)}, ${Math.round(g + (255 - g) * amount)}, ${Math.round(b + (255 - b) * amount)})`;
+      }
+
+      function darkenHex(hex, amount) {
+        const { r, g, b } = hexToRgb(hex);
+        return `rgb(${Math.round(r * (1 - amount))}, ${Math.round(g * (1 - amount))}, ${Math.round(b * (1 - amount))})`;
+      }
+
+      /* =======================================================================
+         6. RENDERIZADOR PRINCIPAL DA SIMULAÇÃO (CANVAS 2D HiDPI)
+         ======================================================================= */
+      const simCanvas = document.getElementById('simCanvas');
+      const simCtx = simCanvas.getContext('2d');
+      const simStage = document.getElementById('simStage');
+      let simW = 700, simH = 455;
+
+      function resizeSimCanvas() {
+        const rect = simStage.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        simW = Math.max(260, Math.floor(rect.width));
+        simH = Math.max(280, Math.floor(rect.height));
+        simCanvas.width = Math.floor(simW * dpr);
+        simCanvas.height = Math.floor(simH * dpr);
+        simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawSimulation();
+      }
+
+      function niceStep(range, targetTicks) {
+        const raw = range / Math.max(2, targetTicks);
+        const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+        const norm = raw / mag;
+        if (norm <= 1) return mag;
+        if (norm <= 2) return 2 * mag;
+        if (norm <= 2.5) return 2.5 * mag;
+        if (norm <= 5) return 5 * mag;
+        return 10 * mag;
+      }
+
+      function drawArrow(ctx, x1, y1, x2, y2, color, label, labelSide = 'right') {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.hypot(dx, dy);
+        if (len < 6) return;
+
+        const angle = Math.atan2(dy, dx);
+        const headLen = Math.min(11, Math.max(7, len * 0.32));
+
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2.6;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2 - Math.cos(angle) * (headLen * 0.65), y2 - Math.sin(angle) * (headLen * 0.65));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+
+        if (label) {
+          ctx.font = '700 11px "JetBrains Mono", monospace';
+          const padX = 5;
+          const tw = ctx.measureText(label).width;
+          const lx = labelSide === 'left' ? x2 - tw - padX * 2 - 6 : x2 + 6;
+          const ly = y2 - 8;
+
+          roundRectPath(ctx, lx, ly - 2, tw + padX * 2, 18, 5);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+          ctx.fill();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, lx + padX, ly + 7);
+        }
+        ctx.restore();
+      }
+
+      function drawGroundSurface(ctx, x, groundY, width, floorH, e) {
+        ctx.save();
+        if (e <= 0.12) {
+          // Superfície perfeitamente inelástica / absorvente (almofada fosca)
+          const g = ctx.createLinearGradient(0, groundY, 0, groundY + floorH);
+          g.addColorStop(0, '#64748b');
+          g.addColorStop(1, '#334155');
+          ctx.fillStyle = g;
+          ctx.fillRect(x, groundY, width, floorH);
+
+          // Textura acolchoada absorvente
+          ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+          ctx.lineWidth = 1.5;
+          for (let sx = x + 12; sx < x + width; sx += 18) {
+            ctx.beginPath();
+            ctx.moveTo(sx, groundY + 4);
+            ctx.lineTo(sx - 8, groundY + floorH - 4);
+            ctx.stroke();
+          }
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(x, groundY, width, 4);
+        } else if (e >= 0.90) {
+          // Superfície superelástica / perfeitamente elástica
+          const g = ctx.createLinearGradient(0, groundY, 0, groundY + floorH);
+          g.addColorStop(0, '#0f2942');
+          g.addColorStop(1, '#14233d');
+          ctx.fillStyle = g;
+          ctx.fillRect(x, groundY, width, floorH);
+
+          // Topo vibrante laranja-ciano elástico + molas estilizadas
+          ctx.fillStyle = '#ff690b';
+          ctx.fillRect(x, groundY, width, 4.5);
+
+          ctx.strokeStyle = 'rgba(255, 165, 95, 0.45)';
+          ctx.lineWidth = 1.5;
+          for (let sx = x + 22; sx < x + width - 16; sx += 34) {
+            ctx.beginPath();
+            ctx.moveTo(sx, groundY + 7);
+            ctx.lineTo(sx + 6, groundY + 13);
+            ctx.lineTo(sx - 6, groundY + 19);
+            ctx.lineTo(sx + 6, groundY + 25);
+            ctx.lineTo(sx, groundY + 31);
+            ctx.stroke();
+          }
+        } else {
+          // Piso técnico de laboratório (elasticidade intermediária)
+          const g = ctx.createLinearGradient(0, groundY, 0, groundY + floorH);
+          g.addColorStop(0, '#1e3358');
+          g.addColorStop(1, '#14233d');
+          ctx.fillStyle = g;
+          ctx.fillRect(x, groundY, width, floorH);
+
+          // Faixa superior com intensidade proporcional à elasticidade
+          ctx.fillStyle = e >= 0.55 ? '#ff690b' : '#94a3b8';
+          ctx.fillRect(x, groundY, width, 3.5);
+
+          // Padrão técnico discreto
+          ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+          ctx.lineWidth = 1;
+          for (let sx = x + 16; sx < x + width; sx += 24) {
+            ctx.beginPath();
+            ctx.moveTo(sx, groundY + 4);
+            ctx.lineTo(sx, groundY + floorH);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawSimulation() {
+        const ctx = simCtx;
+        ctx.clearRect(0, 0, simW, simH);
+
+        // Layout da área técnica
+        const rulerW = 64;
+        const padTop = 52;
+        const floorH = 38;
+        const groundY = simH - floorH;
+        const usableH = Math.max(120, groundY - padTop);
+
+        // Escala vertical unificada em metros
+        const maxH0 = app.mode === 'compare'
+          ? Math.max(app.expA.h0, app.expB.h0)
+          : app.expA.h0;
+        const scaleMaxM = Math.max(1, maxH0 * 1.12);
+        const pxPerMeter = usableH / scaleMaxM;
+
+        const meterToY = (m) => groundY - m * pxPerMeter;
+
+        // 1. Fundo de laboratório + grade sutil
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+        bgGrad.addColorStop(0, '#f8fbff');
+        bgGrad.addColorStop(1, '#ffffff');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, simW, groundY);
+
+        // Grade horizontal alinhada às marcações da régua
+        const stepM = niceStep(scaleMaxM, 6);
+        ctx.strokeStyle = 'rgba(20, 35, 61, 0.055)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let m = stepM; m <= scaleMaxM + 1e-6; m += stepM) {
+          const gy = Math.round(meterToY(m)) + 0.5;
+          if (gy > 10 && gy < groundY) {
+            ctx.moveTo(rulerW, gy);
+            ctx.lineTo(simW, gy);
+          }
+        }
+        // Linhas verticais suaves
+        for (let gx = rulerW + 48; gx < simW; gx += 48) {
+          ctx.moveTo(gx + 0.5, 0);
+          ctx.lineTo(gx + 0.5, groundY);
+        }
+        ctx.stroke();
+
+        // 2. Régua Vertical à Esquerda
+        ctx.fillStyle = '#f1f5f9';
+        ctx.fillRect(0, 0, rulerW, simH);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(rulerW + 0.5, 0);
+        ctx.lineTo(rulerW + 0.5, simH);
+        ctx.stroke();
+
+        // Sub-marcas e números da régua
+        const subStep = stepM / 2;
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        for (let m = 0; m <= scaleMaxM + 1e-6; m += subStep) {
+          const ty = meterToY(m);
+          if (ty < 12 || ty > groundY + 1) continue;
+          const isMajor = Math.abs((m / stepM) - Math.round(m / stepM)) < 0.01;
+          ctx.strokeStyle = isMajor ? '#64748b' : '#94a3b8';
+          ctx.beginPath();
+          ctx.moveTo(rulerW - (isMajor ? 10 : 5), Math.round(ty) + 0.5);
+          ctx.lineTo(rulerW, Math.round(ty) + 0.5);
+          ctx.stroke();
+
+          if (isMajor) {
+            ctx.fillStyle = '#334155';
+            const txt = m === 0 ? '0 m' : `${Number.isInteger(m) ? m : fmt(m, 1)} m`;
+            ctx.fillText(txt, rulerW - 13, ty);
+          }
+        }
+
+        // 3. Desenhar Câmaras (1 no modo único, 2 lado a lado no modo comparação)
+        const areaX = rulerW;
+        const areaW = simW - rulerW;
+
+        if (app.mode === 'single') {
+          drawChamber(ctx, app.expA, areaX, areaW, groundY, floorH, meterToY, null);
+        } else {
+          const halfW = areaW / 2;
+          drawChamber(ctx, app.expA, areaX, halfW, groundY, floorH, meterToY, 'A');
+          drawChamber(ctx, app.expB, areaX + halfW, halfW, groundY, floorH, meterToY, 'B');
+
+          // Divisória central vertical limpa
+          ctx.save();
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 5]);
+          ctx.beginPath();
+          ctx.moveTo(Math.round(areaX + halfW) + 0.5, 0);
+          ctx.lineTo(Math.round(areaX + halfW) + 0.5, simH);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function drawChamber(ctx, exp, x, width, groundY, floorH, meterToY, labelTag) {
+        const cx = x + width / 2;
+        const meta = exp.getObjectMeta();
+        const objRadius = Math.max(15, Math.min(23, 15 + Math.log10(Math.max(0.1, exp.m) + 1) * 5.2));
+        const accentColor = labelTag === 'B' ? '#0284c7' : '#ff690b';
+
+        // 1. Piso de impacto específico deste experimento
+        drawGroundSurface(ctx, x, groundY, width, floorH, exp.e);
+
+        // Etiqueta da elasticidade no rodapé do piso
+        ctx.save();
+        ctx.font = '700 11px "Nunito Sans", sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`Chão • e = ${fmt(exp.e, 2)}   |   Quiques: ${exp.bounces}`, cx, groundY + floorH / 2 + 1);
+        ctx.restore();
+
+        // 2. Linha tracejada da altura inicial h₀
+        const y0Px = meterToY(exp.h0);
+        ctx.save();
+        ctx.strokeStyle = labelTag === 'B' ? 'rgba(2, 132, 199, 0.38)' : 'rgba(255, 105, 11, 0.38)';
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(x + 8, Math.round(y0Px) + 0.5);
+        ctx.lineTo(x + width - 8, Math.round(y0Px) + 0.5);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Etiqueta h₀ à direita da linha tracejada
+        ctx.font = '700 10.5px "JetBrains Mono", monospace';
+        const h0Txt = `h₀ = ${fmt(exp.h0, 1)} m`;
+        const h0Tw = ctx.measureText(h0Txt).width;
+        roundRectPath(ctx, x + width - h0Tw - 18, y0Px - 19, h0Tw + 12, 17, 5);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.fill();
+        ctx.strokeStyle = labelTag === 'B' ? '#bae6fd' : '#ffd5ba';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = accentColor;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(h0Txt, x + width - h0Tw - 12, y0Px - 10.5);
+        ctx.restore();
+
+        // 3. Marcadores suaves dos 3 primeiros picos de quique (h₁, h₂, h₃)
+        const maxPeaksToShow = Math.min(3, exp.peaks.length);
+        for (let i = 0; i < maxPeaksToShow; i++) {
+          const ph = exp.peaks[i];
+          const py = meterToY(ph);
+          if (groundY - py < 12) continue;
+          ctx.save();
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(cx - 46, Math.round(py) + 0.5);
+          ctx.lineTo(cx + 46, Math.round(py) + 0.5);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = '700 10px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#059669';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`h${i + 1} ${fmt(ph, 2)}m`, cx + 50, py);
+          ctx.restore();
+        }
+
+        // 4. Rastro Estroboscópico (pontos a intervalos fixos de tempo)
+        if (app.showTrail && exp.strobePoints.length > 0) {
+          ctx.save();
+          for (let i = 0; i < exp.strobePoints.length; i++) {
+            const pt = exp.strobePoints[i];
+            const py = meterToY(pt.y) - objRadius;
+            const alpha = 0.14 + (i / exp.strobePoints.length) * 0.44;
+            ctx.beginPath();
+            ctx.arc(cx, py, 3.6, 0, Math.PI * 2);
+            ctx.fillStyle = labelTag === 'B'
+              ? `rgba(2, 132, 199, ${alpha.toFixed(2)})`
+              : `rgba(255, 105, 11, ${alpha.toFixed(2)})`;
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // 5. Ondas de impacto no chão
+        for (const rp of exp.ripples) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.ellipse(cx, groundY + 1, rp.r, rp.r * 0.22, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = labelTag === 'B'
+            ? `rgba(2, 132, 199, ${rp.alpha.toFixed(2)})`
+            : `rgba(255, 105, 11, ${rp.alpha.toFixed(2)})`;
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 6. Mecanismo de garra / suporte de lançamento em h₀
+        const objBottomY = meterToY(exp.y);
+        const squashY = 1 - exp.squash * 0.45;
+        const squashX = 1 + exp.squash * 0.42;
+        const objCenterY = objBottomY - objRadius * squashY;
+
+        const isHeld = app.status === 'ready';
+        const clampY = y0Px - objRadius * 2 - 4;
+        ctx.save();
+        // Haste superior do suporte
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx, Math.max(0, clampY - 22));
+        ctx.lineTo(cx, clampY);
+        ctx.stroke();
+
+        // Pinças que abrem ao soltar
+        const spread = isHeld ? 0 : 12;
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx - 5, clampY);
+        ctx.lineTo(cx - objRadius - 3 - spread, clampY + 11);
+        ctx.moveTo(cx + 5, clampY);
+        ctx.lineTo(cx + objRadius + 3 + spread, clampY + 11);
+        ctx.stroke();
+
+        // Base da pinça
+        roundRectPath(ctx, cx - 10, clampY - 6, 20, 8, 3);
+        ctx.fillStyle = '#334155';
+        ctx.fill();
+        ctx.restore();
+
+        // 7. Sombra projetada no chão (encolhe e suaviza quanto maior a altura)
+        const shadowRatio = Math.max(0.18, 1 - exp.y / Math.max(4, exp.h0 * 1.15));
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, groundY + 1.5, objRadius * 1.15 * shadowRatio, 3.6 * shadowRatio, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(20, 35, 61, ${(0.24 * shadowRatio).toFixed(2)})`;
+        ctx.fill();
+        ctx.restore();
+
+        // 8. Desenhar o Objeto Físico
+        drawObjectShape(ctx, meta, cx, objCenterY, objRadius, squashX, squashY);
+
+        // 9. Vetores Dinâmicos (v, g, P) com deslocamento lateral sutil para legibilidade total
+        const s = app.vecScale;
+        const maxArrowLen = Math.min(115, (groundY - 70) * 0.42) * s;
+
+        // Vetor Aceleração Gravitacional (g) — laranja, constante, levemente à esquerda
+        if (app.showVecG) {
+          const gLen = Math.min(maxArrowLen, Math.max(18, (exp.g / 9.81) * 44 * s));
+          const gx = cx - (app.showVecP ? 9 : 0);
+          const gEndY = Math.min(groundY - 4, objCenterY + gLen);
+          drawArrow(ctx, gx, objCenterY, gx, gEndY, '#ff690b', `g ${fmt(exp.g, 2)}`, 'left');
+        }
+
+        // Vetor Força Peso (P) — roxo, constante, levemente à direita
+        if (app.showVecP) {
+          const weight = exp.getWeight();
+          // Escala logarítmica suave para suportar de 0,1 N até 10.000 N visualmente
+          const pLen = Math.min(maxArrowLen, Math.max(20, (18 + Math.log10(weight + 1) * 30) * s));
+          const px = cx + (app.showVecG ? 9 : 0);
+          const pEndY = Math.min(groundY - 4, objCenterY + pLen);
+          drawArrow(ctx, px, objCenterY, px, pEndY, '#7c3aed', `P ${fmtSmart(weight)} N`, 'right');
+        }
+
+        // Vetor Velocidade (v) — azul, no eixo central, inverte sentido no impacto
+        if (app.showVecV && Math.abs(exp.v) > 0.08) {
+          const refV = Math.max(10, exp.getTheoreticalImpactVel());
+          const vLen = Math.min(maxArrowLen * 1.15, Math.max(16, (Math.abs(exp.v) / refV) * 82 * s));
+          // Em Canvas, y cresce para baixo; v > 0 (subindo) aponta para cima (-y)
+          const dirY = exp.v > 0 ? -1 : 1;
+          const vEndY = Math.max(16, Math.min(groundY - 4, objCenterY + dirY * vLen));
+          const arrowDir = exp.v > 0 ? '↑' : '↓';
+          drawArrow(ctx, cx, objCenterY, cx, vEndY, '#0284c7', `v ${arrowDir}${fmt(Math.abs(exp.v), 1)}`, exp.v > 0 ? 'right' : 'left');
+        }
+
+        // 10. Badges Superiores (Gravidade + Objeto + Identificação A/B)
+        ctx.save();
+        const badgeTop = 10;
+        const badgeLeft = x + 10;
+
+        // Badge 1: Planeta / Gravidade (+ tag A/B no modo comparação)
+        const tagPrefix = labelTag ? `EXP ${labelTag} • ` : '';
+        const gTxt = `${tagPrefix}${exp.getPlanetName()} • g = ${fmt(exp.g, 2)} m/s²`;
+        ctx.font = '800 11.5px "Nunito Sans", sans-serif';
+        const gTw = ctx.measureText(gTxt).width;
+        roundRectPath(ctx, badgeLeft, badgeTop, gTw + 18, 25, 8);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+        ctx.fill();
+        ctx.strokeStyle = labelTag === 'B' ? '#7dd3fc' : '#ffd5ba';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.fillStyle = accentColor;
+        ctx.beginPath();
+        ctx.arc(badgeLeft + 9, badgeTop + 12.5, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#14233d';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(gTxt, badgeLeft + 17, badgeTop + 13);
+
+        // Badge 2: Objeto + Massa (logo abaixo do badge 1 se estreito, ou à direita se largo)
+        const objTxt = `${meta.name} (${fmtSmart(exp.m)} kg)`;
+        ctx.font = '700 11px "Nunito Sans", sans-serif';
+        const oTw = ctx.measureText(objTxt).width;
+        const fitsSameRow = (badgeLeft + gTw + 26 + oTw + 18) < (x + width - 8);
+        const oX = fitsSameRow ? (x + width - oTw - 24) : badgeLeft;
+        const oY = fitsSameRow ? badgeTop : (badgeTop + 30);
+
+        roundRectPath(ctx, oX, oY, oTw + 14, 23, 8);
+        ctx.fillStyle = 'rgba(20, 35, 61, 0.9)';
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(objTxt, oX + 7, oY + 12);
+        ctx.restore();
+      }
+
+      /* =======================================================================
+         7. GRÁFICOS CIENTÍFICOS EM CANVAS 2D HiDPI (ALTURA, VELOCIDADE, ENERGIA)
+         ======================================================================= */
+      const chartCanvas = document.getElementById('chartCanvas');
+      const chartCtx = chartCanvas.getContext('2d');
+      const chartStage = document.getElementById('chartStage');
+      const chartTooltip = document.getElementById('chartTooltip');
+      let chartW = 700, chartH = 295;
+      let lastChartLayout = null;
+
+      function resizeChartCanvas() {
+        const rect = chartStage.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        chartW = Math.max(260, Math.floor(rect.width));
+        chartH = Math.max(200, Math.floor(rect.height));
+        chartCanvas.width = Math.floor(chartW * dpr);
+        chartCanvas.height = Math.floor(chartH * dpr);
+        chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawChart();
+      }
+
+      function updateChartLegend() {
+        const legend = document.getElementById('chartLegend');
+        const hint = document.getElementById('chartHint');
+        const isCmp = app.mode === 'compare';
+
+        if (app.activeChart === 'height') {
+          legend.innerHTML = isCmp
+            ? `<span class="chart-leg-item"><i class="leg-line" style="background: var(--exp-a);"></i> Altura A (m)</span>
+               <span class="chart-leg-item"><i class="leg-line dashed" style="color: var(--exp-b);"></i> Altura B (m)</span>`
+            : `<span class="chart-leg-item"><i class="leg-line" style="background: var(--orange);"></i> Altura y(t) em metros</span>`;
+          hint.textContent = 'Parábolas sucessivas evidenciam aceleração constante e redução de altura quando e < 1.';
+        } else if (app.activeChart === 'velocity') {
+          legend.innerHTML = isCmp
+            ? `<span class="chart-leg-item"><i class="leg-line" style="background: var(--exp-a);"></i> Velocidade A (m/s)</span>
+               <span class="chart-leg-item"><i class="leg-line dashed" style="color: var(--exp-b);"></i> Velocidade B (m/s)</span>`
+            : `<span class="chart-leg-item"><i class="leg-line" style="background: var(--vec-v);"></i> Velocidade v(t) em m/s (negativa na queda, positiva na subida)</span>`;
+          hint.textContent = 'Saltos verticais indicam a inversão instantânea de sentido na colisão com o chão.';
+        } else {
+          legend.innerHTML =
+            `<span class="chart-leg-item"><i class="leg-line" style="background: var(--en-ep);"></i> Ep (Potencial)</span>
+             <span class="chart-leg-item"><i class="leg-line" style="background: var(--en-ec);"></i> Ec (Cinética)</span>
+             <span class="chart-leg-item"><i class="leg-line" style="background: var(--en-em);"></i> Em (Mecânica)</span>` +
+            (isCmp ? `<span class="chart-leg-item" style="color: var(--slate);">— Exp. A &nbsp;|&nbsp; - - Exp. B</span>` : '');
+          hint.textContent = 'Observe a troca contínua entre Ep e Ec e a dissipação em degraus de Em nos impactos inelásticos.';
+        }
+      }
+
+      function drawChart() {
+        const ctx = chartCtx;
+        ctx.clearRect(0, 0, chartW, chartH);
+
+        const padL = 62, padR = 20, padT = 18, padB = 38;
+        const plotW = Math.max(80, chartW - padL - padR);
+        const plotH = Math.max(80, chartH - padT - padB);
+
+        const exps = app.mode === 'compare' ? [app.expA, app.expB] : [app.expA];
+
+        // Determinar limites de X (Tempo)
+        const maxHistT = Math.max(...exps.map(e => e.history.length ? e.history[e.history.length - 1].t : 0));
+        const minSpanT = Math.max(2.0, ...exps.map(e => e.getTheoreticalFallTime() * 1.45));
+        const tMax = Math.max(minSpanT, maxHistT * 1.08);
+
+        // Determinar limites de Y conforme o gráfico selecionado
+        let yMin = 0, yMax = 10, yUnit = 'm', yLabel = 'Altura (m)';
+
+        if (app.activeChart === 'height') {
+          yMin = 0;
+          yMax = Math.max(1, ...exps.map(e => e.h0)) * 1.1;
+          yUnit = 'm';
+          yLabel = 'Altura (m)';
+        } else if (app.activeChart === 'velocity') {
+          const maxV = Math.max(5, ...exps.map(e => e.getTheoreticalImpactVel()));
+          yMin = -maxV * 1.12;
+          yMax = maxV * 1.12;
+          yUnit = 'm/s';
+          yLabel = 'Velocidade (m/s)';
+        } else {
+          const maxE = Math.max(1, ...exps.map(e => e.getInitialEnergy()));
+          yMin = 0;
+          yMax = maxE * 1.12;
+          yUnit = 'J';
+          yLabel = 'Energia (J)';
+        }
+
+        const xOf = (t) => padL + (t / tMax) * plotW;
+        const yOf = (val) => padT + plotH - ((val - yMin) / (yMax - yMin)) * plotH;
+
+        lastChartLayout = { padL, padR, padT, padB, plotW, plotH, tMax, yMin, yMax, yUnit, xOf, yOf };
+
+        // 1. Grade e Eixos
+        ctx.fillStyle = '#fcfdff';
+        ctx.fillRect(padL, padT, plotW, plotH);
+
+        const yStep = niceStep(yMax - yMin, 5);
+        const yStart = Math.ceil(yMin / yStep) * yStep;
+        ctx.font = '600 10.5px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        for (let val = yStart; val <= yMax + yStep * 0.01; val += yStep) {
+          const cleanV = Math.abs(val) < 1e-9 ? 0 : val;
+          const py = Math.round(yOf(cleanV)) + 0.5;
+          if (py < padT - 2 || py > padT + plotH + 2) continue;
+
+          ctx.strokeStyle = cleanV === 0 ? 'rgba(20, 35, 61, 0.35)' : 'rgba(20, 35, 61, 0.07)';
+          ctx.lineWidth = cleanV === 0 ? 1.4 : 1;
+          ctx.beginPath();
+          ctx.moveTo(padL, py);
+          ctx.lineTo(padL + plotW, py);
+          ctx.stroke();
+
+          ctx.fillStyle = '#475569';
+          ctx.fillText(fmtSmart(cleanV), padL - 8, py);
+        }
+
+        const xStep = niceStep(tMax, 7);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (let t = 0; t <= tMax + xStep * 0.01; t += xStep) {
+          const px = Math.round(xOf(t)) + 0.5;
+          if (px > padL + plotW + 2) continue;
+          ctx.strokeStyle = 'rgba(20, 35, 61, 0.07)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(px, padT);
+          ctx.lineTo(px, padT + plotH);
+          ctx.stroke();
+
+          ctx.fillStyle = '#475569';
+          ctx.fillText(`${fmt(t, tStepDecimals(xStep))}s`, px, padT + plotH + 6);
+        }
+
+        // Borda do gráfico
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(padL + 0.5, padT + 0.5, plotW, plotH);
+
+        // Rótulos dos eixos
+        ctx.save();
+        ctx.fillStyle = '#64748b';
+        ctx.font = '700 11px "Nunito Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Tempo (s)', padL + plotW / 2, chartH - 13);
+
+        ctx.translate(15, padT + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(yLabel, 0, 0);
+        ctx.restore();
+
+        // 2. Plotar Curvas
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(padL, padT, plotW, plotH);
+        ctx.clip();
+
+        const plotSeries = (history, field, color, dashed = false, fillUnder = false) => {
+          if (history.length < 2) return;
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = dashed ? 2.2 : 2.5;
+          ctx.lineJoin = 'round';
+          if (dashed) ctx.setLineDash([6, 4]);
+
+          ctx.beginPath();
+          for (let i = 0; i < history.length; i++) {
+            const px = xOf(history[i].t);
+            const py = yOf(history[i][field]);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+
+          if (fillUnder) {
+            ctx.setLineDash([]);
+            ctx.lineTo(xOf(history[history.length - 1].t), yOf(0));
+            ctx.lineTo(xOf(history[0].t), yOf(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(255, 105, 11, 0.08)';
+            ctx.fill();
+          }
+
+          // Ponto atual no final da curva
+          const last = history[history.length - 1];
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(xOf(last.t), yOf(last[field]), 4, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        };
+
+        if (app.activeChart === 'height') {
+          if (app.mode === 'single') {
+            plotSeries(app.expA.history, 'y', '#ff690b', false, true);
+          } else {
+            plotSeries(app.expA.history, 'y', '#ff690b', false, false);
+            plotSeries(app.expB.history, 'y', '#0284c7', true, false);
+          }
+        } else if (app.activeChart === 'velocity') {
+          if (app.mode === 'single') {
+            plotSeries(app.expA.history, 'v', '#0284c7', false, false);
+          } else {
+            plotSeries(app.expA.history, 'v', '#ff690b', false, false);
+            plotSeries(app.expB.history, 'v', '#0284c7', true, false);
+          }
+        } else {
+          // Energia: Ep, Ec e Em
+          plotSeries(app.expA.history, 'ep', '#0284c7', false, false);
+          plotSeries(app.expA.history, 'ec', '#ff690b', false, false);
+          plotSeries(app.expA.history, 'em', '#10b981', false, false);
+          if (app.mode === 'compare') {
+            plotSeries(app.expB.history, 'ep', '#0284c7', true, false);
+            plotSeries(app.expB.history, 'ec', '#ff690b', true, false);
+            plotSeries(app.expB.history, 'em', '#10b981', true, false);
+          }
+        }
+
+        // Linha guia de hover do mouse
+        if (app.chartHoverX !== null && app.chartHoverX >= padL && app.chartHoverX <= padL + plotW) {
+          ctx.strokeStyle = 'rgba(20, 35, 61, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(app.chartHoverX, padT);
+          ctx.lineTo(app.chartHoverX, padT + plotH);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+      }
+
+      function tStepDecimals(step) {
+        if (step < 0.2) return 2;
+        if (step < 1) return 1;
+        return 0;
+      }
+
+      function findNearestSample(history, tTarget) {
+        if (!history.length) return null;
+        let best = history[0];
+        let bestD = Math.abs(best.t - tTarget);
+        for (let i = 1; i < history.length; i++) {
+          const d = Math.abs(history[i].t - tTarget);
+          if (d < bestD) {
+            bestD = d;
+            best = history[i];
+          }
+        }
+        return best;
+      }
+
+      function handleChartMouseMove(e) {
+        if (!lastChartLayout) return;
+        const rect = chartCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const { padL, plotW, tMax } = lastChartLayout;
+
+        if (mx < padL || mx > padL + plotW) {
+          app.chartHoverX = null;
+          chartTooltip.classList.remove('visible');
+          drawChart();
+          return;
+        }
+
+        app.chartHoverX = mx;
+        const tHover = ((mx - padL) / plotW) * tMax;
+        const sA = findNearestSample(app.expA.history, tHover);
+        const sB = app.mode === 'compare' ? findNearestSample(app.expB.history, tHover) : null;
+
+        if (!sA) return;
+
+        let html = `<div style="font-weight:800; color:#ffb380; margin-bottom:2px;">t = ${fmt(sA.t, 2)} s</div>`;
+        if (app.activeChart === 'height') {
+          html += `<div>${app.mode === 'compare' ? 'Exp. A: ' : 'Altura: '}<strong>${fmt(sA.y, 2)} m</strong></div>`;
+          if (sB) html += `<div>Exp. B: <strong>${fmt(sB.y, 2)} m</strong></div>`;
+        } else if (app.activeChart === 'velocity') {
+          html += `<div>${app.mode === 'compare' ? 'Exp. A: ' : 'Velocidade: '}<strong>${fmt(sA.v, 2)} m/s</strong></div>`;
+          if (sB) html += `<div>Exp. B: <strong>${fmt(sB.v, 2)} m/s</strong></div>`;
+        } else {
+          html += `<div>${app.mode === 'compare' ? '<b>A</b> — ' : ''}Ep: ${fmtSmart(sA.ep)} J | Ec: ${fmtSmart(sA.ec)} J | Em: ${fmtSmart(sA.em)} J</div>`;
+          if (sB) html += `<div><b>B</b> — Ep: ${fmtSmart(sB.ep)} J | Ec: ${fmtSmart(sB.ec)} J | Em: ${fmtSmart(sB.em)} J</div>`;
+        }
+
+        chartTooltip.innerHTML = html;
+        chartTooltip.classList.add('visible');
+
+        const tipW = chartTooltip.offsetWidth || 160;
+        const tipX = (mx + 14 + tipW > chartW) ? (mx - tipW - 14) : (mx + 14);
+        const tipY = Math.max(10, Math.min(chartH - 72, my - 16));
+        chartTooltip.style.left = `${tipX}px`;
+        chartTooltip.style.top = `${tipY}px`;
+        drawChart();
+      }
+
+      /* =======================================================================
+         8. ATUALIZAÇÃO DE TELEMETRIA, ANÁLISE FÍSICA E TABELA DE COMPARAÇÃO
+         ======================================================================= */
+      function updateTelemetryUI() {
+        const exp = app.mode === 'compare' ? getExp(app.telemetryTab) : app.expA;
+        const { ep, ec, em } = exp.getEnergies();
+        const weight = exp.getWeight();
+        const em0 = exp.getInitialEnergy();
+
+        document.getElementById('teleY').textContent = `${fmt(exp.y, 2)} m`;
+        document.getElementById('teleT').textContent = `${fmt(exp.t, 2)} s`;
+
+        const dirArrow = Math.abs(exp.v) < 0.05 ? '' : (exp.v > 0 ? '↑ ' : '↓ ');
+        document.getElementById('teleV').textContent = `${dirArrow}${fmt(exp.v, 2)} m/s`;
+        document.getElementById('teleA').textContent = exp.resting ? '0,00 m/s²' : `−${fmt(exp.g, 2)} m/s²`;
+        document.getElementById('teleM').textContent = `${fmtSmart(exp.m)} kg`;
+        document.getElementById('teleP').textContent = `${fmtSmart(weight)} N`;
+        document.getElementById('teleEp').textContent = `${fmtSmart(ep)} J`;
+        document.getElementById('teleEc').textContent = `${fmtSmart(ec)} J`;
+        document.getElementById('teleEm').textContent = `${fmtSmart(em)} J`;
+
+        // Destaque visual das grandezas em movimento
+        const moving = app.status === 'running' && !exp.resting;
+        ['teleCardY', 'teleCardT', 'teleCardV', 'teleCardEp', 'teleCardEc'].forEach(id => {
+          document.getElementById(id).classList.toggle('is-changing', moving);
+        });
+        document.getElementById('teleCardEm').classList.toggle('impact-flash', app.impactFlashTimer > 0 && exp.e < 0.9999);
+
+        // Barra horizontal de proporção energética
+        const pctEp = em0 > 0 ? Math.max(0, Math.min(100, (ep / em0) * 100)) : 0;
+        const pctEc = em0 > 0 ? Math.max(0, Math.min(100, (ec / em0) * 100)) : 0;
+        const pctLoss = Math.max(0, 100 - pctEp - pctEc);
+
+        document.getElementById('barEp').style.width = `${pctEp.toFixed(1)}%`;
+        document.getElementById('barEc').style.width = `${pctEc.toFixed(1)}%`;
+        document.getElementById('barLoss').style.width = `${pctLoss.toFixed(1)}%`;
+
+        document.getElementById('pctEp').textContent = `${Math.round(pctEp)}%`;
+        document.getElementById('pctEc').textContent = `${Math.round(pctEc)}%`;
+        document.getElementById('pctLoss').textContent = `${Math.round(pctLoss)}%`;
+      }
+
+      function updateAnalysisUI() {
+        const exp = app.mode === 'compare' ? getExp(app.analysisTab) : app.expA;
+        const tSeg = Math.max(0, exp.t - exp.segStartT);
+        const { ep, ec, em } = exp.getEnergies();
+        const tFall = exp.getTheoreticalFallTime();
+        const vImp = exp.getTheoreticalImpactVel();
+        const P = exp.getWeight();
+        const h2 = exp.getTheoreticalFirstBounceHeight();
+
+        // 1. Velocidade durante o trecho atual
+        document.getElementById('fVelocity').innerHTML =
+          `v = ${fmt(exp.segV0, 2)} − (${fmt(exp.g, 2)} × ${fmt(tSeg, 2)}) = <span class="formula-res">${fmt(exp.v, 2)} m/s</span>`;
+
+        // 2. Posição vertical no trecho atual
+        document.getElementById('fPosition').innerHTML =
+          `y = ${fmt(exp.segY0, 2)} + (${fmt(exp.segV0, 2)} × ${fmt(tSeg, 2)}) − (${fmt(exp.g, 2)} × ${fmt(tSeg, 2)}²)/2 = <span class="formula-res">${fmt(exp.y, 2)} m</span>`;
+
+        // 3. Tempo da 1ª queda (do repouso)
+        document.getElementById('fFallTime').innerHTML =
+          `t = √(2 × ${fmt(exp.h0, 1)} / ${fmt(exp.g, 2)}) = √(${fmt((2 * exp.h0) / exp.g, 2)}) = <span class="formula-res">${fmt(tFall, 3)} s</span>`;
+
+        // 4. Velocidade no 1º impacto
+        document.getElementById('fImpactVel').innerHTML =
+          `v = √(2 × ${fmt(exp.g, 2)} × ${fmt(exp.h0, 1)}) = √(${fmt(2 * exp.g * exp.h0, 2)}) = <span class="formula-res">${fmt(vImp, 2)} m/s</span>`;
+
+        // 5. Força Peso
+        document.getElementById('fWeight').innerHTML =
+          `P = ${fmtSmart(exp.m)} kg × ${fmt(exp.g, 2)} m/s² = <span class="formula-res">${fmtSmart(P)} N</span>`;
+
+        // 6. Energia Potencial Gravitacional
+        document.getElementById('fEp').innerHTML =
+          `Ep = ${fmtSmart(exp.m)} × ${fmt(exp.g, 2)} × ${fmt(exp.y, 2)} = <span class="formula-res">${fmtSmart(ep)} J</span>`;
+
+        // 7. Energia Cinética
+        document.getElementById('fEc').innerHTML =
+          `Ec = (${fmtSmart(exp.m)} × (${fmt(exp.v, 2)})²) / 2 = <span class="formula-res">${fmtSmart(ec)} J</span>`;
+
+        // 8. Energia Mecânica
+        document.getElementById('fEm').innerHTML =
+          `Em = ${fmtSmart(ep)} J + ${fmtSmart(ec)} J = <span class="formula-res">${fmtSmart(em)} J</span>`;
+
+        // 9. Colisão e Elasticidade (mostra impacto real ocorrido ou previsão do 1º impacto)
+        if (exp.lastImpact) {
+          document.getElementById('fRestitution').innerHTML =
+            `e = |${fmt(exp.lastImpact.vAfter, 2)}| / |${fmt(exp.lastImpact.vBefore, 2)}| = <span class="formula-res">${fmt(exp.e, 2)}</span>`;
+          document.getElementById('fRestitutionNote').textContent =
+            `Medido no último impacto (t = ${fmt(exp.lastImpact.t, 2)} s): velocidade passou de ${fmt(exp.lastImpact.vBefore, 2)} para ${fmt(exp.lastImpact.vAfter, 2)} m/s.`;
+        } else {
+          const predAfter = exp.e * vImp;
+          document.getElementById('fRestitution').innerHTML =
+            `e = |${fmt(predAfter, 2)}| / |${fmt(vImp, 2)}| = <span class="formula-res">${fmt(exp.e, 2)}</span>`;
+          document.getElementById('fRestitutionNote').textContent =
+            `Previsão para o 1º impacto: retornará com velocidade de ${fmt(predAfter, 2)} m/s.`;
+        }
+
+        // 10. Altura após o 1º quique
+        document.getElementById('fBounceHeight').innerHTML =
+          `h₂ = (${fmt(exp.e, 2)})² × ${fmt(exp.h0, 1)} m = ${fmt(exp.e * exp.e, 4)} × ${fmt(exp.h0, 1)} = <span class="formula-res">${fmt(h2, 2)} m</span>`;
+      }
+
+      function updateComparisonTableUI() {
+        if (app.mode !== 'compare') return;
+        const A = app.expA;
+        const B = app.expB;
+
+        const tA = A.getTheoreticalFallTime();
+        const tB = B.getTheoreticalFallTime();
+        const vA = A.getTheoreticalImpactVel();
+        const vB = B.getTheoreticalImpactVel();
+        const pA = A.getWeight();
+        const pB = B.getWeight();
+        const emA = A.getInitialEnergy();
+        const emB = B.getInitialEnergy();
+        const h2A = A.getTheoreticalFirstBounceHeight();
+        const h2B = B.getTheoreticalFirstBounceHeight();
+
+        const diffStr = (a, b, unit, decimals = 2) => {
+          if (Math.abs(a - b) < 1e-4) return `<span class="diff-equal">Idênticos</span>`;
+          const d = b - a;
+          const sign = d > 0 ? '+' : '−';
+          const ratio = a > 0 && b > 0 ? ` (${fmt(b / a, 2)}×)` : '';
+          return `${sign}${fmt(Math.abs(d), decimals)} ${unit}${ratio}`;
+        };
+
+        const rows = [
+          ['Objeto', A.getObjectMeta().name, B.getObjectMeta().name, A.objectId === B.objectId ? '<span class="diff-equal">Mesmo objeto</span>' : 'Objetos distintos'],
+          ['Gravidade (g)', `${fmt(A.g, 2)} m/s² (${A.getPlanetName()})`, `${fmt(B.g, 2)} m/s² (${B.getPlanetName()})`, diffStr(A.g, B.g, 'm/s²')],
+          ['Massa (m)', `${fmtSmart(A.m)} kg`, `${fmtSmart(B.m)} kg`, diffStr(A.m, B.m, 'kg')],
+          ['Altura inicial (h₀)', `${fmt(A.h0, 1)} m`, `${fmt(B.h0, 1)} m`, diffStr(A.h0, B.h0, 'm', 1)],
+          ['Elasticidade (e)', fmt(A.e, 2), fmt(B.e, 2), diffStr(A.e, B.e, '')],
+          ['Tempo da 1ª queda', `${fmt(tA, 3)} s`, `${fmt(tB, 3)} s`, diffStr(tA, tB, 's', 3)],
+          ['Velocidade de impacto', `${fmt(vA, 2)} m/s`, `${fmt(vB, 2)} m/s`, diffStr(vA, vB, 'm/s')],
+          ['Força Peso (P)', `${fmtSmart(pA)} N`, `${fmtSmart(pB)} N`, diffStr(pA, pB, 'N')],
+          ['Energia Mecânica Inicial', `${fmtSmart(emA)} J`, `${fmtSmart(emB)} J`, diffStr(emA, emB, 'J')],
+          ['Altura do 1º quique (h₂)', `${fmt(h2A, 2)} m`, `${fmt(h2B, 2)} m`, diffStr(h2A, h2B, 'm')],
+          ['Altura atual (y)', `${fmt(A.y, 2)} m`, `${fmt(B.y, 2)} m`, diffStr(A.y, B.y, 'm')],
+          ['Velocidade atual (v)', `${fmt(A.v, 2)} m/s`, `${fmt(B.v, 2)} m/s`, diffStr(A.v, B.v, 'm/s')],
+          ['Número de quiques', `${A.bounces}`, `${B.bounces}`, `${B.bounces - A.bounces === 0 ? '<span class="diff-equal">Iguais</span>' : (B.bounces > A.bounces ? `+${B.bounces - A.bounces} em B` : `+${A.bounces - B.bounces} em A`)}`]
+        ];
+
+        document.getElementById('compareTableBody').innerHTML = rows.map(([name, valA, valB, diff]) => `
+          <tr>
+            <td>${name}</td>
+            <td class="mono">${valA}</td>
+            <td class="mono">${valB}</td>
+            <td class="mono">${diff}</td>
+          </tr>
+        `).join('');
+
+        // Resumo didático automático destacando o fenômeno físico central
+        const insights = [];
+        if (Math.abs(tA - tB) < 0.002 && Math.abs(A.m - B.m) > 0.01) {
+          insights.push(`<strong>Independência da massa comprovada:</strong> apesar de B ter massa <strong>${fmt(B.m / A.m, 1)}×</strong> a de A, ambos levam exatamente <strong>${fmt(tA, 2)} s</strong> para cair e atingem o chão a <strong>${fmt(vA, 2)} m/s</strong> — porém a energia mecânica inicial e a força peso variam proporcionalmente à massa.`);
+        } else if (Math.abs(A.g - B.g) > 0.05) {
+          const faster = tA < tB ? 'A' : 'B';
+          const ratioT = Math.max(tA, tB) / Math.min(tA, tB);
+          insights.push(`<strong>Efeito da gravidade:</strong> o Experimento <strong>${faster}</strong> atinge o chão primeiro (o outro demora <strong>${fmt(ratioT, 2)}×</strong> mais tempo). A gravidade maior também gera maior velocidade de impacto (${fmt(Math.max(vA, vB), 2)} m/s vs ${fmt(Math.min(vA, vB), 2)} m/s).`);
+        }
+        if (Math.abs(A.e - B.e) > 0.01) {
+          insights.push(`<strong>Efeito da elasticidade:</strong> após o 1º impacto, A alcança <strong>${fmt(h2A, 2)} m</strong> (retendo ${Math.round(A.e * A.e * 100)}% da energia) enquanto B alcança <strong>${fmt(h2B, 2)} m</strong> (retendo ${Math.round(B.e * B.e * 100)}%).`);
+        }
+        if (insights.length === 0) {
+          insights.push(`Os Experimentos A e B estão com parâmetros idênticos. Altere gravidade, massa, altura ou elasticidade em uma das abas acima para comparar os resultados em tempo real.`);
+        }
+        document.getElementById('compareSummary').innerHTML = insights.join(' ');
+      }
+
+      /* =======================================================================
+         9. SINCRONIZAÇÃO DOS CONTROLES DO PAINEL DE CONFIGURAÇÕES
+         ======================================================================= */
+      function buildObjectCards() {
+        const grid = document.getElementById('objectsGrid');
+        grid.innerHTML = '';
+
+        OBJECT_CATALOG.forEach(obj => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'obj-card';
+          btn.dataset.objId = obj.id;
+          btn.setAttribute('role', 'radio');
+          btn.setAttribute('aria-checked', 'false');
+
+          const c = document.createElement('canvas');
+          c.width = 60;
+          c.height = 60;
+          c.className = 'obj-thumb';
+          const cctx = c.getContext('2d');
+          drawObjectShape(cctx, obj, 30, 30, 22, 1, 1);
+
+          const nameEl = document.createElement('span');
+          nameEl.className = 'obj-name';
+          nameEl.textContent = obj.name.replace('Bola de ', '').replace('Bloco de ', '');
+
+          const massEl = document.createElement('span');
+          massEl.className = 'obj-mass-hint';
+          massEl.textContent = `${fmtSmart(obj.mass)} kg`;
+
+          btn.append(c, nameEl, massEl);
+          btn.addEventListener('click', () => {
+            const exp = getActiveConfigExp();
+            exp.objectId = obj.id;
+            exp.m = obj.mass;
+            resetAllExperiments();
+            syncConfigPanelFromExp();
+          });
+
+          grid.appendChild(btn);
+        });
+      }
+
+      function describeElasticity(e) {
+        if (e <= 0.005) return { text: 'Colisão perfeitamente inelástica — sem quique (100% dissipada)', color: '#64748b' };
+        if (e < 0.35)   return { text: `Baixa elasticidade — retém ${Math.round(e * e * 100)}% da energia por quique`, color: '#d97706' };
+        if (e < 0.65)   return { text: `Elasticidade intermediária — retém ${Math.round(e * e * 100)}% da energia por quique`, color: '#ff690b' };
+        if (e < 0.995)  return { text: `Alta elasticidade — retém ${Math.round(e * e * 100)}% da energia por quique`, color: '#0284c7' };
+        return { text: 'Colisão perfeitamente elástica — energia mecânica 100% conservada', color: '#10b981' };
+      }
+
+      function syncConfigPanelFromExp() {
+        const exp = getActiveConfigExp();
+        const meta = exp.getObjectMeta();
+
+        // Objeto selecionado
+        document.getElementById('selectedObjLabel').textContent = meta.name;
+        document.querySelectorAll('.obj-card').forEach(card => {
+          const active = card.dataset.objId === exp.objectId;
+          card.classList.toggle('active', active);
+          card.setAttribute('aria-checked', String(active));
         });
 
-        corInput.addEventListener('input', () => {
-             generalOutput.cor.textContent = corInput.value;
-             let cor = parseFloat(corInput.value);
-             if (cor > 1.0) corInput.value = 1.0;
-             if (cor < 0.0) corInput.value = 0.0;
+        // Subpainel objeto personalizado
+        const customPanel = document.getElementById('customObjPanel');
+        customPanel.classList.toggle('visible', exp.objectId === 'custom');
+        document.getElementById('customObjName').value = exp.customName;
+        document.getElementById('customObjColor').value = exp.customColor;
+        document.querySelectorAll('.shape-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.shape === exp.customShape);
         });
 
-        // Inicialização
-        initControls();
-        
-        // Listener para garantir que as dimensões do simulador estejam corretas
-        window.addEventListener('resize', () => {
-             // Recalcula as dimensões em pixels da área de simulação
-             SIM_WIDTH_PX = simulationArea.offsetWidth;
-             SIM_HEIGHT_PX = simulationArea.offsetHeight;
-             // Como a escala mudou, re-renderiza para garantir que as bolas fiquem no lugar (apenas em caso de resize)
-             balls.forEach(ball => ball.render());
+        // Gravidade
+        document.getElementById('inputGravity').value = fmt(exp.g, 2);
+        document.getElementById('sliderGravity').value = Math.min(30, Math.max(0.5, exp.g));
+        const planet = exp.getPlanetName();
+        document.querySelectorAll('#gravityPresets .chip-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.planet === planet);
         });
-        
-    </script>
+
+        // Massa
+        document.getElementById('inputMass').value = fmtSmart(exp.m);
+        document.getElementById('sliderMass').value = Math.min(50, Math.max(0.05, exp.m));
+        document.querySelectorAll('#massPresets .chip-btn').forEach(b => {
+          b.classList.toggle('active', Math.abs(Number(b.dataset.m) - exp.m) < 0.002);
+        });
+
+        // Altura
+        document.getElementById('inputHeight').value = fmt(exp.h0, 1);
+        document.getElementById('sliderHeight').value = Math.min(100, Math.max(1, exp.h0));
+        document.querySelectorAll('#heightPresets .chip-btn').forEach(b => {
+          b.classList.toggle('active', Math.abs(Number(b.dataset.h) - exp.h0) < 0.05);
+        });
+
+        // Elasticidade
+        document.getElementById('inputElasticity').value = fmt(exp.e, 2);
+        document.getElementById('sliderElasticity').value = exp.e;
+        document.querySelectorAll('#elasticityPresets .chip-btn').forEach(b => {
+          b.classList.toggle('active', Math.abs(Number(b.dataset.e) - exp.e) < 0.005);
+        });
+
+        const reg = describeElasticity(exp.e);
+        document.getElementById('regimeText').textContent = reg.text;
+        document.getElementById('regimeDot').style.background = reg.color;
+
+        // Modo comparação UI
+        const isCmp = app.mode === 'compare';
+        document.getElementById('compareConfigBanner').classList.toggle('visible', isCmp);
+        document.getElementById('compareTableSection').classList.toggle('visible', isCmp);
+        document.getElementById('telemetryExpTabs').classList.toggle('visible', isCmp);
+        document.getElementById('analysisExpTabs').classList.toggle('visible', isCmp);
+        document.getElementById('btnDropText').textContent = isCmp ? 'SOLTAR OBJETOS' : 'SOLTAR OBJETO';
+
+        const tabA = document.getElementById('tabCfgA');
+        const tabB = document.getElementById('tabCfgB');
+        tabA.classList.toggle('active-a', app.configTab === 'A');
+        tabB.classList.toggle('active-b', app.configTab === 'B');
+        tabA.setAttribute('aria-selected', String(app.configTab === 'A'));
+        tabB.setAttribute('aria-selected', String(app.configTab === 'B'));
+      }
+
+      function updateTransportButtons() {
+        const btnDrop = document.getElementById('btnDrop');
+        const btnPause = document.getElementById('btnPauseResume');
+        const btnPauseText = document.getElementById('btnPauseText');
+        const icoPause = document.getElementById('icoPause');
+        const icoResume = document.getElementById('icoResume');
+
+        if (app.status === 'ready') {
+          btnDrop.disabled = false;
+          btnPause.disabled = true;
+          btnPauseText.textContent = 'PAUSAR';
+          icoPause.style.display = 'block';
+          icoResume.style.display = 'none';
+        } else if (app.status === 'running') {
+          btnDrop.disabled = true;
+          btnPause.disabled = false;
+          btnPauseText.textContent = 'PAUSAR';
+          icoPause.style.display = 'block';
+          icoResume.style.display = 'none';
+        } else if (app.status === 'paused') {
+          btnDrop.disabled = true;
+          btnPause.disabled = false;
+          btnPauseText.textContent = 'CONTINUAR';
+          icoPause.style.display = 'none';
+          icoResume.style.display = 'block';
+        } else {
+          // finished
+          btnDrop.disabled = false;
+          btnPause.disabled = true;
+          btnPauseText.textContent = 'PAUSAR';
+          icoPause.style.display = 'block';
+          icoResume.style.display = 'none';
+        }
+      }
+
+      function refreshAllViews() {
+        drawSimulation();
+        drawChart();
+        updateTelemetryUI();
+        updateAnalysisUI();
+        updateComparisonTableUI();
+        updateTransportButtons();
+      }
+
+      function resetAllExperiments() {
+        app.expA.reset();
+        app.expB.reset();
+        app.status = 'ready';
+        app.impactFlashTimer = 0;
+        refreshAllViews();
+      }
+
+      /* =======================================================================
+         10. EXPERIMENTOS PREDEFINIDOS & PRESETS DE COMPARAÇÃO
+         ======================================================================= */
+      function loadExperimentPreset(num) {
+        if (num === '5') {
+          // Experimento 5 — Influência da massa (ativa Modo Comparação automaticamente)
+          setMode('compare');
+          Object.assign(app.expA, { objectId: 'tennis', g: 9.81, m: 0.058, h0: 10, e: 0.70 });
+          Object.assign(app.expB, { objectId: 'metalcube', g: 9.81, m: 10.0, h0: 10, e: 0.70 });
+          app.configTab = 'A';
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+          showToast('Experimento 5 carregado: Tênis (0,058 kg) vs Cubo metálico (10 kg). Clique em SOLTAR OBJETOS!');
+          return;
+        }
+
+        setMode('single');
+        if (num === '1') {
+          Object.assign(app.expA, { objectId: 'rubber', g: 9.81, m: 0.15, h0: 10, e: 0.70 });
+          showToast('Experimento 1: Gravidade terrestre (9,81 m/s², 10 m, e = 0,70).');
+        } else if (num === '2') {
+          Object.assign(app.expA, { objectId: 'rubber', g: 1.62, m: 0.15, h0: 10, e: 0.70 });
+          showToast('Experimento 2: Gravidade lunar (1,62 m/s², 10 m, e = 0,70).');
+        } else if (num === '3') {
+          Object.assign(app.expA, { objectId: 'rubber', g: 9.81, m: 0.15, h0: 10, e: 0.00 });
+          showToast('Experimento 3: Superfície perfeitamente inelástica (e = 0,00).');
+        } else if (num === '4') {
+          Object.assign(app.expA, { objectId: 'rubber', g: 9.81, m: 0.15, h0: 10, e: 1.00 });
+          showToast('Experimento 4: Colisão perfeitamente elástica (e = 1,00 — energia conservada).');
+        }
+        resetAllExperiments();
+        syncConfigPanelFromExp();
+      }
+
+      function loadComparePreset(key) {
+        if (key === 'earth-moon') {
+          Object.assign(app.expA, { objectId: 'rubber', g: 9.81, m: 0.15, h0: 10, e: 0.70 });
+          Object.assign(app.expB, { objectId: 'rubber', g: 1.62, m: 0.15, h0: 10, e: 0.70 });
+          showToast('Comparação: Terra (9,81 m/s²) vs Lua (1,62 m/s²).');
+        } else if (key === 'masses') {
+          Object.assign(app.expA, { objectId: 'tennis', g: 9.81, m: 0.058, h0: 10, e: 0.70 });
+          Object.assign(app.expB, { objectId: 'metalcube', g: 9.81, m: 10.0, h0: 10, e: 0.70 });
+          showToast('Comparação: Massas diferentes (0,058 kg vs 10 kg) na mesma gravidade.');
+        } else if (key === 'heights') {
+          Object.assign(app.expA, { objectId: 'basketball', g: 9.81, m: 0.62, h0: 10, e: 0.75 });
+          Object.assign(app.expB, { objectId: 'basketball', g: 9.81, m: 0.62, h0: 40, e: 0.75 });
+          showToast('Comparação: Alturas diferentes (10 m vs 40 m — o tempo dobra!).');
+        } else if (key === 'elasticity') {
+          Object.assign(app.expA, { objectId: 'steel', g: 9.81, m: 2.0, h0: 15, e: 0.25 });
+          Object.assign(app.expB, { objectId: 'steel', g: 9.81, m: 2.0, h0: 15, e: 0.90 });
+          showToast('Comparação: Elasticidades diferentes (e = 0,25 vs e = 0,90).');
+        }
+        resetAllExperiments();
+        syncConfigPanelFromExp();
+      }
+
+      function setMode(newMode) {
+        app.mode = newMode;
+        const isCmp = newMode === 'compare';
+        document.getElementById('btnModeSingle').classList.toggle('active', !isCmp);
+        document.getElementById('btnModeCompare').classList.toggle('active', isCmp);
+        document.getElementById('btnModeSingle').setAttribute('aria-selected', String(!isCmp));
+        document.getElementById('btnModeCompare').setAttribute('aria-selected', String(isCmp));
+
+        resetAllExperiments();
+        syncConfigPanelFromExp();
+        updateChartLegend();
+        refreshAllViews();
+      }
+
+      /* =======================================================================
+         11. VINCULAÇÃO DE EVENTOS
+         ======================================================================= */
+      function bindEvents() {
+        // Alternância de Modo no Cabeçalho
+        document.getElementById('btnModeSingle').addEventListener('click', () => setMode('single'));
+        document.getElementById('btnModeCompare').addEventListener('click', () => setMode('compare'));
+        document.getElementById('btnHeaderReset').addEventListener('click', resetAllExperiments);
+
+        // Controles de Transporte
+        document.getElementById('btnDrop').addEventListener('click', () => {
+          if (app.status === 'finished') {
+            resetAllExperiments();
+          }
+          app.status = 'running';
+          lastFrameTs = performance.now();
+          updateTransportButtons();
+        });
+
+        document.getElementById('btnPauseResume').addEventListener('click', () => {
+          if (app.status === 'running') {
+            app.status = 'paused';
+          } else if (app.status === 'paused') {
+            app.status = 'running';
+            lastFrameTs = performance.now();
+          }
+          updateTransportButtons();
+        });
+
+        document.getElementById('btnReset').addEventListener('click', resetAllExperiments);
+
+        document.getElementById('btnStep').addEventListener('click', () => {
+          if (app.status === 'finished') resetAllExperiments();
+          app.status = 'paused';
+          stepSimulation(0.02);
+          refreshAllViews();
+        });
+
+        // Velocidade da simulação
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            app.timeScale = Number(btn.dataset.speed);
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.toggle('active', b === btn));
+          });
+        });
+
+        // Controles de vetores e rastro
+        document.getElementById('chkVecV').addEventListener('change', (e) => { app.showVecV = e.target.checked; drawSimulation(); });
+        document.getElementById('chkVecG').addEventListener('change', (e) => { app.showVecG = e.target.checked; drawSimulation(); });
+        document.getElementById('chkVecP').addEventListener('change', (e) => { app.showVecP = e.target.checked; drawSimulation(); });
+        document.getElementById('chkTrail').addEventListener('change', (e) => { app.showTrail = e.target.checked; drawSimulation(); });
+        document.getElementById('sliderVecScale').addEventListener('input', (e) => {
+          app.vecScale = Number(e.target.value);
+          document.getElementById('lblVecScale').textContent = `${fmt(app.vecScale, 1)}×`;
+          drawSimulation();
+        });
+
+        // Abas de configuração A / B
+        document.getElementById('tabCfgA').addEventListener('click', () => { app.configTab = 'A'; syncConfigPanelFromExp(); });
+        document.getElementById('tabCfgB').addEventListener('click', () => { app.configTab = 'B'; syncConfigPanelFromExp(); });
+
+        // Abas de telemetria A / B
+        document.querySelectorAll('[data-tele-exp]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            app.telemetryTab = btn.dataset.teleExp;
+            document.querySelectorAll('[data-tele-exp]').forEach(b => {
+              b.classList.remove('active-a', 'active-b');
+              if (b.dataset.teleExp === app.telemetryTab) {
+                b.classList.add(app.telemetryTab === 'A' ? 'active-a' : 'active-b');
+              }
+            });
+            updateTelemetryUI();
+          });
+        });
+
+        // Abas de análise física A / B
+        document.querySelectorAll('[data-analysis-exp]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            app.analysisTab = btn.dataset.analysisExp;
+            document.querySelectorAll('[data-analysis-exp]').forEach(b => {
+              b.classList.remove('active-a', 'active-b');
+              if (b.dataset.analysisExp === app.analysisTab) {
+                b.classList.add(app.analysisTab === 'A' ? 'active-a' : 'active-b');
+              }
+            });
+            updateAnalysisUI();
+          });
+        });
+
+        // Presets de Comparação
+        document.querySelectorAll('[data-cmp-preset]').forEach(btn => {
+          btn.addEventListener('click', () => loadComparePreset(btn.dataset.cmpPreset));
+        });
+
+        // Objeto Personalizado
+        document.getElementById('customObjName').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.customName = e.target.value;
+          document.getElementById('selectedObjLabel').textContent = exp.getObjectMeta().name;
+          drawSimulation();
+          updateComparisonTableUI();
+        });
+
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const exp = getActiveConfigExp();
+            exp.customShape = btn.dataset.shape;
+            syncConfigPanelFromExp();
+            drawSimulation();
+          });
+        });
+
+        document.getElementById('customObjColor').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.customColor = e.target.value;
+          drawSimulation();
+        });
+
+        // Gravidade (slider + input + presets)
+        document.getElementById('sliderGravity').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.g = Number(e.target.value);
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        });
+
+        bindNumericInput('inputGravity', 0.1, 100, (val) => {
+          const exp = getActiveConfigExp();
+          exp.g = val;
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        }, 'A gravidade deve estar entre 0,10 e 100 m/s².');
+
+        document.querySelectorAll('#gravityPresets .chip-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.dataset.g === 'custom') {
+              const inp = document.getElementById('inputGravity');
+              inp.focus();
+              inp.select();
+              return;
+            }
+            const exp = getActiveConfigExp();
+            exp.g = Number(btn.dataset.g);
+            resetAllExperiments();
+            syncConfigPanelFromExp();
+          });
+        });
+
+        // Massa (slider + input + presets)
+        document.getElementById('sliderMass').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.m = Number(e.target.value);
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        });
+
+        bindNumericInput('inputMass', 0.01, 1000, (val) => {
+          const exp = getActiveConfigExp();
+          exp.m = val;
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        }, 'A massa deve estar entre 0,01 e 1000 kg.');
+
+        document.querySelectorAll('#massPresets .chip-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const exp = getActiveConfigExp();
+            exp.m = Number(btn.dataset.m);
+            resetAllExperiments();
+            syncConfigPanelFromExp();
+          });
+        });
+
+        // Altura (slider + input + presets)
+        document.getElementById('sliderHeight').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.h0 = Number(e.target.value);
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        });
+
+        bindNumericInput('inputHeight', 0.5, 500, (val) => {
+          const exp = getActiveConfigExp();
+          exp.h0 = val;
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        }, 'A altura inicial deve estar entre 0,5 e 500 m.');
+
+        document.querySelectorAll('#heightPresets .chip-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const exp = getActiveConfigExp();
+            exp.h0 = Number(btn.dataset.h);
+            resetAllExperiments();
+            syncConfigPanelFromExp();
+          });
+        });
+
+        // Elasticidade (slider + input + presets)
+        document.getElementById('sliderElasticity').addEventListener('input', (e) => {
+          const exp = getActiveConfigExp();
+          exp.e = Number(e.target.value);
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        });
+
+        bindNumericInput('inputElasticity', 0, 1, (val) => {
+          const exp = getActiveConfigExp();
+          exp.e = val;
+          resetAllExperiments();
+          syncConfigPanelFromExp();
+        }, 'O coeficiente de restituição (e) deve estar entre 0,00 e 1,00.');
+
+        document.querySelectorAll('#elasticityPresets .chip-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const exp = getActiveConfigExp();
+            exp.e = Number(btn.dataset.e);
+            resetAllExperiments();
+            syncConfigPanelFromExp();
+          });
+        });
+
+        // Experimentos Predefinidos
+        document.querySelectorAll('[data-exp-preset]').forEach(btn => {
+          btn.addEventListener('click', () => loadExperimentPreset(btn.dataset.expPreset));
+        });
+
+        // Abas dos Gráficos
+        document.querySelectorAll('.chart-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            app.activeChart = btn.dataset.chart;
+            document.querySelectorAll('.chart-tab').forEach(b => {
+              const active = b === btn;
+              b.classList.toggle('active', active);
+              b.setAttribute('aria-selected', String(active));
+            });
+            updateChartLegend();
+            drawChart();
+          });
+        });
+
+        // Tooltip interativo no gráfico
+        chartCanvas.addEventListener('mousemove', handleChartMouseMove);
+        chartCanvas.addEventListener('mouseleave', () => {
+          app.chartHoverX = null;
+          chartTooltip.classList.remove('visible');
+          drawChart();
+        });
+      }
+
+      function bindNumericInput(id, min, max, onValid, errMsg) {
+        const el = document.getElementById(id);
+        const commit = () => {
+          const parsed = parseLocaleNum(el.value);
+          if (Number.isNaN(parsed) || parsed < min || parsed > max) {
+            showToast(errMsg);
+            syncConfigPanelFromExp();
+            return;
+          }
+          onValid(parsed);
+        };
+        el.addEventListener('blur', commit);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            el.blur();
+          }
+        });
+      }
+
+      /* =======================================================================
+         12. LOOP DE ANIMAÇÃO INDEPENDENTE DE TAXA DE QUADROS
+         ======================================================================= */
+      let lastFrameTs = performance.now();
+
+      function stepSimulation(simDt) {
+        let anyImpact = app.expA.step(simDt);
+        if (app.mode === 'compare') {
+          anyImpact = app.expB.step(simDt) || anyImpact;
+        }
+
+        if (anyImpact) {
+          app.impactFlashTimer = 0.25;
+        }
+
+        // Verifica se a simulação terminou (todos em repouso)
+        const allResting = app.mode === 'compare'
+          ? (app.expA.resting && app.expB.resting)
+          : app.expA.resting;
+
+        if (allResting && app.status === 'running') {
+          app.status = 'finished';
+          updateTransportButtons();
+        }
+      }
+
+      function animate(now) {
+        // Limita dt real para evitar saltos caso o usuário troque de aba
+        const realDt = Math.min((now - lastFrameTs) / 1000, 0.05);
+        lastFrameTs = now;
+
+        if (app.impactFlashTimer > 0) {
+          app.impactFlashTimer = Math.max(0, app.impactFlashTimer - realDt);
+        }
+
+        if (app.status === 'running') {
+          stepSimulation(realDt * app.timeScale);
+          drawSimulation();
+          drawChart();
+          updateTelemetryUI();
+          updateAnalysisUI();
+          updateComparisonTableUI();
+        } else {
+          // Mantém decaimento suave das ondas de impacto caso tenha acabado de parar
+          const hasFx = app.expA.squash > 0 || app.expA.ripples.length > 0 ||
+            (app.mode === 'compare' && (app.expB.squash > 0 || app.expB.ripples.length > 0));
+          if (hasFx) {
+            app.expA.step(0);
+            if (app.mode === 'compare') app.expB.step(0);
+            drawSimulation();
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      /* =======================================================================
+         13. INICIALIZAÇÃO
+         ======================================================================= */
+      function init() {
+        buildObjectCards();
+        bindEvents();
+        syncConfigPanelFromExp();
+        updateChartLegend();
+        resizeSimCanvas();
+        resizeChartCanvas();
+        refreshAllViews();
+
+        if (typeof ResizeObserver !== 'undefined') {
+          const ro = new ResizeObserver(() => {
+            resizeSimCanvas();
+            resizeChartCanvas();
+          });
+          ro.observe(simStage);
+          ro.observe(chartStage);
+        } else {
+          window.addEventListener('resize', () => {
+            resizeSimCanvas();
+            resizeChartCanvas();
+          });
+        }
+
+        lastFrameTs = performance.now();
+        requestAnimationFrame(animate);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </body>
 </html>
