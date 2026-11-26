@@ -1,680 +1,2268 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação de Termometria e Conversão de Escalas</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>Termometria e Conversão de Escalas (°C, °F, K) | SimuLab</title>
 
-    <style>        
-        /* Variáveis para o layout */        
-        :root {            
-            --header-height: 55px;             
-            --recipiente-size: 350px;
-            --termometro-height: 300px;
-            --display-height: 100px;
+    <!-- Tipografia institucional: Nunito Sans + JetBrains Mono para números tabulares -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&amp;family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&amp;display=swap" rel="stylesheet">
+
+    <!-- Font Awesome (ícones da plataforma SimuLab) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS CDN com tokens da paleta SimuLab -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Nunito Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+                    },
+                    colors: {
+                        simulab: {
+                            orange: '#ff690b',
+                            orangeDark: '#e95700',
+                            navy: '#14233d',
+                            bg: '#f7f9fc',
+                            border: '#e2e8f0',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================================
+           VARIÁVEIS E BASE INSTITUCIONAL SIMULAB
+           ========================================================= */
+        :root {
+            --header-height: 58px;
+            --simulab-orange: #ff690b;
+            --simulab-orange-dark: #e95700;
+            --simulab-navy: #14233d;
+            --simulab-bg: #f7f9fc;
+            --simulab-border: #e2e8f0;
+            --tube-height: 248px;
+            --color-celsius: #ff690b;
+            --color-fahrenheit: #e11d48;
+            --color-kelvin: #1d4ed8;
         }
 
-        /* ----------------------------------- */        
-        /* ESTILOS DO HEADER (Navegação) */        
-        /* ----------------------------------- */        
-        .top-bar {            
-            background-color: white;            
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);            
-            padding: 0;            
-            height: var(--header-height);             
+        @media (max-width: 640px) {
+            :root {
+                --tube-height: 215px;
+            }
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--simulab-bg);
+            color: var(--simulab-navy);
+            font-family: 'Nunito Sans', system-ui, sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            padding-top: var(--header-height);
+        }
+
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* =========================================================
+           HEADER INSTITUCIONAL (.top-bar)
+           ========================================================= */
+        .top-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            z-index: 100;             
-            display: flex;
-            align-items: stretch;             
-            border-bottom: 1px solid #ddd;             
-            box-sizing: border-box;         
-        }
-        .logo-link {            
-            text-decoration: none;            
-            color: #D2691E;             
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 25px;             
-            display: flex;
-            align-items: center;             
-            border-right: 1px solid #ddd;             
-            transition: background-color 0.3s;
-        }                
-        .logo-link:hover {            
-            background-color: #f5f5f5;
-        }
-        .nav-buttons {            
-            display: flex;
-            justify-content: flex-start;
-            flex-grow: 1;
-        }
-        .page-title {            
-            padding: 0 25px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #555;
+            height: var(--header-height);
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--simulab-border);
+            box-shadow: 0 2px 10px rgba(20, 35, 61, 0.05);
+            z-index: 100;
             display: flex;
             align-items: center;
         }
 
-        /* ----------------------------------- */        
-        /* ESTILOS GERAIS DA PÁGINA */        
-        /* ----------------------------------- */        
-        body {            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: sans-serif;
-            padding-top: var(--header-height);             
-            box-sizing: border-box;         
-        }
-        #mainContent {            
-            display: flex;
-            align-items: flex-start;
-            gap: 40px;
-            margin: 30px 0 20px 0;
-        }                
-        #termometrosContainer {            
-            display: flex;
-            flex-direction: row;             
-            gap: 20px;
-            padding: 10px;
-            align-items: flex-end;         
-        }                
-        #recipienteContainer {            
-            position: relative;
-            display: flex;
-            flex-direction: column;
+        .logo-link {
+            display: inline-flex;
             align-items: center;
             gap: 10px;
-        }                
-
-        /* ----------------------------------- */        
-        /* ESTILOS DO RECIPIENTE E PARTÍCULAS */        
-        /* ----------------------------------- */        
-        #recipiente {            
-            position: relative;
-            width: var(--recipiente-size);
-            height: var(--recipiente-size);
-            border: 5px solid #2c3e50;
-            background-color: #ecf0f1;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-            background-image: linear-gradient(to right, #bdc3c7 1px, transparent 1px),                              
-                              linear-gradient(to bottom, #bdc3c7 1px, transparent 1px);
-            background-size: 20px 20px;
-            overflow: hidden;             
-            border-radius: 8px;
-        }
-        .particula {            
-            position: absolute;
-            background-color: #e74c3c;             
-            border-radius: 50%;
-            transform: translate(-50%, -50%);         
+            height: 100%;
+            padding: 0 18px;
+            text-decoration: none;
+            border-right: 1px solid var(--simulab-border);
+            transition: background-color 0.2s ease;
+            flex-shrink: 0;
         }
 
-        /* ----------------------------------- */        
-        /* ESTILOS DOS TERMÔMETROS E INPUTS */        
-        /* ----------------------------------- */        
-        .termometro {            
+        .logo-link:hover {
+            background-color: #fff7f2;
+        }
+
+        /* =========================================================
+           ESTILOS VISUAIS DOS TERMÔMETROS REALISTAS
+           ========================================================= */
+        .termometro-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            padding: 10px 0;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        .termometro h3 {            
-            margin: 0;
-            font-size: 1.1em;
-            color: #2c3e50;
-        }
-        .termometro-haste {            
+
+        .termometro-haste-area {
             position: relative;
-            width: 30px;
-            height: var(--termometro-height);
-            border: 2px solid #2c3e50;
-            border-radius: 15px;
-            background-color: #f5f5f5;
-            overflow: hidden;
-            order: 2;             
-            margin-top: 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 8px 0 0 0;
         }
-        .mercurio-barra {            
+
+        .termometro-haste {
+            position: relative;
+            width: 28px;
+            height: var(--tube-height);
+            border-radius: 999px 999px 4px 4px;
+            border: 2px solid #cbd5e1;
+            border-bottom: none;
+            background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 42%, #f8fafc 75%, #e2e8f0 100%);
+            box-shadow: inset 2px 0 4px rgba(20, 35, 61, 0.08), 0 2px 6px rgba(20, 35, 61, 0.06);
+            cursor: ns-resize;
+            touch-action: none;
+            overflow: hidden;
+            z-index: 2;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .termometro-haste:hover,
+        .termometro-haste.dragging {
+            border-color: #94a3b8;
+            box-shadow: inset 2px 0 4px rgba(20, 35, 61, 0.08), 0 0 0 3px rgba(255, 105, 11, 0.14);
+        }
+
+        .termometro-haste.dragging {
+            cursor: grabbing;
+        }
+
+        /* Sombreamento sutil da zona negativa (abaixo de 0 °C ou 0 °F) */
+        .negative-zone {
             position: absolute;
             bottom: 0;
+            left: 0;
             width: 100%;
-            background-color: #e74c3c;             
-            border-top: 1px solid #c0392b;
-            cursor: ns-resize;             
-            transition: background-color 0.2s;
-            /* Altura inicial será definida pelo JS */
-            height: 0px; 
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(56, 189, 248, 0.10),
+                rgba(56, 189, 248, 0.10) 4px,
+                rgba(14, 165, 233, 0.04) 4px,
+                rgba(14, 165, 233, 0.04) 8px
+            );
+            border-top: 1.5px dashed rgba(2, 132, 199, 0.55);
+            pointer-events: none;
+            z-index: 1;
         }
-        .mercurio-barra:hover {            
-            background-color: #c0392b;
-        }
-        .mercurio-barra.dragging {            
-            cursor: grabbing;
-        }                
-        /* Estilo dos Inputs de Temperatura (Celsius, Fahrenheit, Kelvin) */        
-        .temp-input {            
-            order: 1;             
-            padding: 8px;
-            border: 1px solid #aaa;
-            border-radius: 4px;
-            width: 100px;
-            text-align: center;
-            font-weight: bold;
-            box-sizing: border-box;
-            margin-bottom: 5px;
-        }                
 
-        /* ----------------------------------- */        
-        /* CONTROLE DE PARTÍCULAS (FIXO) */        
-        /* ----------------------------------- */        
-        #controleParticulas {            
-            /* Reposicionado e fixado ao lado do recipiente */
+        /* Linha de referência para 0 K na base */
+        .zero-kelvin-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(29, 78, 216, 0.55);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Coluna líquida / mercúrio */
+        .mercurio-barra {
+            position: absolute;
+            bottom: 0;
+            left: 3px;
+            right: 3px;
+            border-radius: 6px 6px 0 0;
+            pointer-events: none;
+            z-index: 2;
+            will-change: height;
+            min-height: 2px;
+        }
+
+        .mercurio-celsius {
+            background: linear-gradient(90deg, #ea580c 0%, #ff690b 45%, #fb923c 72%, #c2410c 100%);
+        }
+        .mercurio-fahrenheit {
+            background: linear-gradient(90deg, #be123c 0%, #e11d48 45%, #fb7185 72%, #9f1239 100%);
+        }
+        .mercurio-kelvin {
+            background: linear-gradient(90deg, #1e40af 0%, #1d4ed8 45%, #60a5fa 72%, #1e3a8a 100%);
+        }
+
+        /* Menisco interativo no topo da coluna líquida */
+        .mercurio-barra::after {
+            content: '';
             position: absolute;
             top: 0;
-            left: calc(var(--recipiente-size) + 20px); 
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            width: 200px;
-            text-align: center;
-            cursor: default; 
-            z-index: 50;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.45);
         }
-        #controleParticulas h4 {            
-            margin: 0 0 10px 0;
-            color: #2c3e50;
+
+        /* Reflexo vítreo longitudinal na haste */
+        .glass-reflection {
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            left: 4px;
+            width: 4px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.3) 100%);
+            pointer-events: none;
+            z-index: 4;
         }
-        #particulaSlider {            
-            width: 100%;
+
+        /* Bulbo de vidro na base do termômetro */
+        .termometro-bulbo {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            margin-top: -8px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(20, 35, 61, 0.12);
+            z-index: 3;
             cursor: pointer;
         }
 
-        /* ----------------------------------- */        
-        /* DISPLAY DE CÁLCULOS E RESULTADOS */        
-        /* ----------------------------------- */        
-        #calculoDisplay {            
-            width: 90%;
-            max-width: 900px;
-            min-height: var(--display-height);
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-            text-align: left;
-            border-top: 2px solid #ddd;
+        .bulbo-liquido {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            position: relative;
         }
-        .formula-group {            
+
+        .bulbo-celsius {
+            background: radial-gradient(circle at 35% 30%, #fdba74 0%, #ff690b 45%, #c2410c 100%);
+        }
+        .bulbo-fahrenheit {
+            background: radial-gradient(circle at 35% 30%, #fda4af 0%, #e11d48 45%, #9f1239 100%);
+        }
+        .bulbo-kelvin {
+            background: radial-gradient(circle at 35% 30%, #93c5fd 0%, #1d4ed8 45%, #1e3a8a 100%);
+        }
+
+        /* Brilho especular no bulbo */
+        .bulbo-liquido::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 7px;
+            width: 10px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.65);
+            transform: rotate(-30deg);
+        }
+
+        /* Escala graduada lateral das hastes */
+        .scale-ticks {
+            position: relative;
+            height: var(--tube-height);
+            width: 46px;
+            margin-left: 4px;
+            pointer-events: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        @media (max-width: 480px) {
+            .scale-ticks {
+                width: 38px;
+                font-size: 9px;
+            }
+            .termometro-haste {
+                width: 24px;
+            }
+            .termometro-bulbo {
+                width: 38px;
+                height: 38px;
+            }
+            .bulbo-liquido {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        .tick-mark {
+            position: absolute;
+            left: 0;
+            transform: translateY(50%);
             display: flex;
-            justify-content: space-around;
+            align-items: center;
+            gap: 3px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .tick-line {
+            width: 6px;
+            height: 1.5px;
+            background-color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .tick-mark.is-zero {
+            color: #0369a1;
+            font-weight: 700;
+        }
+
+        .tick-mark.is-zero .tick-line {
+            width: 9px;
+            height: 2px;
+            background-color: #0284c7;
+        }
+
+        /* =========================================================
+           CONTROLES DESLIZANTES PERSONALIZADOS (SLIDERS)
+           ========================================================= */
+        input[type="range"].simulab-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"].temp-master-slider {
+            background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 38%, #fbbf24 55%, #ff690b 78%, #dc2626 100%);
+        }
+
+        input[type="range"].particles-slider {
+            background: #e2e8f0;
+        }
+
+        input[type="range"].simulab-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid var(--simulab-orange);
+            box-shadow: 0 2px 6px rgba(20, 35, 61, 0.22);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        input[type="range"].simulab-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+            border-color: var(--simulab-orange-dark);
+        }
+
+        input[type="range"].simulab-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid var(--simulab-orange);
+            box-shadow: 0 2px 6px rgba(20, 35, 61, 0.22);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        /* =========================================================
+           TIPOGRAFIA MATEMÁTICA LIMPA (ZERO FLICKER)
+           ========================================================= */
+        .math-expr {
+            font-family: 'Nunito Sans', serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             flex-wrap: wrap;
-            margin-top: 15px;
+            gap: 4px;
+            color: var(--simulab-navy);
+            font-size: 1.05rem;
+            font-weight: 700;
         }
-        .formula-item {            
-            flex-basis: 30%;
-            min-width: 200px;
-            text-align: center;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin: 5px;
-            background-color: #f9f9f9;
+
+        .math-frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            line-height: 1.05;
+            font-size: 0.85em;
+            margin: 0 2px;
         }
-        .formula-item h4 {            
-            margin: 0 0 5px 0;
-            color: #007bb5;
-            font-size: 1em;
+
+        .math-frac .num {
+            border-bottom: 1.5px solid currentColor;
+            padding: 0 3px 1px;
         }
-        .formula-item p {            
-            margin: 3px 0;
-            font-size: 0.9em;
+
+        .math-frac .den {
+            padding: 1px 3px 0;
         }
-        .formula-result {            
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #27ae60;
-        }    
+
+        .math-sqrt {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .math-sqrt-rad {
+            border-top: 1.6px solid currentColor;
+            padding: 1px 3px 0 2px;
+            margin-left: -1px;
+        }
+
+        /* Animação suave de entrada do alerta */
+        @keyframes fadeSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-animate {
+            animation: fadeSlideDown 0.22s ease-out forwards;
+        }
+
+        /* Canvas container responsivo */
+        .canvas-box {
+            position: relative;
+            width: 100%;
+            height: 310px;
+            border-radius: 12px;
+            border: 2px solid #1e293b;
+            background-color: #f8fafc;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(20, 35, 61, 0.08);
+        }
+
+        @media (min-width: 1280px) {
+            .canvas-box {
+                height: 335px;
+            }
+        }
     </style>
-</head>
-<body>
-    <header class="top-bar">
-        <a href="https://erik-bernardo.github.io/SimuLab/simulacoes.html" class="logo-link">
-            <i class="fas fa-book-reader"></i> PLATAFORMA
-        </a>
-        <div class="nav-buttons">
-            <span class="page-title">Termometria e Conversão de Escalas (°C, °F, K)</span>
-        </div>
-    </header>
-            
-    <div id="mainContent">
-        <div id="termometrosContainer">
-            <div class="termometro" id="termometroC">
-                <h3>Celsius (°C)</h3>
-                <input type="number" class="temp-input" id="celsiusInput" data-scale="celsius" value="0.00" step="0.01" min="-50" max="150" title="Entrada de temperatura em Celsius">
-                <div class="termometro-haste">
-                    <div class="mercurio-barra" data-scale="celsius" data-min-temp="-50" data-max-temp="150"></div>
-                </div>
-                <div class="temp-valor-display" style="font-weight: bold;">0.00 &deg;C</div>
-            </div>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:"Nunito Sans", system-ui, -apple-system, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.absolute{position:absolute}.relative{position:relative}.inset-x-3{left:0.75rem;right:0.75rem}.bottom-3{bottom:0.75rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.ml-0\.5{margin-left:0.125rem}.ml-1{margin-left:0.25rem}.mr-1\.5{margin-right:0.375rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-2\.5{margin-top:0.625rem}.mt-4{margin-top:1rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-2{height:0.5rem}.h-2\.5{height:0.625rem}.h-3{height:0.75rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-full{height:100%}.min-h-screen{min-height:100vh}.w-2{width:0.5rem}.w-2\.5{width:0.625rem}.w-3{width:0.75rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-\[104px\]{max-width:104px}.max-w-\[1380px\]{max-width:1380px}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.border-collapse{border-collapse:collapse}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-3\.5{gap:0.875rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-x-6{column-gap:1.5rem}.gap-y-2{row-gap:0.5rem}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-slate-100 > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(241 245 249 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-sm{border-radius:0.125rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-emerald-100{--tw-border-opacity:1;border-color:rgb(209 250 229 / var(--tw-border-opacity, 1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-emerald-200\/80{border-color:rgb(167 243 208 / 0.8)}.border-orange-100{--tw-border-opacity:1;border-color:rgb(255 237 213 / var(--tw-border-opacity, 1))}.border-orange-200{--tw-border-opacity:1;border-color:rgb(254 215 170 / var(--tw-border-opacity, 1))}.border-orange-200\/80{border-color:rgb(254 215 170 / 0.8)}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202 / var(--tw-border-opacity, 1))}.border-simulab-border{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-simulab-navy{--tw-border-opacity:1;border-color:rgb(20 35 61 / var(--tw-border-opacity, 1))}.border-sky-200{--tw-border-opacity:1;border-color:rgb(186 230 253 / var(--tw-border-opacity, 1))}.border-sky-400\/30{border-color:rgb(56 189 248 / 0.3)}.border-sky-400\/60{border-color:rgb(56 189 248 / 0.6)}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-200\/80{border-color:rgb(226 232 240 / 0.8)}.border-slate-200\/90{border-color:rgb(226 232 240 / 0.9)}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-simulab-orange{--tw-border-opacity:1;border-color:rgb(255 105 11 / var(--tw-border-opacity, 1))}.border-orange-300{--tw-border-opacity:1;border-color:rgb(253 186 116 / var(--tw-border-opacity, 1))}.bg-\[\#1d4ed8\]{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.bg-\[\#e11d48\]{--tw-bg-opacity:1;background-color:rgb(225 29 72 / var(--tw-bg-opacity, 1))}.bg-\[\#ff690b\]{--tw-bg-opacity:1;background-color:rgb(255 105 11 / var(--tw-bg-opacity, 1))}.bg-black\/15{background-color:rgb(0 0 0 / 0.15)}.bg-blue-100{--tw-bg-opacity:1;background-color:rgb(219 234 254 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-50\/70{background-color:rgb(236 253 245 / 0.7)}.bg-emerald-50\/80{background-color:rgb(236 253 245 / 0.8)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-indigo-100{--tw-bg-opacity:1;background-color:rgb(224 231 255 / var(--tw-bg-opacity, 1))}.bg-orange-100{--tw-bg-opacity:1;background-color:rgb(255 237 213 / var(--tw-bg-opacity, 1))}.bg-orange-50{--tw-bg-opacity:1;background-color:rgb(255 247 237 / var(--tw-bg-opacity, 1))}.bg-orange-50\/40{background-color:rgb(255 247 237 / 0.4)}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.bg-rose-100{--tw-bg-opacity:1;background-color:rgb(255 228 230 / var(--tw-bg-opacity, 1))}.bg-simulab-bg{--tw-bg-opacity:1;background-color:rgb(247 249 252 / var(--tw-bg-opacity, 1))}.bg-simulab-navy{--tw-bg-opacity:1;background-color:rgb(20 35 61 / var(--tw-bg-opacity, 1))}.bg-simulab-orange{--tw-bg-opacity:1;background-color:rgb(255 105 11 / var(--tw-bg-opacity, 1))}.bg-sky-100{--tw-bg-opacity:1;background-color:rgb(224 242 254 / var(--tw-bg-opacity, 1))}.bg-sky-100\/70{background-color:rgb(224 242 254 / 0.7)}.bg-sky-50\/95{background-color:rgb(240 249 255 / 0.95)}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-50\/60{background-color:rgb(248 250 252 / 0.6)}.bg-slate-50\/70{background-color:rgb(248 250 252 / 0.7)}.bg-slate-50\/80{background-color:rgb(248 250 252 / 0.8)}.bg-slate-900\/80{background-color:rgb(15 23 42 / 0.8)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-orange-50\/70{background-color:rgb(255 247 237 / 0.7)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-amber-300{--tw-gradient-from:#fcd34d var(--tw-gradient-from-position);--tw-gradient-to:rgb(252 211 77 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-orange-400{--tw-gradient-from:#fb923c var(--tw-gradient-from-position);--tw-gradient-to:rgb(251 146 60 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-red-400{--tw-gradient-from:#f87171 var(--tw-gradient-from-position);--tw-gradient-to:rgb(248 113 113 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-amber-500{--tw-gradient-to:#f59e0b var(--tw-gradient-to-position)}.to-red-600{--tw-gradient-to:#dc2626 var(--tw-gradient-to-position)}.to-simulab-orange{--tw-gradient-to:#ff690b var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-2\.5{padding:0.625rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.pb-2{padding-bottom:0.5rem}.pb-3{padding-bottom:0.75rem}.pb-6{padding-bottom:1.5rem}.pt-1{padding-top:0.25rem}.pt-3{padding-top:0.75rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, monospace}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction)}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.text-\[\#1d4ed8\]{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-\[\#e11d48\]{--tw-text-opacity:1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.text-\[\#ff690b\]{--tw-text-opacity:1;color:rgb(255 105 11 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-blue-500{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.text-blue-700{--tw-text-opacity:1;color:rgb(29 78 216 / var(--tw-text-opacity, 1))}.text-cyan-500{--tw-text-opacity:1;color:rgb(6 182 212 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-700\/80{color:rgb(4 120 87 / 0.8)}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-red-700{--tw-text-opacity:1;color:rgb(185 28 28 / var(--tw-text-opacity, 1))}.text-rose-700{--tw-text-opacity:1;color:rgb(190 18 60 / var(--tw-text-opacity, 1))}.text-simulab-navy{--tw-text-opacity:1;color:rgb(20 35 61 / var(--tw-text-opacity, 1))}.text-simulab-orange{--tw-text-opacity:1;color:rgb(255 105 11 / var(--tw-text-opacity, 1))}.text-simulab-orangeDark{--tw-text-opacity:1;color:rgb(233 87 0 / var(--tw-text-opacity, 1))}.text-sky-100{--tw-text-opacity:1;color:rgb(224 242 254 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-sky-500{--tw-text-opacity:1;color:rgb(14 165 233 / var(--tw-text-opacity, 1))}.text-sky-600{--tw-text-opacity:1;color:rgb(2 132 199 / var(--tw-text-opacity, 1))}.text-sky-700{--tw-text-opacity:1;color:rgb(3 105 161 / var(--tw-text-opacity, 1))}.text-sky-800{--tw-text-opacity:1;color:rgb(7 89 133 / var(--tw-text-opacity, 1))}.text-sky-900{--tw-text-opacity:1;color:rgb(12 74 110 / var(--tw-text-opacity, 1))}.text-sky-950{--tw-text-opacity:1;color:rgb(8 47 73 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.ring-1{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-amber-600\/20{--tw-ring-color:rgb(217 119 6 / 0.2)}.ring-orange-600\/20{--tw-ring-color:rgb(234 88 12 / 0.2)}.ring-red-700\/20{--tw-ring-color:rgb(185 28 28 / 0.2)}.ring-simulab-orange{--tw-ring-opacity:1;--tw-ring-color:rgb(255 105 11 / var(--tw-ring-opacity, 1))}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-150{transition-duration:150ms}.hover\:border-amber-300:hover{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.hover\:border-blue-300:hover{--tw-border-opacity:1;border-color:rgb(147 197 253 / var(--tw-border-opacity, 1))}.hover\:border-cyan-300:hover{--tw-border-opacity:1;border-color:rgb(103 232 249 / var(--tw-border-opacity, 1))}.hover\:border-orange-300:hover{--tw-border-opacity:1;border-color:rgb(253 186 116 / var(--tw-border-opacity, 1))}.hover\:border-red-300:hover{--tw-border-opacity:1;border-color:rgb(252 165 165 / var(--tw-border-opacity, 1))}.hover\:border-sky-300:hover{--tw-border-opacity:1;border-color:rgb(125 211 252 / var(--tw-border-opacity, 1))}.hover\:bg-amber-50:hover{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-50:hover{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.hover\:bg-cyan-50:hover{--tw-bg-opacity:1;background-color:rgb(236 254 255 / var(--tw-bg-opacity, 1))}.hover\:bg-orange-100:hover{--tw-bg-opacity:1;background-color:rgb(255 237 213 / var(--tw-bg-opacity, 1))}.hover\:bg-orange-50:hover{--tw-bg-opacity:1;background-color:rgb(255 247 237 / var(--tw-bg-opacity, 1))}.hover\:bg-red-50:hover{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.hover\:bg-simulab-orangeDark:hover{--tw-bg-opacity:1;background-color:rgb(233 87 0 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-100:hover{--tw-bg-opacity:1;background-color:rgb(224 242 254 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-50:hover{--tw-bg-opacity:1;background-color:rgb(240 249 255 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:text-sky-900:hover{--tw-text-opacity:1;color:rgb(12 74 110 / var(--tw-text-opacity, 1))}.focus\:border-\[\#1d4ed8\]:focus{--tw-border-opacity:1;border-color:rgb(29 78 216 / var(--tw-border-opacity, 1))}.focus\:border-\[\#e11d48\]:focus{--tw-border-opacity:1;border-color:rgb(225 29 72 / var(--tw-border-opacity, 1))}.focus\:border-simulab-orange:focus{--tw-border-opacity:1;border-color:rgb(255 105 11 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-blue-100:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(219 234 254 / var(--tw-ring-opacity, 1))}.focus\:ring-orange-100:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(255 237 213 / var(--tw-ring-opacity, 1))}.focus\:ring-rose-100:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(255 228 230 / var(--tw-ring-opacity, 1))}.active\:scale-\[0\.98\]:active{--tw-scale-x:0.98;--tw-scale-y:0.98;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:opacity-50:disabled{opacity:0.5}.group:hover .group-hover\:text-amber-900{--tw-text-opacity:1;color:rgb(120 53 15 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-blue-900{--tw-text-opacity:1;color:rgb(30 58 138 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-cyan-900{--tw-text-opacity:1;color:rgb(22 78 99 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-red-900{--tw-text-opacity:1;color:rgb(127 29 29 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-simulab-orangeDark{--tw-text-opacity:1;color:rgb(233 87 0 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-sky-900{--tw-text-opacity:1;color:rgb(12 74 110 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:col-span-2{grid-column:span 2 / span 2}.sm\:inline{display:inline}.sm\:inline-flex{display:inline-flex}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:justify-between{justify-content:space-between}.sm\:gap-3{gap:0.75rem}.sm\:p-5{padding:1.25rem}.sm\:px-2{padding-left:0.5rem;padding-right:0.5rem}.sm\:px-5{padding-left:1.25rem;padding-right:1.25rem}.sm\:py-5{padding-top:1.25rem;padding-bottom:1.25rem}.sm\:text-\[13px\]{font-size:13px}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:col-span-5{grid-column:span 5 / span 5}.md\:col-span-7{grid-column:span 7 / span 7}.md\:flex{display:flex}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:border-l{border-left-width:1px}.lg\:border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.lg\:pl-5{padding-left:1.25rem}}</style></head>
+<body class="bg-simulab-bg text-simulab-navy min-h-screen">
 
-            <div class="termometro" id="termometroF">
-                <h3>Fahrenheit (°F)</h3>
-                <input type="number" class="temp-input" id="fahrenheitInput" data-scale="fahrenheit" value="32.00" step="0.01" min="-58" max="302" title="Entrada de temperatura em Fahrenheit">
-                <div class="termometro-haste">
-                    <div class="mercurio-barra" data-scale="fahrenheit" data-min-temp="-58" data-max-temp="302"></div>
-                </div>
-                <div class="temp-valor-display" style="font-weight: bold;">32.00 &deg;F</div>
-            </div>
+    <!-- =========================================================
+         1. HEADER INSTITUCIONAL SIMULAB (.top-bar)
+         ========================================================= -->
+    
 
-            <div class="termometro" id="termometroK">
-                <h3>Kelvin (K)</h3>
-                <input type="number" class="temp-input" id="kelvinInput" data-scale="kelvin" value="273.15" step="0.01" min="0" max="423.15" title="Entrada de temperatura em Kelvin">
-                <div class="termometro-haste">
-                    <div class="mercurio-barra" data-scale="kelvin" data-min-temp="0" data-max-temp="423.15"></div>
+    <!-- =========================================================
+         CONTEÚDO PRINCIPAL RESPONSIVO
+         ========================================================= -->
+    <main class="max-w-[1380px] mx-auto px-3 sm:px-5 py-4 sm:py-5 space-y-5">
+
+        <!-- Alerta educativo discreto (Zero Absoluto / limite superior) -->
+        <div id="educationalAlert" role="alert" class="hidden alert-animate rounded-xl border border-sky-200 bg-sky-50/95 px-4 py-3 text-sky-950 shadow-sm flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <span class="mt-0.5 w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-snowflake text-sm"></i>
+                </span>
+                <div class="text-xs sm:text-sm leading-relaxed">
+                    <strong id="alertTitle" class="font-bold text-sky-900">Limite físico atingido — Zero Absoluto (0 K):</strong>
+                    <span id="alertMessage" class="text-sky-800 ml-1">
+                        O Zero Absoluto (−273,15 °C / −459,67 °F / 0 K) é o limite físico inferior da temperatura. Não é possível resfriar a matéria abaixo desse valor; a simulação foi ajustada automaticamente para 0 K.
+                    </span>
                 </div>
-                <div class="temp-valor-display" style="font-weight: bold;">273.15 K</div>
             </div>
+            <button id="closeAlertBtn" type="button" class="text-sky-600 hover:text-sky-900 p-1 rounded-lg hover:bg-sky-100 transition-colors flex-shrink-0" aria-label="Fechar aviso">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <div id="recipienteContainer">
-            <div id="recipiente"></div>
-            
-            <div id="controleParticulas">
-                <h4>Quantidade de Partículas</h4>
-                <input type="range" id="particulaSlider" min="1" max="50" value="8" step="1">
-                <p>Nº de Partículas: <span id="numParticulasDisplay" style="font-weight: bold;">8</span></p>
+        <!-- =========================================================
+             2. BLOCO SUPERIOR PRINCIPAL (DUAS GRANDES COLUNAS)
+             ========================================================= -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+            <!-- COLUNA ESQUERDA: TERMÔMETROS VISUAIS PROPORCIONAIS + CONTROLE -->
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-simulab-border shadow-sm p-4 sm:p-5 flex flex-col justify-between">
+                <div>
+                    <!-- Cabeçalho do Card dos Termômetros -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h2 class="text-base font-extrabold text-simulab-navy flex items-center gap-2">
+                                <i class="fas fa-thermometer-half text-simulab-orange"></i>
+                                Escalas Termométricas
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Arraste qualquer coluna de líquido ou digite um valor abaixo
+                            </p>
+                        </div>
+                        <!-- Badge exibido quando T > 350 °C (escala visual cheia) -->
+                        <span id="overflowScaleBadge" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-red-50 text-red-700 border border-red-200 animate-pulse" title="A temperatura ultrapassa o limite visual de 350 °C do tubo, mas continua sendo calculada normalmente até 2000 °C">
+                            <i class="fas fa-fire-flame-curved"></i>
+                            <span>+350 °C</span>
+                        </span>
+                    </div>
+
+                    <!-- 3 Termômetros Verticais Lado a Lado -->
+                    <div id="termometrosContainer" class="grid grid-cols-3 gap-1.5 sm:gap-3 pt-1 pb-3">
+
+                        <!-- TERMÔMETRO CELSIUS -->
+                        <div class="termometro-wrapper bg-slate-50/70 rounded-xl border border-slate-200/80 py-2.5 px-1.5 sm:px-2" id="termometroC">
+                            <div class="flex items-center gap-1.5 mb-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#ff690b]"></span>
+                                <h3 class="text-xs sm:text-sm font-extrabold text-simulab-navy">Celsius</h3>
+                            </div>
+                            <div class="relative w-full max-w-[104px] mb-1">
+                                <input type="text" inputmode="decimal" id="celsiusInput" data-scale="celsius" value="25,00" aria-label="Temperatura em graus Celsius" class="temp-input w-full text-center font-mono tabular-nums text-xs sm:text-sm font-bold text-simulab-navy bg-white border border-slate-300 rounded-lg py-1.5 px-1.5 focus:outline-none focus:border-simulab-orange focus:ring-2 focus:ring-orange-100 transition">
+                                <span class="block text-center text-[11px] font-bold text-[#ff690b] mt-0.5">°C</span>
+                            </div>
+
+                            <div class="termometro-haste-area">
+                                <div class="flex flex-col items-center">
+                                    <div class="termometro-haste" data-scale="celsius" role="slider" aria-label="Coluna termométrica Celsius" tabindex="0">
+                                        <div class="negative-zone" id="negZoneC" style="height: 43.8337%;"></div>
+                                        <div class="mercurio-barra mercurio-celsius" data-scale="celsius" style="height: 47.8456%;"></div>
+                                        <div class="glass-reflection"></div>
+                                    </div>
+                                    <div class="termometro-bulbo" data-scale="celsius" title="Clique ou arraste na haste">
+                                        <div class="bulbo-liquido bulbo-celsius"></div>
+                                    </div>
+                                </div>
+                                <div class="scale-ticks" id="ticksC" aria-hidden="true"><div class="tick-mark" style="bottom: 0%;"><span class="tick-line"></span><span>−273</span></div><div class="tick-mark" style="bottom: 19.7625%;"><span class="tick-line"></span><span>−150</span></div><div class="tick-mark is-zero" style="bottom: 43.8337%;"><span class="tick-line"></span><span>0 °C</span></div><div class="tick-mark" style="bottom: 59.8812%;"><span class="tick-line"></span><span>100</span></div><div class="tick-mark" style="bottom: 75.9287%;"><span class="tick-line"></span><span>200</span></div><div class="tick-mark" style="bottom: 100%;"><span class="tick-line"></span><span>350</span></div></div>
+                            </div>
+                        </div>
+
+                        <!-- TERMÔMETRO FAHRENHEIT -->
+                        <div class="termometro-wrapper bg-slate-50/70 rounded-xl border border-slate-200/80 py-2.5 px-1.5 sm:px-2" id="termometroF">
+                            <div class="flex items-center gap-1.5 mb-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#e11d48]"></span>
+                                <h3 class="text-xs sm:text-sm font-extrabold text-simulab-navy">Fahrenheit</h3>
+                            </div>
+                            <div class="relative w-full max-w-[104px] mb-1">
+                                <input type="text" inputmode="decimal" id="fahrenheitInput" data-scale="fahrenheit" value="77,00" aria-label="Temperatura em graus Fahrenheit" class="temp-input w-full text-center font-mono tabular-nums text-xs sm:text-sm font-bold text-simulab-navy bg-white border border-slate-300 rounded-lg py-1.5 px-1.5 focus:outline-none focus:border-[#e11d48] focus:ring-2 focus:ring-rose-100 transition">
+                                <span class="block text-center text-[11px] font-bold text-[#e11d48] mt-0.5">°F</span>
+                            </div>
+
+                            <div class="termometro-haste-area">
+                                <div class="flex flex-col items-center">
+                                    <div class="termometro-haste" data-scale="fahrenheit" role="slider" aria-label="Coluna termométrica Fahrenheit" tabindex="0">
+                                        <div class="negative-zone" id="negZoneF" style="height: 40.9809%;"></div>
+                                        <div class="mercurio-barra mercurio-fahrenheit" data-scale="fahrenheit" style="height: 47.8456%;"></div>
+                                        <div class="glass-reflection"></div>
+                                    </div>
+                                    <div class="termometro-bulbo" data-scale="fahrenheit" title="Clique ou arraste na haste">
+                                        <div class="bulbo-liquido bulbo-fahrenheit"></div>
+                                    </div>
+                                </div>
+                                <div class="scale-ticks" id="ticksF" aria-hidden="true"><div class="tick-mark" style="bottom: 0%;"><span class="tick-line"></span><span>−460</span></div><div class="tick-mark" style="bottom: 23.1503%;"><span class="tick-line"></span><span>−200</span></div><div class="tick-mark is-zero" style="bottom: 40.9809%;"><span class="tick-line"></span><span>0 °F</span></div><div class="tick-mark" style="bottom: 59.8812%;"><span class="tick-line"></span><span>212</span></div><div class="tick-mark" style="bottom: 76.642%;"><span class="tick-line"></span><span>400</span></div><div class="tick-mark" style="bottom: 100%;"><span class="tick-line"></span><span>662</span></div></div>
+                            </div>
+                        </div>
+
+                        <!-- TERMÔMETRO KELVIN -->
+                        <div class="termometro-wrapper bg-slate-50/70 rounded-xl border border-slate-200/80 py-2.5 px-1.5 sm:px-2" id="termometroK">
+                            <div class="flex items-center gap-1.5 mb-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#1d4ed8]"></span>
+                                <h3 class="text-xs sm:text-sm font-extrabold text-simulab-navy">Kelvin</h3>
+                            </div>
+                            <div class="relative w-full max-w-[104px] mb-1">
+                                <input type="text" inputmode="decimal" id="kelvinInput" data-scale="kelvin" value="298,15" aria-label="Temperatura em Kelvin" class="temp-input w-full text-center font-mono tabular-nums text-xs sm:text-sm font-bold text-simulab-navy bg-white border border-slate-300 rounded-lg py-1.5 px-1.5 focus:outline-none focus:border-[#1d4ed8] focus:ring-2 focus:ring-blue-100 transition">
+                                <span class="block text-center text-[11px] font-bold text-[#1d4ed8] mt-0.5">K</span>
+                            </div>
+
+                            <div class="termometro-haste-area">
+                                <div class="flex flex-col items-center">
+                                    <div class="termometro-haste" data-scale="kelvin" role="slider" aria-label="Coluna termométrica Kelvin" tabindex="0">
+                                        <div class="zero-kelvin-line"></div>
+                                        <div class="mercurio-barra mercurio-kelvin" data-scale="kelvin" style="height: 47.8456%;"></div>
+                                        <div class="glass-reflection"></div>
+                                    </div>
+                                    <div class="termometro-bulbo" data-scale="kelvin" title="Clique ou arraste na haste">
+                                        <div class="bulbo-liquido bulbo-kelvin"></div>
+                                    </div>
+                                </div>
+                                <div class="scale-ticks" id="ticksK" aria-hidden="true"><div class="tick-mark is-zero" style="bottom: 0%;"><span class="tick-line"></span><span>0 K</span></div><div class="tick-mark" style="bottom: 24.0713%;"><span class="tick-line"></span><span>150</span></div><div class="tick-mark" style="bottom: 48.1425%;"><span class="tick-line"></span><span>300</span></div><div class="tick-mark" style="bottom: 72.2138%;"><span class="tick-line"></span><span>450</span></div><div class="tick-mark" style="bottom: 100%;"><span class="tick-line"></span><span>623</span></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controle Deslizante Mestre de Temperatura -->
+                <div class="mt-2 pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-between text-xs font-bold mb-1.5">
+                        <label for="masterTempSlider" class="text-simulab-navy flex items-center gap-1.5">
+                            <i class="fas fa-sliders text-simulab-orange"></i>
+                            Controle Contínuo de Temperatura
+                        </label>
+                        <span id="masterSliderReadout" class="font-mono tabular-nums text-simulab-orangeDark bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100">25,00 °C</span>
+                    </div>
+                    <input type="range" id="masterTempSlider" class="simulab-slider temp-master-slider" min="-273.15" max="350" step="0.05" value="25" aria-label="Controle contínuo de temperatura em Celsius">
+                    <div class="flex justify-between text-[10px] font-mono tabular-nums text-slate-400 mt-1">
+                        <span>−273,15 °C (0 K)</span>
+                        <span class="text-sky-600 font-semibold">0 °C</span>
+                        <span>100 °C</span>
+                        <span>350 °C</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-2 flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-sm border border-sky-400/60 bg-sky-100/70 flex-shrink-0"></span>
+                        <span>Área azul tracejada indica temperaturas negativas (°C e °F). Campos aceitam até 2000 °C.</span>
+                    </p>
+                </div>
             </div>
-        </div>
-    </div>
+
+            <!-- COLUNA DIREITA: SIMULAÇÃO MOLECULAR EM CANVAS 2D + PAINEL DE INFORMAÇÕES -->
+            <div class="lg:col-span-7 bg-white rounded-2xl border border-simulab-border shadow-sm p-4 sm:p-5 flex flex-col justify-between">
+                <!-- Barra Superior do Card Molecular -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div>
+                        <h2 class="text-base font-extrabold text-simulab-navy flex items-center gap-2">
+                            <i class="fas fa-atom text-simulab-orange"></i>
+                            Agitação Térmica Molecular (Modelo Cinético 2D)
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Colisões elásticas com distribuição de velocidades (v<sub>rms</sub> ∝ √T)
+                        </p>
+                    </div>
+
+                    <!-- Controles da Simulação: Pausar/Retomar, Rastros e Resetar -->
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button id="togglePauseBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-simulab-navy text-white hover:bg-slate-800 active:scale-[0.98] transition shadow-sm">
+                            <i class="fas fa-pause" id="pauseIcon"></i>
+                            <span id="pauseLabel">Pausar</span>
+                        </button>
+
+                        <button id="toggleTrailsBtn" type="button" aria-pressed="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 border active:scale-[0.98] transition bg-orange-100 text-simulab-orangeDark border-orange-300">
+                            <i class="fas fa-wind"></i>
+                            <span>Rastros</span>
+                        </button>
+
+                        <button id="resetSimBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-50 text-simulab-orangeDark hover:bg-orange-100 border border-orange-200 active:scale-[0.98] transition" title="Restaurar temperatura ambiente (25 °C)">
+                            <i class="fas fa-rotate-left"></i>
+                            <span>25 °C</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid Interno: Canvas à Esquerda + Painel de Informações Moleculares ao Lado (ou abaixo em telas menores) -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch flex-1">
+
+                    <!-- Recipiente Canvas 2D + Legenda -->
+                    <div class="md:col-span-7 flex flex-col justify-between">
+                        <div class="canvas-box" id="canvasContainer">
+                            <canvas id="molecularCanvas" class="block w-full h-full" width="1014" height="620"></canvas>
+
+                            <!-- Overlay discreto exibido em Zero Absoluto (0 K) -->
+                            <div id="absoluteZeroBadge" class="hidden pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-center">
+                                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-sm text-sky-100 text-xs font-bold shadow-md border border-sky-400/30">
+                                    <i class="fas fa-snowflake text-sky-300"></i>
+                                    <span>Zero Absoluto (0 K) — Repouso térmico completo</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legenda visual de intensidade abaixo do canvas -->
+                        <div class="flex flex-wrap items-center justify-center sm:justify-between gap-2 mt-2.5 px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-semibold text-slate-600">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 ring-1 ring-amber-600/20"></span>
+                                Movimento lento
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-orange-400 to-simulab-orange ring-1 ring-orange-600/20"></span>
+                                Movimento moderado
+                            </span>
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 ring-1 ring-red-700/20"></span>
+                                Movimento intenso
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Painel de Informações Moleculares -->
+                    <div class="md:col-span-5 bg-slate-50/80 rounded-xl border border-slate-200/90 p-3.5 flex flex-col justify-between gap-3">
+                        <!-- Estado Atual da Simulação -->
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Estado</span>
+                            <span id="simStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span id="simStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span id="simStatusText">Em execução</span>
+                            </span>
+                        </div>
+
+                        <!-- Controle de Quantidade de Partículas (1 a 100) -->
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-bold text-simulab-navy mb-1">
+                                <label for="particulaSlider">Partículas no recipiente</label>
+                                <span id="numParticulasDisplay" class="font-mono tabular-nums text-simulab-orangeDark bg-white px-2 py-0.5 rounded border border-slate-200">35</span>
+                            </div>
+                            <input type="range" id="particulaSlider" class="simulab-slider particles-slider" min="1" max="100" value="24" step="1">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-400 mt-0.5">
+                                <span>1</span>
+                                <span>50</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+
+                        <!-- Métricas Termodinâmicas em Tempo Real -->
+                        <div class="space-y-2">
+                            <!-- Temperatura Absoluta -->
+                            <div class="bg-white rounded-lg border border-slate-200/80 px-3 py-2 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500">Temp. Absoluta</span>
+                                <span id="panelKelvinDisplay" class="font-mono tabular-nums text-sm font-extrabold text-[#1d4ed8]">298,15 K</span>
+                            </div>
+
+                            <!-- Velocidade Física v_rms (N2) + Fator Relativo + Simulada -->
+                            <div class="bg-white rounded-lg border border-slate-200/80 px-3 py-2 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-semibold text-slate-500" title="Velocidade quadrática média teórica para moléculas de Nitrogênio (N₂)">v<sub>rms</sub> ref. (N₂)</span>
+                                    <span id="panelVrmsN2" class="font-mono tabular-nums text-sm font-extrabold text-simulab-navy">515,2 m/s</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
+                                    <span class="text-slate-500">Veloc. simulada</span>
+                                    <span id="vMediaDisplay" class="font-mono tabular-nums font-bold text-slate-700">155,4 u/s</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-slate-500">Fator vs 25 °C</span>
+                                    <span id="panelRelFactor" class="font-mono tabular-nums font-bold text-simulab-orangeDark">1,00×</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicador Visual e Barra de Intensidade da Agitação Térmica -->
+                        <div class="pt-1">
+                            <div class="flex items-center justify-between text-xs mb-1.5">
+                                <span class="font-semibold text-slate-500">Agitação térmica</span>
+                                <span id="agitationLabel" class="font-extrabold text-simulab-orangeDark">Movimento moderado</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="agitationBar" class="h-full rounded-full transition-all duration-150" style="width: 69.1705%; background: linear-gradient(90deg, rgb(245, 158, 11), rgb(255, 105, 11));"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             3. SEÇÃO "EXPERIMENTE A TEMPERATURA" (PRESETS + COMPARADOR)
+             ========================================================= -->
         
-    <div id="calculoDisplay">
-        <h3>Fórmulas de Conversão e Resultados</h3>
-        <div class="formula-group">
-        </div>
-        <p style="margin-top: 15px; font-size: 0.9em; text-align: center;">Velocidade Média das Partículas: <span id="vMediaDisplay" style="font-weight: bold;">0.00 u/s</span></p>
-    </div>
 
+        <!-- =========================================================
+             4. SEÇÃO "FÓRMULAS DE CONVERSÃO E TEORIA CINÉTICA"
+             ========================================================= -->
+        <section id="calculoDisplay" class="bg-white rounded-2xl border border-simulab-border shadow-sm p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div>
+                    <h2 class="text-base font-extrabold text-simulab-navy flex items-center gap-2">
+                        <i class="fas fa-square-root-variable text-simulab-orange"></i>
+                        Fórmulas de Conversão e Teoria Cinética
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Substituição numérica atualizada instantaneamente conforme a temperatura selecionada
+                    </p>
+                </div>
+            </div>
+
+            <!-- 5 Cartões de Fórmulas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+
+                <!-- Fórmula 1: Celsius -> Fahrenheit -->
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-simulab-navy">1. Celsius → Fahrenheit</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-simulab-orangeDark">°C → °F</span>
+                    </div>
+                    <div class="py-2 text-center bg-white rounded-lg border border-slate-100 mb-2">
+                        <div class="math-expr">
+                            <span>°F = (°C ×</span>
+                            <span class="math-frac"><span class="num">9</span><span class="den">5</span></span>
+                            <span>) + 32</span>
+                        </div>
+                    </div>
+                    <div class="font-mono tabular-nums text-xs text-center font-bold text-emerald-700 bg-emerald-50/70 border border-emerald-100 rounded-lg py-1.5 px-2" id="formulaCtoF">77,00 °F = (25,00 × 9/5) + 32</div>
+                </div>
+
+                <!-- Fórmula 2: Fahrenheit -> Celsius -->
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-simulab-navy">2. Fahrenheit → Celsius</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">°F → °C</span>
+                    </div>
+                    <div class="py-2 text-center bg-white rounded-lg border border-slate-100 mb-2">
+                        <div class="math-expr">
+                            <span>°C = (°F − 32) ×</span>
+                            <span class="math-frac"><span class="num">5</span><span class="den">9</span></span>
+                        </div>
+                    </div>
+                    <div class="font-mono tabular-nums text-xs text-center font-bold text-emerald-700 bg-emerald-50/70 border border-emerald-100 rounded-lg py-1.5 px-2" id="formulaFtoC">25,00 °C = (77,00 − 32) × 5/9</div>
+                </div>
+
+                <!-- Fórmula 3: Celsius -> Kelvin -->
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-simulab-navy">3. Celsius → Kelvin</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">°C → K</span>
+                    </div>
+                    <div class="py-2 text-center bg-white rounded-lg border border-slate-100 mb-2">
+                        <div class="math-expr">
+                            <span>K = °C + 273,15</span>
+                        </div>
+                    </div>
+                    <div class="font-mono tabular-nums text-xs text-center font-bold text-emerald-700 bg-emerald-50/70 border border-emerald-100 rounded-lg py-1.5 px-2" id="formulaCtoK">298,15 K = 25,00 + 273,15</div>
+                </div>
+
+                <!-- Fórmula 4: Kelvin -> Celsius -->
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-simulab-navy">4. Kelvin → Celsius</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">K → °C</span>
+                    </div>
+                    <div class="py-2 text-center bg-white rounded-lg border border-slate-100 mb-2">
+                        <div class="math-expr">
+                            <span>°C = K − 273,15</span>
+                        </div>
+                    </div>
+                    <div class="font-mono tabular-nums text-xs text-center font-bold text-emerald-700 bg-emerald-50/70 border border-emerald-100 rounded-lg py-1.5 px-2" id="formulaKtoC">25,00 °C = 298,15 − 273,15</div>
+                </div>
+
+                <!-- Fórmula 5: Velocidade Molecular (Teoria Cinética) - ocupa 2 colunas em desktop -->
+                <div class="sm:col-span-2 rounded-xl border border-orange-200/80 bg-orange-50/40 p-3.5 flex flex-col justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-simulab-navy">5. Velocidade Molecular (Teoria Cinética dos Gases)</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-simulab-orangeDark">Gás de referência: N₂ (M = 28,01 g/mol)</span>
+                    </div>
+                    <div class="py-2 px-3 bg-white rounded-lg border border-orange-100 mb-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                        <div class="math-expr">
+                            <span>v<sub>rms</sub> ∝</span>
+                            <span class="math-sqrt"><span>√</span><span class="math-sqrt-rad">T</span></span>
+                        </div>
+                        <span class="text-slate-300 hidden sm:inline">|</span>
+                        <div class="math-expr">
+                            <span>v<sub>rms</sub> =</span>
+                            <span class="math-sqrt">
+                                <span>√</span>
+                                <span class="math-sqrt-rad">
+                                    <span class="math-frac"><span class="num">3 · R · T</span><span class="den">M</span></span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono tabular-nums text-xs text-center">
+                        <div class="bg-white border border-slate-200/80 rounded-lg py-1.5 px-2 text-slate-700">
+                            <span class="text-slate-400">T =</span> <strong id="formulaTValue" class="text-[#1d4ed8]">298,15 K</strong>
+                        </div>
+                        <div class="bg-white border border-slate-200/80 rounded-lg py-1.5 px-2 text-slate-700">
+                            <span class="text-slate-400">√T =</span> <strong id="formulaSqrtTValue" class="text-simulab-navy">17,27 K<sup>1/2</sup></strong>
+                        </div>
+                        <div class="bg-emerald-50/80 border border-emerald-200/80 rounded-lg py-1.5 px-2 text-emerald-800">
+                            <span class="text-emerald-700/80">v<sub>rms</sub>(N₂) ≈</span> <strong id="formulaVrmsValue">515,2 m/s</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nota Científica Explícita e Destacada -->
+            <div class="mt-4 rounded-xl border-l-4 border-simulab-navy bg-slate-50 px-4 py-3 flex items-start gap-3">
+                <span class="mt-0.5 text-simulab-navy flex-shrink-0">
+                    <i class="fas fa-circle-info text-base"></i>
+                </span>
+                <p class="text-xs sm:text-[13px] text-slate-700 leading-relaxed">
+                    <strong class="text-simulab-navy font-extrabold">Nota científica importante:</strong>
+                    A relação <strong>v<sub>rms</sub> ∝ √T</strong> refere-se à <strong>velocidade quadrática média</strong> das moléculas de um mesmo gás em condições comparáveis, e <strong>não</strong> a uma velocidade idêntica para cada molécula individual. Em qualquer temperatura acima de 0 K, as partículas seguem uma distribuição estatística de velocidades (Maxwell-Boltzmann) e trocam energia cinética continuamente durante as colisões.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé discreto -->
+    <footer class="max-w-[1380px] mx-auto px-4 pb-6 pt-1 text-center text-[11px] text-slate-400">
+        SimuLab — Simulação Interativa de Termometria e Teoria Cinética dos Gases
+    </footer>
+
+    <!-- =========================================================
+         JAVASCRIPT MODULAR (Particle, MolecularCanvas, TermometriaApp)
+         ========================================================= -->
     <script>
-        // --- CLASSE Particula ---        
-        class Particula {
-            constructor(id, x, y, vx, vy, raio) {
-                this.id = id;
+        'use strict';
+
+        /* =========================================================
+           UTILITÁRIOS DE FORMATAÇÃO E CONSTANTES FÍSICAS
+           ========================================================= */
+        const PHYSICS = {
+            ZERO_ABS_C: -273.15,
+            ZERO_ABS_F: -459.67,
+            MIN_K: 0,
+            MAX_K_INPUT: 2273.15,       // 2000 °C (limite superior aceito nos inputs)
+            VISUAL_MIN_K: 0,            // Base dos termômetros: 0 K (-273,15 °C / -459,67 °F)
+            VISUAL_MAX_K: 623.15,       // Topo visual dos termômetros: 350 °C (662 °F)
+            REF_ROOM_K: 298.15,         // 25 °C (referência para fator relativo)
+            GAS_R: 8.314462618,         // Constante universal dos gases [J/(mol·K)]
+            MOLAR_MASS_N2: 0.0280134    // Massa molar do gás Nitrogênio N₂ [kg/mol]
+        };
+
+        /**
+         * Formata um número com vírgula decimal (padrão pt-BR) e sinal de menos tipográfico opcional.
+         */
+        function formatBR(value, decimals = 2, useTypographicMinus = false) {
+            if (!Number.isFinite(value)) return '0,00';
+            // Evita "-0,00"
+            const safeVal = Math.abs(value) < Math.pow(10, -(decimals + 1)) ? 0 : value;
+            const formatted = safeVal.toFixed(decimals).replace('.', ',');
+            if (useTypographicMinus && formatted.startsWith('-')) {
+                return '−' + formatted.slice(1);
+            }
+            return formatted;
+        }
+
+        /**
+         * Calcula a velocidade quadrática média física v_rms (m/s) para moléculas de N₂ em função de T (K).
+         */
+        function computeVrmsN2(tempK) {
+            if (tempK <= 0) return 0;
+            return Math.sqrt((3 * PHYSICS.GAS_R * tempK) / PHYSICS.MOLAR_MASS_N2);
+        }
+
+        /**
+         * Gera uma variável aleatória com distribuição normal padrão N(0, 1) (Transformada de Box-Muller).
+         * Usada para gerar componentes de velocidade (vx, vy) da distribuição Maxwell-Boltzmann 2D (Rayleigh).
+         */
+        function randomGaussian() {
+            let u1 = 0, u2 = 0;
+            while (u1 === 0) u1 = Math.random();
+            while (u2 === 0) u2 = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        }
+
+        /* =========================================================
+           CLASSE Particle — Estado individual de cada molécula 2D
+           ========================================================= */
+        class Particle {
+            constructor(x, y, vx, vy, radius) {
                 this.x = x;
                 this.y = y;
-                this.vx = vx;                 
-                this.vy = vy;                 
-                this.raio = raio;                                                 
-                this.elemento = document.createElement('div');
-                this.elemento.className = 'particula';
-                this.elemento.style.width = (2 * raio) + 'px';                 
-                this.elemento.style.height = (2 * raio) + 'px';                                                 
-                this.elemento.style.left = this.x + 'px';
-                this.elemento.style.top = this.y + 'px';
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = radius;
+                this.trail = []; // Histórico de posições para rastro opcional
             }
 
-            atualizarPosicao(deltaTime, larguraRecipiente, alturaRecipiente) {
-                this.x += this.vx * deltaTime;
-                this.y += this.vy * deltaTime;
+            get speedSq() {
+                return this.vx * this.vx + this.vy * this.vy;
+            }
 
-                // Colisão Eixo X (Paredes)
-                if (this.x - this.raio < 0) {                     
-                    this.x = this.raio;                     
-                    this.vx *= -1;                 
-                } else if (this.x + this.raio > larguraRecipiente) {                     
-                    this.x = larguraRecipiente - this.raio;
-                    this.vx *= -1;
+            get speed() {
+                return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+            }
+
+            recordTrail(maxPoints) {
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > maxPoints) {
+                    this.trail.shift();
                 }
+            }
 
-                // Colisão Eixo Y (Paredes)
-                if (this.y - this.raio < 0) {                     
-                    this.y = this.raio;
-                    this.vy *= -1;
-                } else if (this.y + this.raio > alturaRecipiente) {                     
-                    this.y = alturaRecipiente - this.raio;
-                    this.vy *= -1;
-                }
-
-                this.elemento.style.left = this.x + 'px';
-                this.elemento.style.top = this.y + 'px';
-            }                
+            clearTrail() {
+                this.trail.length = 0;
+            }
         }
 
-        // --- CLASSE SimulacaoTermometria (Lógica principal) ---        
-        class SimulacaoTermometria {
-            constructor() {
-                // Dimensões
-                this.larguraRecipiente = document.getElementById('recipiente').offsetWidth;                 
-                this.alturaRecipiente = document.getElementById('recipiente').offsetHeight;                 
-                this.hasteHeight = document.querySelector('.termometro-haste').offsetHeight; 
+        /* =========================================================
+           CLASSE MolecularCanvas — Motor Físico e Renderização 2D (60 FPS)
+           ========================================================= */
+        class MolecularCanvas {
+            constructor(canvasEl, containerEl, onTelemetryCallback) {
+                this.canvas = canvasEl;
+                this.ctx = canvasEl.getContext('2d', { alpha: false });
+                this.container = containerEl;
+                this.onTelemetry = onTelemetryCallback;
 
-                // Elementos DOM
-                this.recipiente = document.getElementById('recipiente');
-                this.barras = document.querySelectorAll('.mercurio-barra');
-                this.inputs = document.querySelectorAll('.temp-input');                 
-                this.particulaSlider = document.getElementById('particulaSlider');
-                this.displayCalculo = document.querySelector('#calculoDisplay .formula-group');
-                this.vMediaDisplay = document.getElementById('vMediaDisplay');
-                this.numParticulasDisplay = document.getElementById('numParticulasDisplay');
+                // Dimensões lógicas (em CSS pixels)
+                this.width = 400;
+                this.height = 310;
+                this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-                // Variáveis de Estado
-                this.particulas = [];
-                this.raioParticula = 7.5;
-                this.temperaturaKelvin = 273.15; // Ponto de congelamento da água
-                this.numParticulas = parseInt(this.particulaSlider.value);
-                this.fatorVelocidade = 10;                 
-                this.minTempK = 0;
-                this.maxTempK = 423.15; // 150°C (máx Celsius)                                
-                
-                // Variáveis de Drag (Termômetros)
-                this.animaID = null;
-                this.tempoAnterior = 0;
-                this.isDragging = false;
-                this.draggingBar = null;
+                // Parâmetros físicos e visuais da simulação
+                this.particles = [];
+                this.flashes = []; // Ondas/flashes sutis de colisão
+                this.particleRadius = 7.5;
+                this.targetParticleCount = 24;
 
-                this.configurarTermometros();                
-                this.configurarControleParticulas();                
-                this.iniciarSimulacao();
-            }
+                // Controle térmico suave (relaxamento exponencial)
+                this.targetTempK = PHYSICS.REF_ROOM_K;
+                this.effectiveTempK = PHYSICS.REF_ROOM_K;
 
-            // --- LÓGICA DE CONVERSÃO ---
+                // Fator de calibração visual: a 298,15 K, v_rms simulada ≈ 155 px/s
+                this.simVelocityCoeff = 9.0;
 
-            C_to_K(C) { return C + 273.15; }            
-            K_to_C(K) { return K - 273.15; }            
-            C_to_F(C) { return (C * 9/5) + 32; }            
-            F_to_C(F) { return (F - 32) * 5/9; }            
-            K_to_F(K) { return this.C_to_F(this.K_to_C(K)); }            
-            F_to_K(F) { return this.C_to_K(this.F_to_C(F)); }
+                // Flags de estado
+                this.isPaused = false;
+                this.showTrails = false;
+                this.trailLength = 12;
 
-            getKLimits(scale) {                
-                switch(scale) {                    
-                    case 'celsius': return { minK: this.C_to_K(-50), maxK: this.C_to_K(150) };                    
-                    case 'fahrenheit': return { minK: this.F_to_K(-58), maxK: this.F_to_K(302) };                    
-                    case 'kelvin':                     
-                    default: return { minK: this.minTempK, maxK: this.maxTempK };
+                // Controle do loop de animação
+                this.rafId = null;
+                this.lastTime = 0;
+                this.telemetryTimer = 0;
+
+                // Configura redimensionamento responsivo de alta resolução
+                this.resize();
+                if (typeof ResizeObserver !== 'undefined') {
+                    this.resizeObserver = new ResizeObserver(() => this.resize());
+                    this.resizeObserver.observe(this.container);
+                } else {
+                    window.addEventListener('resize', () => this.resize());
                 }
+
+                // Popula as partículas iniciais sem sobreposição
+                this.setParticleCount(this.targetParticleCount);
+                this.start();
             }
 
-            // --- LÓGICA DE INTERAÇÃO (TERMÔMETROS) ---
+            /**
+             * Ajusta o canvas para o tamanho atual do contêiner respeitando devicePixelRatio.
+             */
+            resize() {
+                const rect = this.container.getBoundingClientRect();
+                const newWidth = Math.max(200, Math.floor(rect.width));
+                const newHeight = Math.max(200, Math.floor(rect.height));
 
-            configurarTermometros() {                
-                // Eventos de arrasto (mercurio) - Usam 'mousemove/input' para reação imediata
-                this.barras.forEach(barra => {                    
-                    barra.addEventListener('mousedown', (e) => this.startDragBar(e, barra));
-                    barra.addEventListener('touchstart', (e) => this.startDragBar(e, barra));
-                });
-                window.addEventListener('mousemove', (e) => this.dragBar(e));
-                window.addEventListener('touchmove', (e) => this.dragBar(e));
-                window.addEventListener('mouseup', () => this.stopDragBar());
-                window.addEventListener('touchend', () => this.stopDragBar());
-
-                // Eventos de input (texto)
-                this.inputs.forEach(input => {                    
-                    input.addEventListener('change', () => this.handleTempInput(input));
-                });
-            }
-
-            startDragBar(e, barra) {                
-                e.preventDefault();
-                this.isDragging = true;
-                this.draggingBar = barra;
-                this.draggingBar.classList.add('dragging');
-            }
-
-            dragBar(e) {                
-                if (!this.isDragging || !this.draggingBar) return;                                
-                
-                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const haste = this.draggingBar.parentElement;
-                const hasteRect = haste.getBoundingClientRect();                                
-                
-                // Mapeia a posição do clique no eixo Y da barra de mercúrio
-                let mouseYInHaste = hasteRect.bottom - clientY;                                
-                mouseYInHaste = Math.max(0, Math.min(this.hasteHeight, mouseYInHaste));
-                
-                const percentHeight = mouseYInHaste / this.hasteHeight;                                
-                
-                const scale = this.draggingBar.dataset.scale;
-                const { minK, maxK } = this.getKLimits(scale);                                
-                
-                let novoK = minK + percentHeight * (maxK - minK);                                
-                this.setTemperaturaK(novoK);
-            }
-
-            stopDragBar() {                
-                if (this.isDragging && this.draggingBar) {
-                    this.isDragging = false;
-                    this.draggingBar.classList.remove('dragging');
-                    this.draggingBar = null;
-                }
-            }
-            
-            handleTempInput(input) {
-                // Substitui vírgula por ponto para garantir o parsing correto do float
-                const rawValue = input.value.replace(',', '.');
-                let tempValue = parseFloat(rawValue);
-
-                if (isNaN(tempValue)) {
-                    this.atualizarTodosTermometros(); 
+                if (newWidth === this.width && newHeight === this.height && this.canvas.width > 0) {
                     return;
                 }
 
-                const scale = input.dataset.scale;
-                let novoK;
+                this.width = newWidth;
+                this.height = newHeight;
+                this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-                // Converte o valor do input para Kelvin
-                switch (scale) {
-                    case 'celsius':
-                        novoK = this.C_to_K(tempValue);
-                        break;
-                    case 'fahrenheit':
-                        novoK = this.F_to_K(tempValue);
-                        break;
-                    case 'kelvin':
-                    default:
-                        novoK = tempValue;
-                        break;
+                this.canvas.width = Math.round(this.width * this.dpr);
+                this.canvas.height = Math.round(this.height * this.dpr);
+                this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+                // Garante que nenhuma partícula fique fora das novas fronteiras
+                const r = this.particleRadius;
+                for (const p of this.particles) {
+                    p.x = Math.max(r, Math.min(this.width - r, p.x));
+                    p.y = Math.max(r, Math.min(this.height - r, p.y));
                 }
-                this.setTemperaturaK(novoK);
-            }
-            
-            // --- LÓGICA PRINCIPAL DE ATUALIZAÇÃO DE ESTADO ---
-            
-            setTemperaturaK(novoK) {
-                // Limita a temperatura dentro dos limites físicos da simulação
-                novoK = Math.max(this.minTempK, Math.min(this.maxTempK, novoK));
-                
-                // Evita recalcular se a temperatura for praticamente a mesma
-                if (Math.abs(novoK - this.temperaturaKelvin) < 0.01) {
-                    this.atualizarTodosTermometros();
-                    return; 
+
+                if (this.isPaused) {
+                    this.render();
                 }
-                
-                this.temperaturaKelvin = novoK;
-                
-                this.atualizarTodosTermometros(); 
-                this.atualizarVelocidadeParticulas(); 
-                this.atualizarDisplayCalculo();
             }
 
-            atualizarTodosTermometros() {
-                const K = this.temperaturaKelvin;
-                const C = this.K_to_C(K);
-                const F = this.K_to_F(K);
+            /**
+             * Retorna a velocidade RMS alvo no espaço do canvas para uma dada temperatura T (K).
+             */
+            getTargetVrms(tempK) {
+                if (tempK <= 0) return 0;
+                return this.simVelocityCoeff * Math.sqrt(tempK);
+            }
 
-                // 1. Atualiza Inputs e Displays de Texto
-                document.getElementById('celsiusInput').value = C.toFixed(2);
-                document.querySelector('#termometroC .temp-valor-display').textContent = `${C.toFixed(2)} °C`;
-                
-                document.getElementById('fahrenheitInput').value = F.toFixed(2);
-                document.querySelector('#termometroF .temp-valor-display').textContent = `${F.toFixed(2)} °F`;
-                
-                document.getElementById('kelvinInput').value = K.toFixed(2);
-                document.querySelector('#termometroK .temp-valor-display').textContent = `${K.toFixed(2)} K`;
+            /**
+             * Define a temperatura alvo em Kelvin (a energia cinética se ajustará suavemente).
+             */
+            setTemperatureK(newTempK) {
+                this.targetTempK = Math.max(0, newTempK);
+                if (this.isPaused) {
+                    // Se pausado, atualiza visualmente a temperatura efetiva para refletir cor/estado
+                    this.effectiveTempK = this.targetTempK;
+                    this.rescaleVelocitiesImmediate(this.targetTempK);
+                    this.render();
+                    this.emitTelemetry();
+                }
+            }
 
-                // 2. Atualiza a altura das barras de mercúrio
-                this.barras.forEach(barra => {
-                    const scale = barra.dataset.scale;
-                    const { minK, maxK } = this.getKLimits(scale);
-                    
-                    const percent = (K - minK) / (maxK - minK);
-                    const heightPercent = Math.max(0, Math.min(1, percent));
-                    
-                    // Aplica a altura visual em pixels, fazendo o termômetro se mover
-                    barra.style.height = `${heightPercent * this.hasteHeight}px`;
+            /**
+             * Adiciona ou remove partículas dinamicamente SEM resetar as partículas existentes.
+             * Evita sobreposição ao posicionar novas moléculas.
+             */
+            setParticleCount(count) {
+                const desired = Math.max(1, Math.min(100, Math.round(count)));
+                this.targetParticleCount = desired;
+
+                // Se precisamos remover partículas, removemos do final da lista preservando as demais
+                while (this.particles.length > desired) {
+                    this.particles.pop();
+                }
+
+                // Se precisamos adicionar partículas, criamos sem sobrepor as existentes
+                const r = this.particleRadius;
+                const vRms = this.getTargetVrms(this.effectiveTempK);
+                // Em 2D, <vx^2 + vy^2> = 2 * sigma^2 = vRms^2  =>  sigma = vRms / sqrt(2)
+                const sigma = vRms / Math.SQRT2;
+
+                while (this.particles.length < desired) {
+                    const pos = this.findNonOverlappingPosition(r);
+                    const vx = this.effectiveTempK > 0.05 ? randomGaussian() * sigma : 0;
+                    const vy = this.effectiveTempK > 0.05 ? randomGaussian() * sigma : 0;
+                    this.particles.push(new Particle(pos.x, pos.y, vx, vy, r));
+                }
+
+                if (this.isPaused) {
+                    this.render();
+                }
+                this.emitTelemetry();
+            }
+
+            /**
+             * Encontra uma posição livre dentro do recipiente para uma nova partícula.
+             */
+            findNonOverlappingPosition(radius) {
+                const margin = radius + 3;
+                const maxAttempts = 80;
+                const minDistSq = Math.pow(radius * 2.25, 2);
+
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    const x = margin + Math.random() * Math.max(1, this.width - 2 * margin);
+                    const y = margin + Math.random() * Math.max(1, this.height - 2 * margin);
+
+                    let overlaps = false;
+                    for (const p of this.particles) {
+                        const dx = p.x - x;
+                        const dy = p.y - y;
+                        if (dx * dx + dy * dy < minDistSq) {
+                            overlaps = true;
+                            break;
+                        }
+                    }
+                    if (!overlaps) return { x, y };
+                }
+
+                // Fallback seguro caso o recipiente esteja muito cheio
+                return {
+                    x: margin + Math.random() * Math.max(1, this.width - 2 * margin),
+                    y: margin + Math.random() * Math.max(1, this.height - 2 * margin)
+                };
+            }
+
+            setPaused(paused) {
+                this.isPaused = paused;
+                if (!this.isPaused) {
+                    this.lastTime = performance.now();
+                }
+                this.emitTelemetry();
+            }
+
+            setTrails(enabled) {
+                this.showTrails = enabled;
+                if (!enabled) {
+                    for (const p of this.particles) {
+                        p.clearTrail();
+                    }
+                }
+                if (this.isPaused) this.render();
+            }
+
+            /**
+             * Reescalona imediatamente as velocidades (usado apenas se temperatura mudar enquanto pausado).
+             */
+            rescaleVelocitiesImmediate(tempK) {
+                if (tempK <= 0.01) {
+                    for (const p of this.particles) {
+                        p.vx = 0;
+                        p.vy = 0;
+                    }
+                    return;
+                }
+                const targetVrms = this.getTargetVrms(tempK);
+                const currentVrms = this.computeSimulatedVrms();
+                if (currentVrms < 1e-3) {
+                    const sigma = targetVrms / Math.SQRT2;
+                    for (const p of this.particles) {
+                        p.vx = randomGaussian() * sigma;
+                        p.vy = randomGaussian() * sigma;
+                    }
+                } else {
+                    const ratio = targetVrms / currentVrms;
+                    for (const p of this.particles) {
+                        p.vx *= ratio;
+                        p.vy *= ratio;
+                    }
+                }
+            }
+
+            /**
+             * Calcula a velocidade quadrática média atual das partículas simuladas (u/s).
+             */
+            computeSimulatedVrms() {
+                const n = this.particles.length;
+                if (n === 0) return 0;
+                let sumSq = 0;
+                for (let i = 0; i < n; i++) {
+                    sumSq += this.particles[i].speedSq;
+                }
+                return Math.sqrt(sumSq / n);
+            }
+
+            /**
+             * Adiciona uma onda/flash sutil no local de uma colisão.
+             */
+            spawnCollisionFlash(x, y, intensity = 0.5) {
+                if (this.flashes.length > 40) return; // Limite de performance
+                this.flashes.push({
+                    x,
+                    y,
+                    radius: 2,
+                    maxRadius: 9 + Math.min(10, intensity * 8),
+                    alpha: Math.min(0.65, 0.25 + intensity * 0.35)
                 });
             }
-            
-            atualizarVelocidadeParticulas() {
-                const fatorEscala = Math.sqrt(this.temperaturaKelvin * this.fatorVelocidade);
-                
-                this.particulas.forEach(p => {
-                    const v_mag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-                    // Normaliza e reescala o vetor velocidade
-                    const fator = v_mag > 0 ? fatorEscala / v_mag : fatorEscala;
-                    p.vx *= fator;
-                    p.vy *= fator;
-                    
-                    // Se a velocidade era zero (evita que fiquem paradas)
-                    if (v_mag === 0) {
-                        const angulo = Math.random() * 2 * Math.PI;
-                        p.vx = fatorEscala * Math.cos(angulo);
-                        p.vy = fatorEscala * Math.sin(angulo);
+
+            /**
+             * Termostato suave: ajusta gradualmente a energia cinética do sistema para corresponder à temperatura alvo.
+             */
+            applySmoothThermostat(dt) {
+                // Relaxamento exponencial suave da temperatura efetiva (sem saltos bruscos)
+                const rate = this.targetTempK <= 0.01 ? 4.8 : 7.5;
+                const alpha = 1 - Math.exp(-dt * rate);
+                this.effectiveTempK += (this.targetTempK - this.effectiveTempK) * alpha;
+
+                // Zero Absoluto: desacelera suavemente até repouso térmico completo (v = 0)
+                if (this.targetTempK <= 0.01) {
+                    const damp = Math.exp(-dt * 5.2);
+                    let anyMoving = false;
+                    for (const p of this.particles) {
+                        p.vx *= damp;
+                        p.vy *= damp;
+                        if (Math.abs(p.vx) < 0.25 && Math.abs(p.vy) < 0.25) {
+                            p.vx = 0;
+                            p.vy = 0;
+                        } else {
+                            anyMoving = true;
+                        }
+                    }
+                    if (!anyMoving) {
+                        this.effectiveTempK = 0;
+                    }
+                    return;
+                }
+
+                // Se estamos saindo do repouso (0 K -> T > 0), gera distribuição Maxwell-Boltzmann inicial suave
+                const targetVrms = this.getTargetVrms(this.effectiveTempK);
+                let currentVrms = this.computeSimulatedVrms();
+
+                if (currentVrms < 0.8 && targetVrms > 0.8) {
+                    const kickSigma = Math.max(10, targetVrms * 0.35) / Math.SQRT2;
+                    for (const p of this.particles) {
+                        p.vx = randomGaussian() * kickSigma;
+                        p.vy = randomGaussian() * kickSigma;
+                    }
+                    currentVrms = this.computeSimulatedVrms();
+                }
+
+                // Termostato de Berendsen (escala suave que preserva a distribuição relativa das velocidades)
+                if (currentVrms > 0.01 && targetVrms > 0.01) {
+                    const ratio = targetVrms / currentVrms;
+                    // Limita a taxa de variação por frame para fluidez visual
+                    const blend = Math.min(1, dt * 8.0);
+                    const scaleFactor = 1 + (ratio - 1) * blend;
+                    for (const p of this.particles) {
+                        p.vx *= scaleFactor;
+                        p.vy *= scaleFactor;
+                    }
+                }
+            }
+
+            /**
+             * Avança a física com sub-stepping automático para impedir tunelamento em altas temperaturas.
+             */
+            stepPhysics(dt) {
+                this.applySmoothThermostat(dt);
+
+                const n = this.particles.length;
+                if (n === 0) return;
+
+                // Determina a maior velocidade para calcular número seguro de substeps
+                let maxSpeed = 0;
+                for (let i = 0; i < n; i++) {
+                    const s = this.particles[i].speed;
+                    if (s > maxSpeed) maxSpeed = s;
+                }
+
+                // Garante que nenhuma partícula se mova mais que 0,45 * raio por substep
+                const maxDisp = maxSpeed * dt;
+                const substeps = Math.min(14, Math.max(1, Math.ceil(maxDisp / (this.particleRadius * 0.45))));
+                const subDt = dt / substeps;
+
+                const w = this.width;
+                const h = this.height;
+
+                for (let step = 0; step < substeps; step++) {
+                    // 1. Integração de posição e colisões elásticas com as 4 paredes
+                    for (let i = 0; i < n; i++) {
+                        const p = this.particles[i];
+                        p.x += p.vx * subDt;
+                        p.y += p.vy * subDt;
+
+                        const r = p.radius;
+                        let hitWall = false;
+                        let impactX = p.x;
+                        let impactY = p.y;
+
+                        if (p.x - r < 0) {
+                            p.x = r;
+                            p.vx = Math.abs(p.vx);
+                            hitWall = true;
+                            impactX = 1;
+                        } else if (p.x + r > w) {
+                            p.x = w - r;
+                            p.vx = -Math.abs(p.vx);
+                            hitWall = true;
+                            impactX = w - 1;
+                        }
+
+                        if (p.y - r < 0) {
+                            p.y = r;
+                            p.vy = Math.abs(p.vy);
+                            hitWall = true;
+                            impactY = 1;
+                        } else if (p.y + r > h) {
+                            p.y = h - r;
+                            p.vy = -Math.abs(p.vy);
+                            hitWall = true;
+                            impactY = h - 1;
+                        }
+
+                        if (hitWall && p.speed > 45) {
+                            this.spawnCollisionFlash(impactX, impactY, Math.min(1, p.speed / 320));
+                        }
+                    }
+
+                    // 2. Colisões elásticas partícula-partícula (conservando momento e energia cinética)
+                    for (let i = 0; i < n; i++) {
+                        const p1 = this.particles[i];
+                        for (let j = i + 1; j < n; j++) {
+                            const p2 = this.particles[j];
+                            const dx = p2.x - p1.x;
+                            const dy = p2.y - p1.y;
+                            const minDist = p1.radius + p2.radius;
+                            const distSq = dx * dx + dy * dy;
+
+                            if (distSq < minDist * minDist) {
+                                let dist = Math.sqrt(distSq);
+                                let nx, ny;
+
+                                if (dist < 1e-6) {
+                                    // Caso degenerado de sobreposição exata
+                                    nx = 1;
+                                    ny = 0;
+                                    dist = 0;
+                                } else {
+                                    nx = dx / dist;
+                                    ny = dy / dist;
+                                }
+
+                                // Separação simétrica de sobreposição
+                                const overlap = (minDist - dist) * 0.5;
+                                p1.x -= nx * overlap;
+                                p1.y -= ny * overlap;
+                                p2.x += nx * overlap;
+                                p2.y += ny * overlap;
+
+                                // Velocidade relativa ao longo da normal de contato
+                                const rvx = p2.vx - p1.vx;
+                                const rvy = p2.vy - p1.vy;
+                                const velAlongNormal = rvx * nx + rvy * ny;
+
+                                // Só resolve impulso se estiverem se aproximando
+                                if (velAlongNormal < 0) {
+                                    // Para massas iguais e e = 1 (elástica), impulso J = -velAlongNormal
+                                    const impulse = -velAlongNormal;
+                                    p1.vx -= impulse * nx;
+                                    p1.vy -= impulse * ny;
+                                    p2.vx += impulse * nx;
+                                    p2.vy += impulse * ny;
+
+                                    if (Math.abs(velAlongNormal) > 55) {
+                                        const mx = (p1.x + p2.x) * 0.5;
+                                        const my = (p1.y + p2.y) * 0.5;
+                                        this.spawnCollisionFlash(mx, my, Math.min(1, Math.abs(velAlongNormal) / 300));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Atualiza rastros se habilitados
+                if (this.showTrails) {
+                    for (let i = 0; i < n; i++) {
+                        this.particles[i].recordTrail(this.trailLength);
+                    }
+                }
+
+                // Atualiza animação dos flashes sutis de colisão
+                for (let i = this.flashes.length - 1; i >= 0; i--) {
+                    const f = this.flashes[i];
+                    f.radius += dt * 45;
+                    f.alpha -= dt * 2.2;
+                    if (f.alpha <= 0 || f.radius >= f.maxRadius) {
+                        this.flashes.splice(i, 1);
+                    }
+                }
+            }
+
+            /**
+             * Retorna a paleta de cores 3D de uma partícula com base em sua energia cinética individual
+             * e na proximidade com o Zero Absoluto.
+             */
+            getParticleColors(speed) {
+                // Próximo do Zero Absoluto (< 45 K): tom azulado-gélido sutil
+                if (this.effectiveTempK < 45 && speed < 55) {
+                    const coldFactor = Math.max(0, Math.min(1, 1 - this.effectiveTempK / 45));
+                    if (coldFactor > 0.45) {
+                        return {
+                            highlight: '#e0f2fe',
+                            mid: '#38bdf8',
+                            edge: '#0284c7',
+                            glow: 'rgba(56, 189, 248, 0.28)',
+                            trail: 'rgba(56, 189, 248,'
+                        };
+                    }
+                }
+
+                // Escala energética: lento (âmbar) -> moderado (laranja SimuLab) -> intenso (vermelho)
+                // Referências: ~90 u/s lento, ~160 u/s moderado, >240 u/s intenso
+                if (speed < 115) {
+                    return {
+                        highlight: '#fef3c7',
+                        mid: '#f59e0b',
+                        edge: '#b45309',
+                        glow: 'rgba(245, 158, 11, 0.22)',
+                        trail: 'rgba(245, 158, 11,'
+                    };
+                } else if (speed < 215) {
+                    return {
+                        highlight: '#ffedd5',
+                        mid: '#ff690b',
+                        edge: '#c2410c',
+                        glow: 'rgba(255, 105, 11, 0.28)',
+                        trail: 'rgba(255, 105, 11,'
+                    };
+                } else {
+                    return {
+                        highlight: '#fee2e2',
+                        mid: '#ef4444',
+                        edge: '#991b1b',
+                        glow: 'rgba(220, 38, 38, 0.36)',
+                        trail: 'rgba(220, 38, 38,'
+                    };
+                }
+            }
+
+            /**
+             * Renderiza fundo de laboratório, rastros, ondas de colisão e esferas 3D.
+             */
+            render() {
+                const ctx = this.ctx;
+                const w = this.width;
+                const h = this.height;
+
+                // 1. Fundo neutro de laboratório (levemente azulado próximo de 0 K)
+                const isVeryCold = this.effectiveTempK < 35;
+                ctx.fillStyle = isVeryCold ? '#f0f7ff' : '#f8fafc';
+                ctx.fillRect(0, 0, w, h);
+
+                // 2. Grade sutil de laboratório (24px)
+                ctx.strokeStyle = isVeryCold ? '#dbeafe' : '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const gridSize = 24;
+                for (let x = gridSize; x < w; x += gridSize) {
+                    ctx.moveTo(x + 0.5, 0);
+                    ctx.lineTo(x + 0.5, h);
+                }
+                for (let y = gridSize; y < h; y += gridSize) {
+                    ctx.moveTo(0, y + 0.5);
+                    ctx.lineTo(w, y + 0.5);
+                }
+                ctx.stroke();
+
+                // 3. Ondas/flashes sutis nos pontos de colisão
+                for (const f of this.flashes) {
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 105, 11, ${Math.max(0, f.alpha)})`;
+                    ctx.lineWidth = 1.6;
+                    ctx.stroke();
+                }
+
+                // 4. Rastros opcionais das moléculas
+                if (this.showTrails) {
+                    for (const p of this.particles) {
+                        const len = p.trail.length;
+                        if (len < 2) continue;
+                        const colors = this.getParticleColors(p.speed);
+
+                        for (let i = 1; i < len; i++) {
+                            const t = i / len;
+                            ctx.beginPath();
+                            ctx.moveTo(p.trail[i - 1].x, p.trail[i - 1].y);
+                            ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                            ctx.strokeStyle = `${colors.trail} ${(t * 0.48).toFixed(2)})`;
+                            ctx.lineWidth = Math.max(1.2, p.radius * 0.7 * t);
+                            ctx.lineCap = 'round';
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // 5. Esferas moleculares com acabamento 3D e halo suave
+                for (const p of this.particles) {
+                    const spd = p.speed;
+                    const colors = this.getParticleColors(spd);
+                    const r = p.radius;
+
+                    // Halo suave proporcional à energia cinética
+                    if (spd > 65 || isVeryCold) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, r + 3.2, 0, Math.PI * 2);
+                        ctx.fillStyle = colors.glow;
+                        ctx.fill();
+                    }
+
+                    // Corpo esférico 3D (gradiente radial com brilho especular deslocado)
+                    const grad = ctx.createRadialGradient(
+                        p.x - r * 0.34,
+                        p.y - r * 0.34,
+                        r * 0.12,
+                        p.x,
+                        p.y,
+                        r
+                    );
+                    grad.addColorStop(0, colors.highlight);
+                    grad.addColorStop(0.45, colors.mid);
+                    grad.addColorStop(1, colors.edge);
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+
+                    // Contorno muito sutil para nitidez sobre a grade
+                    ctx.strokeStyle = 'rgba(20, 35, 61, 0.15)';
+                    ctx.lineWidth = 0.7;
+                    ctx.stroke();
+                }
+            }
+
+            /**
+             * Envia dados de telemetria para a interface (velocidade simulada, estado de repouso).
+             */
+            emitTelemetry() {
+                if (typeof this.onTelemetry === 'function') {
+                    this.onTelemetry({
+                        simVrms: this.computeSimulatedVrms(),
+                        effectiveTempK: this.effectiveTempK,
+                        isPaused: this.isPaused,
+                        isAtAbsoluteZero: this.targetTempK <= 0.01
+                    });
+                }
+            }
+
+            start() {
+                if (this.rafId) cancelAnimationFrame(this.rafId);
+                this.lastTime = performance.now();
+                const loop = (now) => {
+                    // Limita deltaTime para <= 0.033s (evita saltos se a aba ficar em segundo plano)
+                    const dt = Math.min(0.033, Math.max(0.001, (now - this.lastTime) / 1000));
+                    this.lastTime = now;
+
+                    if (!this.isPaused) {
+                        this.stepPhysics(dt);
+                        this.render();
+
+                        // Atualiza telemetria na UI a cada ~100ms (suave e leve para o DOM)
+                        this.telemetryTimer += dt;
+                        if (this.telemetryTimer >= 0.1) {
+                            this.telemetryTimer = 0;
+                            this.emitTelemetry();
+                        }
+                    }
+
+                    this.rafId = requestAnimationFrame(loop);
+                };
+                this.rafId = requestAnimationFrame(loop);
+            }
+        }
+
+        /* =========================================================
+           CLASSE TermometriaApp — Controlador Geral da Aplicação
+           ========================================================= */
+        class TermometriaApp {
+            constructor() {
+                // Estado central: temperatura em Kelvin (padrão 25 °C = 298,15 K)
+                this.tempK = PHYSICS.REF_ROOM_K;
+                this.comparedStates = []; // Até 4 estados registrados
+                this.activeInput = null;  // Evita sobrescrever campo enquanto o usuário digita
+                this.draggingTube = null;
+
+                this.cacheDOM();
+                this.buildThermometerScales();
+                this.initMolecularCanvas();
+                this.bindEvents();
+
+                // Sincronização inicial completa da interface
+                this.updateUI();
+            }
+
+            /**
+             * Mapeia todos os elementos DOM utilizados pela aplicação.
+             */
+            cacheDOM() {
+                // Alerta educativo
+                this.alertBox = document.getElementById('educationalAlert');
+                this.alertTitle = document.getElementById('alertTitle');
+                this.alertMessage = document.getElementById('alertMessage');
+                this.closeAlertBtn = document.getElementById('closeAlertBtn');
+
+                // Termômetros e entradas
+                this.inputs = {
+                    celsius: document.getElementById('celsiusInput'),
+                    fahrenheit: document.getElementById('fahrenheitInput'),
+                    kelvin: document.getElementById('kelvinInput')
+                };
+                this.tubes = document.querySelectorAll('.termometro-haste');
+                this.bars = {
+                    celsius: document.querySelector('.mercurio-barra[data-scale="celsius"]'),
+                    fahrenheit: document.querySelector('.mercurio-barra[data-scale="fahrenheit"]'),
+                    kelvin: document.querySelector('.mercurio-barra[data-scale="kelvin"]')
+                };
+                this.overflowBadge = document.getElementById('overflowScaleBadge');
+
+                // Slider mestre
+                this.masterSlider = document.getElementById('masterTempSlider');
+                this.masterSliderReadout = document.getElementById('masterSliderReadout');
+
+                // Controles do Canvas Molecular
+                this.canvasEl = document.getElementById('molecularCanvas');
+                this.canvasContainer = document.getElementById('canvasContainer');
+                this.absoluteZeroBadge = document.getElementById('absoluteZeroBadge');
+                this.togglePauseBtn = document.getElementById('togglePauseBtn');
+                this.pauseIcon = document.getElementById('pauseIcon');
+                this.pauseLabel = document.getElementById('pauseLabel');
+                this.toggleTrailsBtn = document.getElementById('toggleTrailsBtn');
+                this.resetSimBtn = document.getElementById('resetSimBtn');
+
+                // Painel de Informações Moleculares
+                this.particulaSlider = document.getElementById('particulaSlider');
+                this.numParticulasDisplay = document.getElementById('numParticulasDisplay');
+                this.panelKelvinDisplay = document.getElementById('panelKelvinDisplay');
+                this.panelVrmsN2 = document.getElementById('panelVrmsN2');
+                this.vMediaDisplay = document.getElementById('vMediaDisplay');
+                this.panelRelFactor = document.getElementById('panelRelFactor');
+                this.agitationLabel = document.getElementById('agitationLabel');
+                this.agitationBar = document.getElementById('agitationBar');
+                this.simStatusBadge = document.getElementById('simStatusBadge');
+                this.simStatusDot = document.getElementById('simStatusDot');
+                this.simStatusText = document.getElementById('simStatusText');
+
+                // Presets e Comparador
+                this.presetButtons = document.querySelectorAll('.preset-btn');
+                this.recordStateBtn = document.getElementById('recordStateBtn');
+                this.recordCountBadge = document.getElementById('recordCountBadge');
+                this.clearCompareBtn = document.getElementById('clearCompareBtn');
+                this.compareTableBody = document.getElementById('compareTableBody');
+
+                // Fórmulas em tempo real
+                this.formulaCtoF = document.getElementById('formulaCtoF');
+                this.formulaFtoC = document.getElementById('formulaFtoC');
+                this.formulaCtoK = document.getElementById('formulaCtoK');
+                this.formulaKtoC = document.getElementById('formulaKtoC');
+                this.formulaTValue = document.getElementById('formulaTValue');
+                this.formulaSqrtTValue = document.getElementById('formulaSqrtTValue');
+                this.formulaVrmsValue = document.getElementById('formulaVrmsValue');
+            }
+
+            /* =========================================================
+               CONVERSÕES DE TEMPERATURA
+               ========================================================= */
+            kToC(K) { return K - 273.15; }
+            cToK(C) { return C + 273.15; }
+            kToF(K) { return (K - 273.15) * 9 / 5 + 32; }
+            fToK(F) { return (F - 32) * 5 / 9 + 273.15; }
+
+            /**
+             * Converte uma temperatura em Kelvin para a porcentagem vertical na haste (0% = 0 K, 100% = 623,15 K).
+             */
+            kToVisualPercent(K) {
+                const span = PHYSICS.VISUAL_MAX_K - PHYSICS.VISUAL_MIN_K;
+                const pct = ((K - PHYSICS.VISUAL_MIN_K) / span) * 100;
+                return Math.max(0, Math.min(100, pct));
+            }
+
+            /**
+             * Gera as graduações laterais proporcionais e posiciona as zonas negativas dos 3 termômetros.
+             */
+            buildThermometerScales() {
+                // Posiciona a altura das zonas negativas (0 °C = 273,15 K; 0 °F = 255,372 K)
+                const negZoneC = document.getElementById('negZoneC');
+                const negZoneF = document.getElementById('negZoneF');
+                negZoneC.style.height = `${this.kToVisualPercent(273.15)}%`;
+                negZoneF.style.height = `${this.kToVisualPercent(this.fToK(0))}%`;
+
+                // Ticks Celsius (0 K até 623,15 K => -273,15 °C até 350 °C)
+                const ticksC = [
+                    { k: 0, label: '−273' },
+                    { k: this.cToK(-150), label: '−150' },
+                    { k: this.cToK(0), label: '0 °C', isZero: true },
+                    { k: this.cToK(100), label: '100' },
+                    { k: this.cToK(200), label: '200' },
+                    { k: this.cToK(350), label: '350' }
+                ];
+                this.renderTicks(document.getElementById('ticksC'), ticksC);
+
+                // Ticks Fahrenheit (-459,67 °F até 662 °F)
+                const ticksF = [
+                    { k: 0, label: '−460' },
+                    { k: this.fToK(-200), label: '−200' },
+                    { k: this.fToK(0), label: '0 °F', isZero: true },
+                    { k: this.fToK(212), label: '212' },
+                    { k: this.fToK(400), label: '400' },
+                    { k: this.fToK(662), label: '662' }
+                ];
+                this.renderTicks(document.getElementById('ticksF'), ticksF);
+
+                // Ticks Kelvin (0 K até 623,15 K)
+                const ticksK = [
+                    { k: 0, label: '0 K', isZero: true },
+                    { k: 150, label: '150' },
+                    { k: 300, label: '300' },
+                    { k: 450, label: '450' },
+                    { k: 623.15, label: '623' }
+                ];
+                this.renderTicks(document.getElementById('ticksK'), ticksK);
+            }
+
+            renderTicks(container, ticks) {
+                container.innerHTML = '';
+                for (const t of ticks) {
+                    const el = document.createElement('div');
+                    el.className = 'tick-mark' + (t.isZero ? ' is-zero' : '');
+                    el.style.bottom = `${this.kToVisualPercent(t.k)}%`;
+                    el.innerHTML = `<span class="tick-line"></span><span>${t.label}</span>`;
+                    container.appendChild(el);
+                }
+            }
+
+            /**
+             * Inicializa a instância do Canvas Molecular 2D.
+             */
+            initMolecularCanvas() {
+                this.molecularSim = new MolecularCanvas(
+                    this.canvasEl,
+                    this.canvasContainer,
+                    (telemetry) => this.updateMolecularTelemetry(telemetry)
+                );
+            }
+
+            /* =========================================================
+               EVENTOS DE INTERAÇÃO (MOUSE, TOUCH/POINTER, TECLADO)
+               ========================================================= */
+            bindEvents() {
+                // Fechar alerta educativo
+                this.closeAlertBtn.addEventListener('click', () => this.hideAlert());
+
+                // 1. Arrasto interativo nas hastes dos 3 termômetros (Pointer Events unifica mouse + touch)
+                this.tubes.forEach((tube) => {
+                    tube.addEventListener('pointerdown', (e) => {
+                        e.preventDefault();
+                        this.draggingTube = tube;
+                        tube.classList.add('dragging');
+                        tube.setPointerCapture(e.pointerId);
+                        this.updateTempFromPointer(e, tube);
+                    });
+
+                    tube.addEventListener('pointermove', (e) => {
+                        if (this.draggingTube === tube) {
+                            this.updateTempFromPointer(e, tube);
+                        }
+                    });
+
+                    const endDrag = (e) => {
+                        if (this.draggingTube === tube) {
+                            tube.classList.remove('dragging');
+                            if (tube.hasPointerCapture(e.pointerId)) {
+                                tube.releasePointerCapture(e.pointerId);
+                            }
+                            this.draggingTube = null;
+                        }
+                    };
+
+                    tube.addEventListener('pointerup', endDrag);
+                    tube.addEventListener('pointercancel', endDrag);
+
+                    // Acessibilidade por teclado (setas cima/baixo na haste focada)
+                    tube.addEventListener('keydown', (e) => {
+                        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                            e.preventDefault();
+                            this.setTemperatureK(this.tempK + (e.shiftKey ? 10 : 1));
+                        } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                            e.preventDefault();
+                            this.setTemperatureK(this.tempK - (e.shiftKey ? 10 : 1));
+                        }
+                    });
+                });
+
+                // 2. Inputs sincronizados (°C, °F, K) com suporte a vírgula, ponto e negativos
+                Object.entries(this.inputs).forEach(([scale, inputEl]) => {
+                    inputEl.addEventListener('focus', () => {
+                        this.activeInput = scale;
+                        inputEl.select();
+                    });
+
+                    inputEl.addEventListener('input', () => {
+                        this.handleScaleInput(scale, inputEl.value, false);
+                    });
+
+                    inputEl.addEventListener('blur', () => {
+                        this.activeInput = null;
+                        this.handleScaleInput(scale, inputEl.value, true);
+                        this.syncInputs(); // Formata de forma limpa ao sair do campo
+                    });
+
+                    inputEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            inputEl.blur();
+                        }
+                    });
+                });
+
+                // 3. Slider mestre contínuo (-273,15 °C até 350 °C)
+                this.masterSlider.addEventListener('input', () => {
+                    const cVal = parseFloat(this.masterSlider.value);
+                    if (!Number.isNaN(cVal)) {
+                        this.hideAlert();
+                        this.setTemperatureK(this.cToK(cVal));
+                    }
+                });
+
+                // 4. Controles da simulação molecular (Pausar, Rastros, Resetar 25 °C)
+                this.togglePauseBtn.addEventListener('click', () => {
+                    const nextPaused = !this.molecularSim.isPaused;
+                    this.molecularSim.setPaused(nextPaused);
+                    this.pauseIcon.className = nextPaused ? 'fas fa-play' : 'fas fa-pause';
+                    this.pauseLabel.textContent = nextPaused ? 'Retomar' : 'Pausar';
+                });
+
+                this.toggleTrailsBtn.addEventListener('click', () => {
+                    const nextTrails = !this.molecularSim.showTrails;
+                    this.molecularSim.setTrails(nextTrails);
+                    this.toggleTrailsBtn.setAttribute('aria-pressed', String(nextTrails));
+                    if (nextTrails) {
+                        this.toggleTrailsBtn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-200');
+                        this.toggleTrailsBtn.classList.add('bg-orange-100', 'text-simulab-orangeDark', 'border-orange-300');
+                    } else {
+                        this.toggleTrailsBtn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-200');
+                        this.toggleTrailsBtn.classList.remove('bg-orange-100', 'text-simulab-orangeDark', 'border-orange-300');
+                    }
+                });
+
+                this.resetSimBtn.addEventListener('click', () => {
+                    this.hideAlert();
+                    this.setTemperatureK(PHYSICS.REF_ROOM_K);
+                    if (this.molecularSim.isPaused) {
+                        this.molecularSim.setPaused(false);
+                        this.pauseIcon.className = 'fas fa-pause';
+                        this.pauseLabel.textContent = 'Pausar';
+                    }
+                });
+
+                // 5. Slider dinâmico de partículas (1 a 100, sem resetar existentes)
+                this.particulaSlider.addEventListener('input', () => {
+                    const count = parseInt(this.particulaSlider.value, 10);
+                    this.numParticulasDisplay.textContent = count;
+                    this.molecularSim.setParticleCount(count);
+                });
+
+                // 6. Presets rápidos de temperatura
+                this.presetButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const cVal = parseFloat(btn.dataset.presetC);
+                        this.hideAlert();
+                        this.setTemperatureK(this.cToK(cVal));
+                    });
+                });
+
+                // 7. Comparador de estados térmicos
+                this.recordStateBtn.addEventListener('click', () => this.recordCurrentState());
+                this.clearCompareBtn.addEventListener('click', () => this.clearComparedStates());
+            }
+
+            /**
+             * Converte a coordenada Y do ponteiro na haste do termômetro em Kelvin (escala proporcional).
+             */
+            updateTempFromPointer(e, tube) {
+                const rect = tube.getBoundingClientRect();
+                const offsetFromBottom = rect.bottom - e.clientY;
+                const ratio = Math.max(0, Math.min(1, offsetFromBottom / rect.height));
+                const newK = PHYSICS.VISUAL_MIN_K + ratio * (PHYSICS.VISUAL_MAX_K - PHYSICS.VISUAL_MIN_K);
+                this.hideAlert();
+                this.setTemperatureK(newK);
+            }
+
+            /**
+             * Interpreta valores digitados em °C, °F ou K (aceita vírgula, ponto e negativos).
+             */
+            handleScaleInput(scale, rawStr, isFinalCommit) {
+                const cleaned = rawStr.trim().replace('−', '-').replace(',', '.');
+                // Permite digitação intermediária de "-" ou "" sem interromper o usuário
+                if (cleaned === '' || cleaned === '-' || cleaned === '.' || cleaned === '-.') {
+                    return;
+                }
+
+                const val = Number(cleaned);
+                if (!Number.isFinite(val)) return;
+
+                let kVal;
+                if (scale === 'celsius') kVal = this.cToK(val);
+                else if (scale === 'fahrenheit') kVal = this.fToK(val);
+                else kVal = val;
+
+                // Verifica tentativa abaixo do Zero Absoluto (< 0 K)
+                if (kVal < PHYSICS.MIN_K - 1e-6) {
+                    this.showAlert(
+                        'Limite físico atingido — Zero Absoluto (0 K):',
+                        'O Zero Absoluto (−273,15 °C / −459,67 °F / 0 K) é o limite físico inferior da temperatura, onde a energia cinética térmica clássica se anula. A simulação foi mantida em 0 K para preservar a consistência física.'
+                    );
+                    this.setTemperatureK(0);
+                    return;
+                }
+
+                // Verifica limite superior didático (2000 °C = 2273,15 K)
+                if (kVal > PHYSICS.MAX_K_INPUT) {
+                    if (isFinalCommit) {
+                        this.showAlert(
+                            'Limite máximo do simulador (2000 °C):',
+                            'Este laboratório aceita temperaturas até 2000 °C (3632 °F / 2273,15 K). O valor foi ajustado para o limite superior suportado.'
+                        );
+                    }
+                    this.setTemperatureK(PHYSICS.MAX_K_INPUT);
+                    return;
+                }
+
+                this.hideAlert();
+                this.setTemperatureK(kVal);
+            }
+
+            showAlert(title, message) {
+                this.alertTitle.textContent = title;
+                this.alertMessage.textContent = message;
+                this.alertBox.classList.remove('hidden');
+            }
+
+            hideAlert() {
+                this.alertBox.classList.add('hidden');
+            }
+
+            /**
+             * Define a temperatura global do simulador e sincroniza todos os módulos.
+             */
+            setTemperatureK(newK) {
+                const clampedK = Math.max(PHYSICS.MIN_K, Math.min(PHYSICS.MAX_K_INPUT, newK));
+                // Arredonda ruído de ponto flutuante próximo de zero absoluto
+                this.tempK = clampedK < 0.005 ? 0 : clampedK;
+
+                this.molecularSim.setTemperatureK(this.tempK);
+                this.updateUI();
+            }
+
+            /**
+             * Atualiza todos os componentes visuais de forma síncrona e sem flicker.
+             */
+            updateUI() {
+                const K = this.tempK;
+                const C = this.kToC(K);
+                const F = this.kToF(K);
+
+                // 1. Atualiza colunas dos 3 termômetros (mesma proporção física de 0 K a 623,15 K)
+                const visualPct = this.kToVisualPercent(K);
+                const heightStyle = `${visualPct}%`;
+                this.bars.celsius.style.height = heightStyle;
+                this.bars.fahrenheit.style.height = heightStyle;
+                this.bars.kelvin.style.height = heightStyle;
+
+                // Exibe badge "+350 °C" se ultrapassar o topo visual do tubo
+                if (K > PHYSICS.VISUAL_MAX_K + 0.05) {
+                    this.overflowBadge.classList.remove('hidden');
+                } else {
+                    this.overflowBadge.classList.add('hidden');
+                }
+
+                // 2. Sincroniza os 3 inputs (sem interromper o campo que o usuário está digitando)
+                this.syncInputs();
+
+                // 3. Sincroniza slider mestre (-273,15 °C até 350 °C)
+                const sliderC = Math.max(-273.15, Math.min(350, C));
+                this.masterSlider.value = sliderC.toFixed(2);
+                this.masterSliderReadout.textContent = `${formatBR(C, 2, true)} °C`;
+
+                // 4. Painel Molecular (Temperatura K, v_rms N2, Fator relativo e Barra de Agitação)
+                const vRmsN2 = computeVrmsN2(K);
+                const relFactor = K <= 0 ? 0 : Math.sqrt(K / PHYSICS.REF_ROOM_K);
+
+                this.panelKelvinDisplay.textContent = `${formatBR(K, 2)} K`;
+                this.panelVrmsN2.textContent = `${formatBR(vRmsN2, 1)} m/s`;
+                this.panelRelFactor.textContent = `${formatBR(relFactor, 2)}×`;
+
+                this.updateAgitationIndicator(K);
+                this.updatePresetHighlight(C);
+                this.updateFormulas(C, F, K, vRmsN2);
+
+                // Overlay discreto de Zero Absoluto no Canvas
+                if (K <= 0.01) {
+                    this.absoluteZeroBadge.classList.remove('hidden');
+                } else {
+                    this.absoluteZeroBadge.classList.add('hidden');
+                }
+            }
+
+            syncInputs() {
+                const K = this.tempK;
+                const C = this.kToC(K);
+                const F = this.kToF(K);
+
+                if (this.activeInput !== 'celsius') {
+                    this.inputs.celsius.value = formatBR(C, 2, false);
+                }
+                if (this.activeInput !== 'fahrenheit') {
+                    this.inputs.fahrenheit.value = formatBR(F, 2, false);
+                }
+                if (this.activeInput !== 'kelvin') {
+                    this.inputs.kelvin.value = formatBR(K, 2, false);
+                }
+            }
+
+            /**
+             * Atualiza a barra de intensidade e rótulo da agitação térmica.
+             */
+            updateAgitationIndicator(K) {
+                let label = '';
+                let textClass = '';
+                let barGradient = '';
+                // Preenche a barra proporcionalmente a √T (refletindo a velocidade molecular)
+                const pct = Math.min(100, (Math.sqrt(K) / Math.sqrt(PHYSICS.VISUAL_MAX_K)) * 100);
+
+                if (K <= 0.05) {
+                    label = 'Repouso térmico';
+                    textClass = 'text-sky-700';
+                    barGradient = 'linear-gradient(90deg, #38bdf8, #0284c7)';
+                } else if (K < 240) {
+                    label = 'Movimento lento';
+                    textClass = 'text-amber-600';
+                    barGradient = 'linear-gradient(90deg, #38bdf8, #f59e0b)';
+                } else if (K < 360) {
+                    label = 'Movimento moderado';
+                    textClass = 'text-simulab-orangeDark';
+                    barGradient = 'linear-gradient(90deg, #f59e0b, #ff690b)';
+                } else {
+                    label = 'Movimento intenso';
+                    textClass = 'text-red-600';
+                    barGradient = 'linear-gradient(90deg, #ff690b, #dc2626)';
+                }
+
+                this.agitationLabel.textContent = label;
+                this.agitationLabel.className = `font-extrabold ${textClass}`;
+                this.agitationBar.style.width = `${Math.max(K <= 0.05 ? 2 : 6, pct)}%`;
+                this.agitationBar.style.background = barGradient;
+            }
+
+            /**
+             * Recebe telemetria periódica do Canvas 2D (velocidade simulada + status de execução).
+             */
+            updateMolecularTelemetry({ simVrms, isPaused, isAtAbsoluteZero }) {
+                this.vMediaDisplay.textContent = `${formatBR(simVrms, 1)} u/s`;
+
+                if (isPaused) {
+                    this.simStatusText.textContent = 'Pausada';
+                    this.simStatusBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
+                    this.simStatusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                } else if (isAtAbsoluteZero) {
+                    this.simStatusText.textContent = 'Zero Absoluto';
+                    this.simStatusBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200';
+                    this.simStatusDot.className = 'w-2 h-2 rounded-full bg-sky-500';
+                } else {
+                    this.simStatusText.textContent = 'Em execução';
+                    this.simStatusBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    this.simStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                }
+            }
+
+            /**
+             * Destaca o botão de preset correspondente caso a temperatura atual coincida com ele.
+             */
+            updatePresetHighlight(currentC) {
+                this.presetButtons.forEach((btn) => {
+                    const presetC = parseFloat(btn.dataset.presetC);
+                    const isMatch = Math.abs(currentC - presetC) < 0.08;
+                    if (isMatch) {
+                        btn.classList.add('ring-2', 'ring-simulab-orange', 'border-simulab-orange', 'bg-orange-50/70');
+                        btn.classList.remove('border-slate-200', 'bg-slate-50/70');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-simulab-orange', 'border-simulab-orange', 'bg-orange-50/70');
+                        btn.classList.add('border-slate-200', 'bg-slate-50/70');
                     }
                 });
             }
 
-            // --- LÓGICA DE PARTÍCULAS ---
+            /**
+             * Atualiza todas as 5 fórmulas em tempo real (substituição numérica direta, zero flicker).
+             */
+            updateFormulas(C, F, K, vRmsN2) {
+                const cStr = formatBR(C, 2, true);
+                const fStr = formatBR(F, 2, true);
+                const kStr = formatBR(K, 2, false);
+                const sqrtT = Math.sqrt(Math.max(0, K));
 
-            configurarControleParticulas() {
-                this.particulaSlider.addEventListener('input', () => this.handleParticulaSlider());
-                // Usa 'change' para recriar as partículas APÓS o usuário soltar o slider
-                this.particulaSlider.addEventListener('change', () => this.reiniciarParticulas()); 
+                // 1. Celsius -> Fahrenheit
+                this.formulaCtoF.textContent = `${fStr} °F = (${cStr} × 9/5) + 32`;
+
+                // 2. Fahrenheit -> Celsius
+                this.formulaFtoC.textContent = `${cStr} °C = (${fStr} − 32) × 5/9`;
+
+                // 3. Celsius -> Kelvin
+                this.formulaCtoK.textContent = `${kStr} K = ${cStr} + 273,15`;
+
+                // 4. Kelvin -> Celsius
+                this.formulaKtoC.textContent = `${cStr} °C = ${kStr} − 273,15`;
+
+                // 5. Velocidade Molecular (Teoria Cinética)
+                this.formulaTValue.textContent = `${kStr} K`;
+                this.formulaSqrtTValue.innerHTML = `${formatBR(sqrtT, 2)} K<sup>1/2</sup>`;
+                this.formulaVrmsValue.textContent = `${formatBR(vRmsN2, 1)} m/s`;
             }
 
-            handleParticulaSlider() {
-                this.numParticulas = parseInt(this.particulaSlider.value);
-                this.numParticulasDisplay.textContent = this.numParticulas;
-            }
-
-            reiniciarParticulas() {
-                // Remove partículas antigas
-                this.particulas.forEach(p => p.elemento.remove());
-                this.particulas = [];
-
-                const raio = this.raioParticula;
-                const largura = this.larguraRecipiente;
-                const altura = this.alturaRecipiente;
-
-                // Cria novas partículas
-                for (let i = 0; i < this.numParticulas; i++) {
-                    const x = raio + Math.random() * (largura - 2 * raio);
-                    const y = raio + Math.random() * (altura - 2 * raio);
-                    
-                    const vx = (Math.random() - 0.5) * 2; 
-                    const vy = (Math.random() - 0.5) * 2;
-
-                    const p = new Particula(i, x, y, vx, vy, raio);
-                    this.particulas.push(p);
-                    
-                    // Adiciona o elemento da partícula ao DOM
-                    this.recipiente.appendChild(p.elemento); 
+            /* =========================================================
+               COMPARADOR DE ESTADOS TÉRMICOS (ATÉ 4 REGISTROS)
+               ========================================================= */
+            getMatchingPresetName(C) {
+                for (const btn of this.presetButtons) {
+                    const presetC = parseFloat(btn.dataset.presetC);
+                    if (Math.abs(C - presetC) < 0.08) {
+                        return btn.dataset.presetName;
+                    }
                 }
-                this.atualizarVelocidadeParticulas();
-                this.calcularEExibirVelocidadeMedia();
+                return null;
             }
 
-            // --- LÓGICA DE EXIBIÇÃO DE CÁLCULO ---
+            recordCurrentState() {
+                if (this.comparedStates.length >= 4) return;
 
-            calcularEExibirVelocidadeMedia() {
-                let somaVelocidade = 0;
-                this.particulas.forEach(p => {
-                    const v_mag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-                    somaVelocidade += v_mag;
+                const K = this.tempK;
+                const C = this.kToC(K);
+                const F = this.kToF(K);
+                const vRms = computeVrmsN2(K);
+                const ratio = K <= 0 ? 0 : Math.sqrt(K / PHYSICS.REF_ROOM_K);
+                const presetName = this.getMatchingPresetName(C);
+
+                this.comparedStates.push({
+                    id: Date.now() + Math.random(),
+                    label: presetName || `Estado #${this.comparedStates.length + 1}`,
+                    K, C, F, vRms, ratio
                 });
-                const vMedia = this.particulas.length > 0 ? somaVelocidade / this.particulas.length : 0;
-                
-                this.vMediaDisplay.textContent = `${vMedia.toFixed(2)} u/s`;
 
-                // Prepara as fórmulas
-                const T_c = this.K_to_C(this.temperaturaKelvin).toFixed(2);
-                const T_f = this.K_to_F(this.temperaturaKelvin).toFixed(2);
-                const T_k = this.temperaturaKelvin.toFixed(2);
-                
-                this.displayCalculo.innerHTML = `
-                    <div class="formula-item">
-                        <h4>Conversão C para F</h4>
-                        <p>$$T_F = T_C \\cdot \\frac{9}{5} + 32$$</p>
-                        <p class="formula-result">${T_f} &deg;F = ${T_c} &deg;C \\cdot 1.8 + 32</p>
-                    </div>
-                    <div class="formula-item">
-                        <h4>Conversão C para K</h4>
-                        <p>$$T_K = T_C + 273.15$$</p>
-                        <p class="formula-result">${T_k} K = ${T_c} &deg;C + 273.15</p>
-                    </div>
-                    <div class="formula-item">
-                        <h4>Velocidade (Teoria Cinética)</h4>
-                        <p>$$V_{rms} \\propto \\sqrt{T}$$</p>
-                        <p class="formula-result">T=${T_k} K, V_{média} = ${vMedia.toFixed(2)} u/s</p>
-                    </div>
-                `;
-                // Força o re-render do MathJax
-                if (window.MathJax) {
-                    window.MathJax.typeset();
+                this.renderCompareTable();
+            }
+
+            removeComparedState(id) {
+                this.comparedStates = this.comparedStates.filter((s) => s.id !== id);
+                this.renderCompareTable();
+            }
+
+            clearComparedStates() {
+                this.comparedStates = [];
+                this.renderCompareTable();
+            }
+
+            renderCompareTable() {
+                const count = this.comparedStates.length;
+                this.recordCountBadge.textContent = `${count}/4`;
+                this.recordStateBtn.disabled = count >= 4;
+
+                if (count === 0) {
+                    this.clearCompareBtn.classList.add('hidden');
+                    this.compareTableBody.innerHTML = `
+                        <tr id="compareEmptyRow">
+                            <td colspan="7" class="py-6 px-4 text-center text-slate-400">
+                                <i class="fas fa-bookmark text-slate-300 mr-1.5"></i>
+                                Nenhum estado registrado ainda. Ajuste a temperatura e clique em <strong>"Registrar estado atual"</strong>.
+                            </td>
+                        </tr>
+                    `;
+                    return;
                 }
-            }
 
-            // --- LÓGICA DE ANIMAÇÃO ---
+                this.clearCompareBtn.classList.remove('hidden');
+                this.compareTableBody.innerHTML = '';
 
-            iniciarSimulacao() {
-                // Garante que tudo esteja no estado inicial correto
-                this.atualizarTodosTermometros(); 
-                this.reiniciarParticulas(); 
-                this.iniciarLoop();
-            }
-            
-            iniciarLoop() {
-                if (this.animaID) cancelAnimationFrame(this.animaID); // Previne loops duplicados
-                this.tempoAnterior = performance.now();
-                this.animaID = requestAnimationFrame(this.loop.bind(this));
-            }
+                this.comparedStates.forEach((st, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-orange-50/60 cursor-pointer transition-colors group';
+                    tr.title = 'Clique para restaurar esta temperatura';
 
-            loop(timestamp) {
-                const deltaTime = (timestamp - this.tempoAnterior) / 1000; 
-                this.tempoAnterior = timestamp;
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-bold text-simulab-navy whitespace-nowrap">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px] mr-1.5 group-hover:bg-simulab-orange group-hover:text-white transition">${idx + 1}</span>
+                            ${st.label}
+                        </td>
+                        <td class="py-2.5 px-2.5 text-right font-mono tabular-nums font-bold text-slate-700 whitespace-nowrap">${formatBR(st.C, 2, true)} °C</td>
+                        <td class="py-2.5 px-2.5 text-right font-mono tabular-nums font-bold text-slate-700 whitespace-nowrap">${formatBR(st.F, 2, true)} °F</td>
+                        <td class="py-2.5 px-2.5 text-right font-mono tabular-nums font-bold text-[#1d4ed8] whitespace-nowrap">${formatBR(st.K, 2)} K</td>
+                        <td class="py-2.5 px-2.5 text-right font-mono tabular-nums font-semibold text-slate-700 whitespace-nowrap">${formatBR(st.vRms, 1)} m/s</td>
+                        <td class="py-2.5 px-2.5 text-right font-mono tabular-nums font-bold text-simulab-orangeDark whitespace-nowrap">${formatBR(st.ratio, 2)}×</td>
+                        <td class="py-2.5 px-2 text-center">
+                            <button type="button" class="remove-row-btn text-slate-400 hover:text-red-600 p-1 rounded transition" title="Remover registro" aria-label="Remover estado">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </td>
+                    `;
 
-                // Move as partículas
-                this.particulas.forEach(p => {
-                    p.atualizarPosicao(deltaTime, this.larguraRecipiente, this.alturaRecipiente);
+                    // Clique na linha restaura a temperatura registrada
+                    tr.addEventListener('click', (e) => {
+                        if (e.target.closest('.remove-row-btn')) return;
+                        this.hideAlert();
+                        this.setTemperatureK(st.K);
+                    });
+
+                    // Botão de remover registro individual
+                    tr.querySelector('.remove-row-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.removeComparedState(st.id);
+                    });
+
+                    this.compareTableBody.appendChild(tr);
                 });
-                
-                // Otimização: Recalcula e exibe a velocidade média apenas a cada 50 frames
-                if (Math.floor(timestamp / 50) % 50 === 0) {
-                    this.calcularEExibirVelocidadeMedia();
-                }
-
-                this.animaID = requestAnimationFrame(this.loop.bind(this));
             }
-        } // Fim da classe SimulacaoTermometria
+        }
 
-        // Inicia a simulação após o DOM carregar
-        document.addEventListener('DOMContentLoaded', () => {
-            new SimulacaoTermometria();
+        /* =========================================================
+           INICIALIZAÇÃO SEGURA APÓS CARREGAMENTO DO DOM
+           ========================================================= */
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.simuLabTermometria = new TermometriaApp();
+            } catch (err) {
+                console.error('Erro ao inicializar o Laboratório de Termometria:', err);
+            }
         });
     </script>
-</body>
-</html>
+
+</body></html>
