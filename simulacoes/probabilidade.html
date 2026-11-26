@@ -1,809 +1,2979 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Probabilidade Avançado: N Dados, N Lados</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        /* ----------------------------------- */
-        /* RESET BÁSICO E ESTILOS GERAIS */
-        /* ----------------------------------- */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f5;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratório dos Dados | SimuLab</title>
 
-        .container {
-            flex-grow: 1;
-            display: flex;
-            max-width: 1400px;
-            width: 100%;
-            margin: 20px auto;
-            background-color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
+  <!-- Tipografia Nunito Sans (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet" />
 
-        /* ----------------------------------- */
-        /* BARRA SUPERIOR (LOGO-BOTÃO) */
-        /* ----------------------------------- */
-        .top-bar {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            height: 50px; 
-            display: flex;
-            align-items: stretch; 
-            border-bottom: 1px solid #ddd; 
-        }
+  <!-- Chart.js UMD via jsDelivr -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
 
-        .logo-link {
-            text-decoration: none; 
-            color: #D2691E; 
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 25px; 
-            display: flex;
-            align-items: center; 
-            border-right: 1px solid #ddd; 
-            transition: background-color 0.3s;
-        }
+  <!-- Importmap ESM para Three.js v0.160.0 e Cannon-es v0.20.0 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+    }
+  }
+  </script>
 
-        .logo-link:hover {
-            background-color: #f5f5f5;
-        }
+  <style>
+    /* =========================================================================
+       1. DESIGN TOKENS — IDENTIDADE VISUAL SIMULAB
+       ========================================================================= */
+    :root {
+      --orange: #ff690b;
+      --orange-dark: #e95700;
+      --orange-soft: #fff3eb;
+      --orange-border: #ffd5ba;
 
-        .logo-link .fas {
-            margin-right: 10px; 
-        }
-        
-        /* ----------------------------------- */
-        /* PAINEL DE CONTROLES (ESQUERDA) */
-        /* ----------------------------------- */
-        .controls {
-            width: 350px;
-            min-width: 300px;
-            padding: 20px;
-            border-right: 2px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto; 
-        }
+      --navy: #14233d;
+      --navy-mid: #243b63;
+      --navy-soft: #eef3f9;
 
-        .controls h2 {
-            color: #D2691E;
-            margin-top: 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
+      --bg: #f7f9fc;
+      --card: #ffffff;
+      --text: #14233d;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
 
-        .controls label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .controls input[type="number"], .controls select, .controls input[type="range"] {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        
-        .controls button {
-            margin-top: 20px;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-        }
+      --green: #0f766e;
+      --green-bg: #ecfdf5;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
 
-        #rollOneButton {
-            background-color: #3498db; 
-            color: white;
-        }
-        #rollOneButton:hover {
-            background-color: #2980b9;
-        }
-        
-        #rollManyButton {
-            background-color: #2ecc71; 
-            color: white;
-        }
-        #rollManyButton:hover {
-            background-color: #27ae60;
-        }
-        
-        #resetButton {
-            background-color: #e74c3c; 
-            color: white;
-        }
-        #resetButton:hover {
-            background-color: #c0392b;
-        }
-        
-        .result-display {
-            margin-top: 25px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fafafa;
-        }
-        
-        .config-group {
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            background-color: #fcfcfc;
-        }
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 2px 8px rgba(20, 35, 61, 0.04);
+      --shadow-md: 0 8px 24px rgba(20, 35, 61, 0.06);
+      --transition: 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
 
-        /* ----------------------------------- */
-        /* ÁREA DE VISUALIZAÇÃO DO DADO */
-        /* ----------------------------------- */
-        .simulation-area {
-            flex-grow: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .dice-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            height: 150px; 
-            margin-bottom: 20px;
-            margin-top: 20px;
-            min-height: 120px;
-        }
-        
-        /* Estilo base do dado */
-        .dice {
-            width: 80px;
-            height: 80px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        /* Animação de Rolagem 3D */
-        .dice.rolling {
-            animation: roll-3d 0.5s infinite linear;
-        }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        @keyframes roll-3d {
-            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
-        }
-        
-        /* ----------------------------------- */
-        /* GRÁFICO DE BARRAS */
-        /* ----------------------------------- */
-        .chart-container {
-            width: 95%;
-            max-width: 1000px;
-            height: 400px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #fefefe;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chart-bars {
-            display: flex;
-            height: 90%;
-            align-items: flex-end;
-            border-left: 1px solid #ccc;
-            padding-left: 5px;
-            position: relative;
-        }
+    html, body {
+      min-height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        .bar-wrapper {
-            flex-shrink: 0; 
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: center;
-            margin: 0 1px;
-            position: relative;
-        }
-        
-        .bar {
-            width: 90%;
-            background-color: #3498db;
-            transition: height 0.3s ease;
-            position: relative;
-        }
-        
-        .bar-value {
-            font-size: 11px;
-            color: white;
-            padding: 2px;
-            background-color: rgba(0,0,0,0.5);
-            border-radius: 3px;
-            position: absolute;
-            top: -15px;
-            z-index: 10;
-            white-space: nowrap;
-        }
-        
-        .theoretical-line {
-            width: 100%;
-            border-bottom: 1px dashed #e74c3c;
-            position: absolute;
-            z-index: 5;
-            top: 0;
-            font-size: 12px;
-            color: #e74c3c;
-        }
-        
-        .y-axis {
-            position: absolute;
-            left: -40px; 
-            top: 0;
-            height: 100%;
-            width: 40px; 
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-right: 5px;
-            font-size: 12px;
-            color: #555;
-        }
-    </style>
+    button, input {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* =========================================================================
+       2. CABEÇALHO COMPACTO (REGIÃO A)
+       ========================================================================= */
+    .lab-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-inner {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .simulab-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 14px;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(255, 105, 11, 0.28);
+    }
+
+    .logo-text {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .logo-text span {
+      color: var(--orange);
+    }
+
+    .lab-titles {
+      min-width: 0;
+    }
+
+    .lab-titles h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+    }
+
+    .lab-titles p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .die-indicator-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--navy-soft);
+      border: 1px solid var(--border);
+      color: var(--navy);
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .die-indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 105, 11, 0.2);
+    }
+
+    .btn-reset-exp {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--card);
+      color: var(--navy);
+      font-size: 0.84rem;
+      font-weight: 700;
+      transition: all var(--transition);
+    }
+
+    .btn-reset-exp:hover:not(:disabled) {
+      border-color: var(--orange);
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+    }
+
+    .btn-reset-exp:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* =========================================================================
+       3. ALERTA DE ERRO CDN (OCULTO POR PADRÃO)
+       ========================================================================= */
+    .cdn-error-banner {
+      display: none;
+      max-width: 1520px;
+      margin: 14px auto 0;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      background: var(--red-bg);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      font-size: 0.9rem;
+      font-weight: 600;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .cdn-error-banner.visible {
+      display: flex;
+    }
+
+    /* =========================================================================
+       4. LAYOUT PRINCIPAL — 2 COLUNAS EM DESKTOP (1366x768+)
+       ========================================================================= */
+    .lab-workspace {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 16px 20px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(350px, 0.85fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .col-stage,
+    .col-analytics {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      min-width: 0;
+    }
+
+    .card-header {
+      padding: 13px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-accent {
+      width: 8px;
+      height: 8px;
+      border-radius: 3px;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .card-body {
+      padding: 14px 16px;
+    }
+
+    /* =========================================================================
+       5. SELETOR DE MODELOS DE DADOS
+       ========================================================================= */
+    .dice-selector-card {
+      padding: 10px 12px;
+    }
+
+    .dice-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .die-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 9px 6px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      color: var(--navy);
+      transition: all var(--transition);
+      min-width: 0;
+    }
+
+    .die-btn svg {
+      width: 24px;
+      height: 24px;
+      color: var(--navy-mid);
+      transition: color var(--transition), transform var(--transition);
+    }
+
+    .die-btn .die-code {
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .die-btn .die-shape {
+      font-size: 0.69rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .die-btn:hover:not(:disabled) {
+      border-color: var(--orange-border);
+      background: var(--orange-soft);
+      transform: translateY(-1px);
+    }
+
+    .die-btn:hover:not(:disabled) svg {
+      color: var(--orange);
+      transform: scale(1.06);
+    }
+
+    .die-btn.active {
+      border-color: var(--orange);
+      background: var(--orange);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(255, 105, 11, 0.26);
+    }
+
+    .die-btn.active svg {
+      color: #ffffff;
+    }
+
+    .die-btn.active .die-shape {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .die-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* =========================================================================
+       6. PALCO 3D (THREE.JS) + OVERLAYS + CONTROLE MANUAL
+       ========================================================================= */
+    .stage-card {
+      overflow: hidden;
+    }
+
+    .stage-viewport {
+      position: relative;
+      width: 100%;
+      height: clamp(320px, 47vh, 480px);
+      background: radial-gradient(circle at 50% 35%, #f7fafe 0%, #e7eff8 100%);
+      overflow: hidden;
+    }
+
+    #sceneCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      touch-action: none;
+    }
+
+    .stage-hud-top {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .stage-pill {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(20, 35, 61, 0.1);
+      color: var(--navy);
+      font-size: 0.79rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(20, 35, 61, 0.08);
+    }
+
+    .stage-pill.rolling {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+    }
+
+    .spinner {
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: var(--orange);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .stage-pill.rolling .spinner {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-cam-reset {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(20, 35, 61, 0.12);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      color: var(--navy);
+      font-size: 0.76rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(20, 35, 61, 0.07);
+      transition: all var(--transition);
+    }
+
+    .btn-cam-reset:hover {
+      background: #ffffff;
+      border-color: var(--orange);
+      color: var(--orange-dark);
+    }
+
+    .stage-hud-bottom {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .orbit-hint {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(6px);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(20, 35, 61, 0.08);
+    }
+
+    .floating-result {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid var(--border);
+      box-shadow: 0 6px 18px rgba(20, 35, 61, 0.12);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .floating-result.pop {
+      animation: resultPop 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+      border-color: var(--orange);
+    }
+
+    @keyframes resultPop {
+      0% { transform: scale(0.92); }
+      50% { transform: scale(1.07); }
+      100% { transform: scale(1); }
+    }
+
+    .floating-result .fr-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .floating-result .fr-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--orange);
+      min-width: 24px;
+      text-align: center;
+      line-height: 1;
+    }
+
+    /* Barra de lançamento manual + histórico */
+    .manual-bar {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .manual-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-launch {
+      flex: 1 1 220px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 22px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+      color: #ffffff;
+      font-size: 0.96rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      box-shadow: 0 6px 18px rgba(255, 105, 11, 0.32);
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+    }
+
+    .btn-launch:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 22px rgba(233, 87, 0, 0.38);
+    }
+
+    .btn-launch:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-launch:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .d4-tip {
+      display: none;
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: var(--navy-mid);
+      background: var(--navy-soft);
+      border: 1px solid var(--border);
+      padding: 7px 11px;
+      border-radius: 9px;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .d4-tip.visible {
+      display: inline-flex;
+    }
+
+    .history-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 2px;
+    }
+
+    .history-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .history-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: 28px;
+    }
+
+    .history-empty {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .hist-pill {
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+      background: var(--navy-soft);
+      color: var(--navy);
+      border: 1px solid var(--border);
+      animation: fadeScale 0.22s ease;
+    }
+
+    .hist-pill.latest {
+      background: var(--orange);
+      color: #ffffff;
+      border-color: var(--orange-dark);
+      box-shadow: 0 2px 8px rgba(255, 105, 11, 0.28);
+    }
+
+    @keyframes fadeScale {
+      from { opacity: 0; transform: scale(0.82); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* =========================================================================
+       7. SIMULAÇÃO EM MASSA
+       ========================================================================= */
+    .sim-controls-row {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sim-input-group {
+      flex: 0 1 160px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .sim-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-strong);
+      background: #f8fafc;
+      color: var(--navy);
+      font-size: 0.96rem;
+      font-weight: 800;
+      outline: none;
+      transition: all var(--transition);
+    }
+
+    .sim-input:focus {
+      background: #ffffff;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 105, 11, 0.14);
+    }
+
+    .btn-simulate {
+      flex: 1 1 200px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      background: var(--navy);
+      color: #ffffff;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      transition: all var(--transition);
+    }
+
+    .btn-simulate:hover:not(:disabled) {
+      background: var(--navy-mid);
+      transform: translateY(-1px);
+    }
+
+    .btn-simulate:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .shortcuts-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .shortcuts-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-right: 2px;
+    }
+
+    .shortcut-btn {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--navy);
+      font-size: 0.78rem;
+      font-weight: 700;
+      transition: all var(--transition);
+    }
+
+    .shortcut-btn:hover:not(:disabled) {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+      color: var(--orange-dark);
+    }
+
+    .shortcut-btn.selected {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+      color: var(--orange-dark);
+    }
+
+    .sim-feedback {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--red);
+      min-height: 0;
+      display: none;
+    }
+
+    .sim-feedback.visible {
+      display: block;
+    }
+
+    .sim-progress-wrap {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .sim-progress-wrap.visible {
+      display: block;
+    }
+
+    .sim-progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .sim-progress-track {
+      width: 100%;
+      height: 7px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .sim-progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--orange), #ff8e42);
+      transition: width 0.08s linear;
+    }
+
+    /* =========================================================================
+       8. PAINEL LATERAL — ANÁLISE MATEMÁTICA (REGIÃO C)
+       ========================================================================= */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .kpi-card.highlight {
+      border-color: var(--orange-border);
+      background: linear-gradient(180deg, #ffffff 0%, #fff8f3 100%);
+    }
+
+    .kpi-label {
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      font-size: 1.38rem;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.15;
+    }
+
+    .kpi-card.highlight .kpi-value {
+      color: var(--orange);
+    }
+
+    .kpi-sub {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* Gráfico Chart.js */
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 235px;
+    }
+
+    .chart-legend-custom {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .leg-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .leg-swatch-bar {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--orange);
+    }
+
+    .leg-swatch-line {
+      width: 16px;
+      height: 0;
+      border-top: 2.5px dashed var(--navy);
+    }
+
+    /* Seção educativa Teoria x Prática */
+    .theory-card {
+      border-left: 4px solid var(--orange);
+      background: linear-gradient(135deg, #ffffff 0%, #fbfdff 100%);
+    }
+
+    .theory-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 11px;
+    }
+
+    .tm-box {
+      background: var(--navy-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .tm-box span {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .tm-box strong {
+      display: block;
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-top: 2px;
+    }
+
+    .theory-law {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--navy);
+      background: var(--orange-soft);
+      border: 1px solid var(--orange-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+
+    .theory-dynamic {
+      font-size: 0.83rem;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    /* Tabela de frequências */
+    .table-scroll {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .freq-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .freq-table thead th {
+      position: sticky;
+      top: 0;
+      background: #f1f5f9;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 9px 10px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      z-index: 2;
+    }
+
+    .freq-table thead th:first-child {
+      text-align: center;
+    }
+
+    .freq-table tbody td {
+      padding: 7px 10px;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      font-weight: 600;
+      color: var(--navy);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .freq-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .freq-table tbody tr.last-hit {
+      background: var(--orange-soft);
+    }
+
+    .face-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 24px;
+      padding: 0 7px;
+      border-radius: 6px;
+      background: var(--navy);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.78rem;
+    }
+
+    .freq-table tbody tr.last-hit .face-tag {
+      background: var(--orange);
+    }
+
+    .diff-pos {
+      color: var(--orange-dark);
+      font-weight: 700;
+    }
+
+    .diff-neg {
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    .diff-zero {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       9. RESPONSIVIDADE (1366x768, TABLETS E SMARTPHONES)
+       ========================================================================= */
+    @media (max-width: 1380px) {
+      .lab-workspace {
+        padding: 14px 16px 24px;
+        gap: 14px;
+      }
+      .stage-viewport {
+        height: clamp(300px, 44vh, 430px);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .lab-workspace {
+        grid-template-columns: 1fr;
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .stage-viewport {
+        height: clamp(300px, 46vh, 420px);
+      }
+    }
+
+    @media (max-width: 680px) {
+      .header-inner {
+        padding: 10px 14px;
+      }
+      .simulab-logo {
+        padding-right: 10px;
+      }
+      .lab-titles h1 {
+        font-size: 1.02rem;
+      }
+      .lab-titles p {
+        font-size: 0.76rem;
+      }
+      .lab-workspace {
+        padding: 12px 12px 24px;
+      }
+      .dice-selector-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .theory-metrics {
+        grid-template-columns: 1fr;
+      }
+      .orbit-hint {
+        display: none;
+      }
+      .stage-viewport {
+        height: 310px;
+      }
+    }
+  </style>
 </head>
 <body>
-    
-    <header class="top-bar">
-        <a href="https://erik-bernardo.github.io/SimuLab/simulacoes.html" class="logo-link">
-            <i class="fas fa-book-reader"></i> PLATAFORMA
-        </a>
-    </header>
-    <div class="container">
-        <div class="controls">
-            <h2><i class="fas fa-dice-d20"></i> Configurações do Lançamento</h2>
-            
-            <div class="config-group">
-                <label for="numDiceInput">Quantidade de Dados (N):</label>
-                <input type="number" id="numDiceInput" value="2" min="1" max="5">
-                
-                <label for="diceSidesInput">Lados do Dado (D):</label>
-                <select id="diceSidesInput">
-                    <option value="2">D2 (Moeda)</option>
-                    <option value="4">D4</option>
-                    <option value="6" selected>D6 (Padrão)</option>
-                    <option value="8">D8</option>
-                    <option value="10">D10</option>
-                    <option value="12">D12</option>
-                    <option value="20">D20</option>
-                </select>
-                <button id="updateConfigButton" style="background-color: #D2691E; color: white;"><i class="fas fa-sync-alt"></i> Aplicar Configuração</button>
-            </div>
-            
-            <label for="rollCountInput">Lançamentos por Clique (Máx 20M):</label>
-            <input type="number" id="rollCountInput" value="10000" min="1" max="20000000" step="10000">
-            
-            <button id="rollOneButton"><i class="fas fa-dice-one"></i> Lançar 1 Vez</button>
-            <button id="rollManyButton"><i class="fas fa-dice-d6"></i> Lançar <span id="rollCountDisplay">10.000</span> Vezes</button>
-            
-            <label for="animationSpeedInput">Velocidade da Animação (ms/lançamento):</label>
-            <input type="range" id="animationSpeedInput" min="0" max="100" value="50" step="1">
-            <p style="font-size: 12px; margin-top: 5px;">Velocidade: <span id="speedValue">50 ms</span> (0 = Instantâneo)</p>
-
-            <button id="resetButton" style="margin-top: 40px;"><i class="fas fa-trash-alt"></i> Limpar Resultados</button>
-
-            <div class="result-display">
-                <h3>Estatísticas</h3>
-                <p>Configuração: <span id="currentConfig">2D6</span></p>
-                <p>Total de Lançamentos: <span id="totalRolls">0</span></p>
-                <p>Soma Atual: <span id="currentSum">-</span></p>
-                <p>Média Experimental: <span id="experimentalMean">N/A</span></p>
-                <p>Média Teórica: <span id="theoreticalMean">N/A</span></p>
-                
-                <hr style="margin: 15px 0;">
-                
-                <label for="targetSumInput" style="margin-top: 10px; font-weight: bold; color: #D2691E;"><i class="fas fa-search"></i> Buscar Combinação (Soma Alvo):</label>
-                <input type="number" id="targetSumInput" value="7" style="width: 100%; display: inline-block; margin-top: 5px;">
-                
-                <div style="margin-top: 15px; padding: 10px; border: 1px dashed #D2691E; border-radius: 4px; background-color: #fffaf0;">
-                    <p style="font-weight: bold; margin-bottom: 5px; color: #D2691E;"><i class="fas fa-lightbulb"></i> Interpretação da Probabilidade</p>
-                    <p id="interpretationText" style="font-size: 14px;">Aguardando configuração...</p>
-                </div>
-                <p style="font-size: 14px; margin-top: 15px;">Prob. Alvo (<span id="targetSumDisplay">7</span>) Exp: <span id="probTarget" style="font-weight: bold; color: #3498db;">0.0000%</span></p>
-                <p style="font-size: 14px;">Prob. Alvo (<span id="targetSumDisplayTeo">7</span>) Teórica: <span id="probTargetTheoretical" style="font-weight: bold; color: #e74c3c;">N/A</span></p>
-            </div>
+  <!-- =======================================================================
+       REGIÃO A — CABEÇALHO
+       ======================================================================= -->
+  <header class="lab-header">
+    <div class="header-inner">
+      <div class="brand-area">
+        <div class="simulab-logo" aria-label="SimuLab">
+          <div class="logo-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <polygon points="12,2 21,7 21,17 12,22 3,17 3,7" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+              <path d="M12 2V12M12 12L21 7M12 12L3 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <circle cx="12" cy="16.5" r="1.7" fill="currentColor" />
+            </svg>
+          </div>
+          <span class="logo-text">Simu<span>Lab</span></span>
         </div>
-
-        <div class="simulation-area">
-            <h2>Visualização do Lançamento: <span id="visualConfig">2D6</span></h2>
-            
-            <div class="dice-container" id="diceContainer">
-                </div>
-
-            <div class="chart-container">
-                <div style="text-align: center; margin-bottom: 5px; font-weight: bold;">Distribuição de Frequência da Soma</div>
-                <div class="chart-bars" id="chartBars">
-                    </div>
-                <div class="x-axis-labels" style="display: flex; justify-content: space-around; width: 100%; height: 20px;" id="xAxisLabels">
-                    </div>
-            </div>
+        <div class="lab-titles">
+          <h1>Laboratório dos Dados</h1>
+          <p>Experimente, observe e descubra a probabilidade.</p>
         </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="die-indicator-badge" id="headerDieBadge" aria-live="polite">
+          <span class="die-indicator-dot" aria-hidden="true"></span>
+          <span id="headerDieText">D6 • 6 faces</span>
+        </div>
+        <button type="button" class="btn-reset-exp" id="resetExperimentBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span>Reiniciar Experimento</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <script>
-        // -----------------------------------
-        // 1. CONFIGURAÇÕES E ESTADO
-        // -----------------------------------
-        const diceContainerEl = document.getElementById('diceContainer');
-        const totalRollsEl = document.getElementById('totalRolls');
-        const currentSumEl = document.getElementById('currentSum');
-        const rollCountInput = document.getElementById('rollCountInput');
-        const rollCountDisplay = document.getElementById('rollCountDisplay');
-        const chartBarsEl = document.getElementById('chartBars');
-        const animationSpeedInput = document.getElementById('animationSpeedInput');
-        const speedValueEl = document.getElementById('speedValue');
-        const rollOneButton = document.getElementById('rollOneButton');
-        const rollManyButton = document.getElementById('rollManyButton');
-        const resetButton = document.getElementById('resetButton');
-        const numDiceInput = document.getElementById('numDiceInput');
-        const diceSidesInput = document.getElementById('diceSidesInput');
-        const updateConfigButton = document.getElementById('updateConfigButton');
-        const currentConfigEl = document.getElementById('currentConfig');
-        const visualConfigEl = document.getElementById('visualConfig');
-        const experimentalMeanEl = document.getElementById('experimentalMean');
-        const theoreticalMeanEl = document.getElementById('theoreticalMean');
-        const xAxisLabelsEl = document.getElementById('xAxisLabels');
-        
-        // Elementos para Busca e Interpretação
-        const targetSumInput = document.getElementById('targetSumInput');
-        const targetSumDisplayEl = document.getElementById('targetSumDisplay');
-        const targetSumDisplayTeoEl = document.getElementById('targetSumDisplayTeo');
-        const probTargetEl = document.getElementById('probTarget');
-        const probTargetTheoreticalEl = document.getElementById('probTargetTheoretical');
-        const interpretationTextEl = document.getElementById('interpretationText'); // NOVO ELEMENTO
+  <!-- Alerta de falha no carregamento de bibliotecas CDN -->
+  <div class="cdn-error-banner" id="cdnErrorBanner" role="alert">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <div id="cdnErrorText"></div>
+  </div>
 
-        let numDice = 2; // N
-        let diceSides = 6; // D
-        let minSum = 2;
-        let maxSum = 12;
-        let theoreticalProbabilities = {};
-        let theoreticalMean = 0;
-        let targetSum = 7; 
-        
-        let rollCounts = {}; 
-        let totalRolls = 0;
-        let isRolling = false;
-        let animationTime = 50; 
-        
-        // -----------------------------------
-        // 2. LÓGICA DE PROBABILIDADE
-        // -----------------------------------
+  <!-- =======================================================================
+       WORKSPACE PRINCIPAL (REGIÃO B À ESQUERDA, REGIÃO C À DIREITA)
+       ======================================================================= -->
+  <main class="lab-workspace">
+    <!-- =====================================================================
+         REGIÃO B — LABORATÓRIO 3D E CONTROLES
+         ===================================================================== -->
+    <section class="col-stage" aria-label="Laboratório 3D de lançamento de dados">
+      <!-- 1. Seletor de modelos poliédricos -->
+      <div class="card dice-selector-card" role="group" aria-label="Selecionar modelo de dado poliédrico">
+        <div class="dice-selector-grid" id="diceSelector">
+          <button type="button" class="die-btn" data-die="4" title="Tetraedro regular de 4 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="14,3 25,22 3,22"/><line x1="14" y1="3" x2="14" y2="22" stroke-opacity="0.45"/></svg>
+            <span class="die-code">D4</span>
+            <span class="die-shape">Tetraedro</span>
+          </button>
+          <button type="button" class="die-btn active" data-die="6" title="Cubo regular de 6 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="14,3 24,8.5 24,19.5 14,25 4,19.5 4,8.5"/><path d="M14,14 L24,8.5 M14,14 L4,8.5 M14,14 L14,25" stroke-opacity="0.55"/></svg>
+            <span class="die-code">D6</span>
+            <span class="die-shape">Cubo</span>
+          </button>
+          <button type="button" class="die-btn" data-die="8" title="Octaedro regular de 8 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="14,2 25,14 14,26 3,14"/><line x1="3" y1="14" x2="25" y2="14" stroke-opacity="0.5"/><line x1="14" y1="2" x2="14" y2="26" stroke-opacity="0.5"/></svg>
+            <span class="die-code">D8</span>
+            <span class="die-shape">Octaedro</span>
+          </button>
+          <button type="button" class="die-btn" data-die="10" title="Trapezoedro pentagonal de 10 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="14,2 24,12.5 14,26 4,12.5"/><polyline points="4,12.5 10,16 18,16 24,12.5" stroke-opacity="0.6"/><line x1="14" y1="2" x2="10" y2="16" stroke-opacity="0.45"/><line x1="14" y1="2" x2="18" y2="16" stroke-opacity="0.45"/></svg>
+            <span class="die-code">D10</span>
+            <span class="die-shape">Trapezoedro</span>
+          </button>
+          <button type="button" class="die-btn" data-die="12" title="Dodecaedro regular de 12 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><polygon points="14,2.5 23.5,8.5 23.5,19.5 14,25.5 4.5,19.5 4.5,8.5"/><polygon points="14,8 19,11.6 17.1,17.4 10.9,17.4 9,11.6" stroke-opacity="0.65"/></svg>
+            <span class="die-code">D12</span>
+            <span class="die-shape">Dodecaedro</span>
+          </button>
+          <button type="button" class="die-btn" data-die="20" title="Icosaedro regular de 20 faces">
+            <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><polygon points="14,2.5 24,8.2 24,19.8 14,25.5 4,19.8 4,8.2"/><polygon points="14,7.5 20.5,18.5 7.5,18.5" stroke-opacity="0.65"/><line x1="14" y1="2.5" x2="14" y2="7.5" stroke-opacity="0.45"/></svg>
+            <span class="die-code">D20</span>
+            <span class="die-shape">Icosaedro</span>
+          </button>
+        </div>
+      </div>
 
-        function calculateTheoreticalMean(N, D) {
-            return N * (D + 1) / 2;
+      <!-- 2. Palco 3D + Botão Manual + Histórico -->
+      <article class="card stage-card">
+        <div class="stage-viewport" id="stageViewport">
+          <canvas id="sceneCanvas" aria-label="Ambiente tridimensional interativo do dado"></canvas>
+
+          <div class="stage-hud-top">
+            <div class="stage-pill" id="stageStatusPill" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span id="stageStatusText">Cubo regular • Pronto para lançar</span>
+            </div>
+            <button type="button" class="btn-cam-reset" id="resetCameraBtn" title="Restaurar posição padrão da câmera">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+              </svg>
+              <span>Resetar câmera</span>
+            </button>
+          </div>
+
+          <div class="stage-hud-bottom">
+            <span class="orbit-hint">Arraste para girar a câmera • Role para zoom</span>
+            <div class="floating-result" id="floatingResult">
+              <span class="fr-label">Último resultado</span>
+              <span class="fr-value" id="floatingResultVal">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de lançamento manual e histórico dos últimos 10 -->
+        <div class="manual-bar">
+          <div class="manual-action-row">
+            <button type="button" class="btn-launch" id="launchDieBtn">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="4" />
+                <circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" />
+                <circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" />
+                <circle cx="12" cy="12" r="1.3" fill="currentColor" />
+                <circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" />
+                <circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" />
+              </svg>
+              <span id="launchBtnLabel">LANÇAR DADO</span>
+            </button>
+            <div class="d4-tip" id="d4Tip">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>No D4, o resultado é lido no <strong>vértice superior</strong>.</span>
+            </div>
+          </div>
+
+          <div class="history-strip">
+            <span class="history-label">Últimos 10 lançamentos:</span>
+            <div class="history-badges" id="historyBadges">
+              <span class="history-empty">Nenhum lançamento realizado ainda.</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3. Modo Simulação em Massa -->
+      <article class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-accent" aria-hidden="true"></span>
+            <span>Simulação em Massa</span>
+          </div>
+          <span class="card-subtitle">De 1 até 10.000 lançamentos instantâneos</span>
+        </div>
+        <div class="card-body">
+          <div class="sim-controls-row">
+            <div class="sim-input-group">
+              <input
+                type="number"
+                id="massCountInput"
+                class="sim-input"
+                min="1"
+                max="10000"
+                step="1"
+                value="100"
+                aria-label="Quantidade de lançamentos para simulação em massa"
+              />
+            </div>
+            <button type="button" class="btn-simulate" id="simulateBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>SIMULAR LANÇAMENTOS</span>
+            </button>
+          </div>
+
+          <div class="shortcuts-row" role="group" aria-label="Atalhos de quantidade de lançamentos">
+            <span class="shortcuts-label">Atalhos:</span>
+            <button type="button" class="shortcut-btn" data-qty="10">10</button>
+            <button type="button" class="shortcut-btn" data-qty="50">50</button>
+            <button type="button" class="shortcut-btn selected" data-qty="100">100</button>
+            <button type="button" class="shortcut-btn" data-qty="500">500</button>
+            <button type="button" class="shortcut-btn" data-qty="1000">1.000</button>
+            <button type="button" class="shortcut-btn" data-qty="5000">5.000</button>
+            <button type="button" class="shortcut-btn" data-qty="10000">10.000</button>
+          </div>
+
+          <div class="sim-feedback" id="simFeedback" role="status" aria-live="polite"></div>
+
+          <div class="sim-progress-wrap" id="simProgressWrap">
+            <div class="sim-progress-meta">
+              <span id="simProgressLabel">Executando simulação...</span>
+              <span id="simProgressPct">0%</span>
+            </div>
+            <div class="sim-progress-track">
+              <div class="sim-progress-fill" id="simProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- =====================================================================
+         REGIÃO C — PAINEL LATERAL DE ANÁLISE MATEMÁTICA
+         ===================================================================== -->
+    <aside class="col-analytics" aria-label="Análise estatística e matemática">
+      <!-- 1. Cartões-resumo (KPIs) -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Dado Selecionado</span>
+          <span class="kpi-value" id="kpiDie">D6</span>
+          <span class="kpi-sub" id="kpiFaces">6 faces • Cubo</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Total de Lançamentos</span>
+          <span class="kpi-value" id="kpiTotal">0</span>
+          <span class="kpi-sub" id="kpiTotalSub">Amostra acumulada</span>
+        </div>
+        <div class="kpi-card highlight">
+          <span class="kpi-label">Último Resultado</span>
+          <span class="kpi-value" id="kpiLast">—</span>
+          <span class="kpi-sub" id="kpiLastSub">Aguardando lançamento</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Prob. Teórica</span>
+          <span class="kpi-value" id="kpiTheoPct">16,67%</span>
+          <span class="kpi-sub" id="kpiTheoFrac">P(face) = 1/6</span>
+        </div>
+      </div>
+
+      <!-- 2. Gráfico comparativo (Chart.js) -->
+      <article class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-accent" aria-hidden="true"></span>
+            <span>Distribuição das Frequências</span>
+          </div>
+          <div class="chart-legend-custom">
+            <span class="leg-item"><span class="leg-swatch-bar"></span>Experimental (%)</span>
+            <span class="leg-item"><span class="leg-swatch-line"></span>Teórica (%)</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-box">
+            <canvas id="freqChart" aria-label="Gráfico comparativo de frequência experimental e probabilidade teórica"></canvas>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3. Comparação Educativa: Teoria × Prática -->
+      <article class="card theory-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-accent" aria-hidden="true"></span>
+            <span>Comparação: Teoria × Prática</span>
+          </div>
+          <span class="card-subtitle">Lei dos Grandes Números</span>
+        </div>
+        <div class="card-body">
+          <div class="theory-metrics">
+            <div class="tm-box">
+              <span>Teórica por face</span>
+              <strong id="tmTheo">16,67%</strong>
+            </div>
+            <div class="tm-box">
+              <span>Desvio médio (MAE)</span>
+              <strong id="tmMae">—</strong>
+            </div>
+            <div class="tm-box">
+              <span>Maior desvio</span>
+              <strong id="tmMaxDev">—</strong>
+            </div>
+          </div>
+
+          <p class="theory-law">
+            Quanto maior o número de lançamentos, maior tende a ser a aproximação entre a frequência relativa observada e a probabilidade teórica.
+          </p>
+          <p class="theory-dynamic" id="theoryDynamicText">
+            Dado selecionado: D6 (probabilidade teórica de 16,67% por face). Realize lançamentos manuais ou utilize a Simulação em Massa para observar como as frequências experimentais evoluem com o tamanho da amostra.
+          </p>
+        </div>
+      </article>
+
+      <!-- 4. Tabela detalhada de frequências -->
+      <article class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-title-accent" aria-hidden="true"></span>
+            <span>Tabela de Frequências por Face</span>
+          </div>
+          <span class="card-subtitle" id="tableSubtitle">6 faces equiprováveis</span>
+        </div>
+        <div class="card-body" style="padding-top:10px;">
+          <div class="table-scroll">
+            <table class="freq-table">
+              <thead>
+                <tr>
+                  <th>Face</th>
+                  <th>Freq. Abs.</th>
+                  <th>Freq. Rel.</th>
+                  <th>Teórica</th>
+                  <th>Dif. (pp)</th>
+                </tr>
+              </thead>
+              <tbody id="freqTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+    </aside>
+  </main>
+
+  <script type="module">
+    /**
+     * =========================================================================
+     * LABORATÓRIO DOS DADOS | SIMULAB
+     * Arquitetura modular em arquivo único:
+     *   1. Carregamento seguro de Three.js, OrbitControls, Cannon-es e Chart.js
+     *   2. Geradores matemáticos exatos para os 6 poliedros (D4, D6, D8, D10, D12, D20)
+     *   3. Renderização 3D real com decais de numeração por face + arestas
+     *   4. Motor físico Cannon-es com arena contida e detecção real da face superior
+     *   5. Estatísticas exatas, Chart.js, Lei dos Grandes Números e Simulação em Massa
+     * =========================================================================
+     */
+
+    const cdnErrorBanner = document.getElementById('cdnErrorBanner');
+    const cdnErrorText = document.getElementById('cdnErrorText');
+
+    function showCdnError(message) {
+      cdnErrorText.textContent = message;
+      cdnErrorBanner.classList.add('visible');
+    }
+
+    // -------------------------------------------------------------------------
+    // 1. CARREGAMENTO DINÂMICO COM TRATAMENTO DE ERRO
+    // -------------------------------------------------------------------------
+    let THREE, OrbitControls, CANNON;
+    try {
+      const [threeMod, orbitMod, cannonMod] = await Promise.all([
+        import('three'),
+        import('three/addons/controls/OrbitControls.js'),
+        import('cannon-es')
+      ]);
+      THREE = threeMod;
+      OrbitControls = orbitMod.OrbitControls;
+      CANNON = cannonMod;
+    } catch (err) {
+      console.error('Erro ao carregar bibliotecas 3D/Física:', err);
+      showCdnError(
+        'Não foi possível carregar as bibliotecas 3D (Three.js / Cannon-es) via CDN. Verifique sua conexão com a internet e recarregue a página.'
+      );
+      throw err;
+    }
+
+    // Aguarda Chart.js caso ainda esteja terminando de carregar (script defer)
+    if (typeof window.Chart === 'undefined') {
+      await new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
+    }
+    const hasChartJs = typeof window.Chart !== 'undefined';
+    if (!hasChartJs) {
+      showCdnError(
+        'A biblioteca de gráficos (Chart.js) não pôde ser carregada via CDN. A simulação 3D e a tabela matemática continuam funcionando normalmente.'
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. CONFIGURAÇÃO E METADADOS DOS 6 DADOS POLIÉDRICOS
+    // -------------------------------------------------------------------------
+    const DICE_SPECS = {
+      4:  { sides: 4,  code: 'D4',  shape: 'Tetraedro',    fullShape: 'Tetraedro regular',       mode: 'vertex-top' },
+      6:  { sides: 6,  code: 'D6',  shape: 'Cubo',         fullShape: 'Cubo regular',            mode: 'face-top' },
+      8:  { sides: 8,  code: 'D8',  shape: 'Octaedro',     fullShape: 'Octaedro regular',        mode: 'face-top' },
+      10: { sides: 10, code: 'D10', shape: 'Trapezoedro',  fullShape: 'Trapezoedro pentagonal',  mode: 'face-top' },
+      12: { sides: 12, code: 'D12', shape: 'Dodecaedro',   fullShape: 'Dodecaedro regular',      mode: 'face-top' },
+      20: { sides: 20, code: 'D20', shape: 'Icosaedro',    fullShape: 'Icosaedro regular',       mode: 'face-top' }
+    };
+
+    // Formatadores pt-BR
+    const fmtInt = (n) => new Intl.NumberFormat('pt-BR').format(n);
+    const fmtPct = (v) => v.toFixed(2).replace('.', ',') + '%';
+    const fmtDec = (v) => v.toFixed(2).replace('.', ',');
+
+    // -------------------------------------------------------------------------
+    // 3. CONSTRUÇÃO MATEMÁTICA EXATA DOS 6 POLIEDROS
+    //    Garante coplanaridade, orientação CCW voltada para fora e
+    //    total equivalência entre Three.js e CANNON.ConvexPolyhedron.
+    // -------------------------------------------------------------------------
+
+    /** Calcula o centroide de uma face poligonal */
+    function computeFaceCentroid(verts, faceIndices) {
+      const c = new THREE.Vector3();
+      for (const idx of faceIndices) c.add(verts[idx]);
+      return c.divideScalar(faceIndices.length);
+    }
+
+    /** Calcula a normal de Newell de um polígono (robusto para 3, 4 ou 5 vértices) */
+    function computeNewellNormal(verts, faceIndices) {
+      const n = new THREE.Vector3();
+      const len = faceIndices.length;
+      for (let i = 0; i < len; i++) {
+        const curr = verts[faceIndices[i]];
+        const next = verts[faceIndices[(i + 1) % len]];
+        n.x += (curr.y - next.y) * (curr.z + next.z);
+        n.y += (curr.z - next.z) * (curr.x + next.x);
+        n.z += (curr.x - next.x) * (curr.y + next.y);
+      }
+      return n.normalize();
+    }
+
+    /**
+     * Garante orientação CCW voltada para fora para qualquer poliedro convexo
+     * centrado na origem: se normal · centroide < 0, inverte a ordem dos vértices.
+     */
+    function normalizeFaceOutward(verts, faceIndices) {
+      const indices = [...faceIndices];
+      const centroid = computeFaceCentroid(verts, indices);
+      let normal = computeNewellNormal(verts, indices);
+      if (normal.dot(centroid) < 0) {
+        indices.reverse();
+        normal = computeNewellNormal(verts, indices);
+      }
+      return { indices, centroid, normal };
+    }
+
+    /**
+     * Ordena índices de vértices coplanares em sentido anti-horário (CCW)
+     * quando observados pelo lado externo (ao longo de `outwardNormal`).
+     */
+    function sortPolygonCCW(verts, indices, outwardNormal) {
+      const centroid = computeFaceCentroid(verts, indices);
+      const ref = new THREE.Vector3().subVectors(verts[indices[0]], centroid).normalize();
+      const bitangent = new THREE.Vector3().crossVectors(outwardNormal, ref).normalize();
+
+      return [...indices].sort((a, b) => {
+        const da = new THREE.Vector3().subVectors(verts[a], centroid);
+        const db = new THREE.Vector3().subVectors(verts[b], centroid);
+        const angA = Math.atan2(da.dot(bitangent), da.dot(ref));
+        const angB = Math.atan2(db.dot(bitangent), db.dot(ref));
+        return angA - angB;
+      });
+    }
+
+    /**
+     * Gera direções pareadas em opostos (+d, -d) para atribuir numeração balanceada
+     * onde faces opostas somam (N + 1).
+     */
+    function pairOppositeDirections(directions) {
+      const used = new Array(directions.length).fill(false);
+      const pairs = [];
+      for (let i = 0; i < directions.length; i++) {
+        if (used[i]) continue;
+        used[i] = true;
+        let oppIdx = -1;
+        let minDot = Infinity;
+        for (let j = i + 1; j < directions.length; j++) {
+          if (used[j]) continue;
+          const d = directions[i].dot(directions[j]);
+          if (d < minDot) {
+            minDot = d;
+            oppIdx = j;
+          }
         }
-
-        function generateDistribution(N, D) {
-            const min = N;
-            const max = N * D;
-            const ways = {};
-            
-            for (let s = min; s <= max; s++) {
-                ways[s] = 0;
-            }
-            
-            function findWays(k, currentSum) {
-                if (k === 0) {
-                    if (currentSum >= min && currentSum <= max) {
-                        ways[currentSum]++;
-                    }
-                    return;
-                }
-                for (let roll = 1; roll <= D; roll++) {
-                    findWays(k - 1, currentSum + roll);
-                }
-            }
-
-            findWays(N, 0);
-
-            const totalOutcomes = Math.pow(D, N);
-            const probs = {};
-            for (let s = min; s <= max; s++) {
-                probs[s] = ways[s] / totalOutcomes;
-            }
-            
-            return { ways, probs, totalOutcomes };
+        if (oppIdx !== -1) {
+          used[oppIdx] = true;
+          pairs.push([i, oppIdx]);
         }
-        
-        // -----------------------------------
-        // 3. FUNÇÕES DE ROLAGEM E SIMULAÇÃO
-        // -----------------------------------
+      }
+      return pairs;
+    }
 
-        function rollDice(sides) {
-            return Math.floor(Math.random() * sides) + 1;
-        }
+    /** Constrói os dados geométricos exatos para D4, D6, D8, D10, D12 ou D20 */
+    function buildPolyhedronData(sides) {
+      const PHI = (1 + Math.sqrt(5)) / 2;
+      const INV_PHI = 1 / PHI;
 
-        function updateDiceVisuals(results) {
-            const diceElements = document.querySelectorAll('.dice');
-            let sum = 0;
-            
-            diceElements.forEach((el, index) => {
-                const value = results[index];
-                if (value !== undefined) {
-                    el.textContent = value;
-                    sum += value;
-                }
-            });
-            return sum;
-        }
-
-        async function performRoll(count = 1) {
-            if (isRolling) return;
-            isRolling = true;
-            
-            const diceElements = document.querySelectorAll('.dice');
-            
-            if (count === 1 || animationTime > 0) {
-                diceElements.forEach(el => el.classList.add('rolling'));
-            }
-            
-            for (let i = 0; i < count; i++) {
-                const results = [];
-                let sum = 0;
-                
-                for (let j = 0; j < numDice; j++) {
-                    const result = rollDice(diceSides);
-                    results.push(result);
-                    sum += result;
-                }
-
-                if (count === 1 || animationTime > 0) {
-                    updateDiceVisuals(results);
-                    currentSumEl.textContent = sum;
-
-                    await new Promise(resolve => setTimeout(resolve, animationTime));
-                }
-                
-                totalRolls++;
-                rollCounts[sum]++;
-            }
-            
-            diceElements.forEach(el => el.classList.remove('rolling'));
-            
-            if (count > 1 && animationTime === 0) {
-                 const results = [];
-                 let sum = 0;
-                 for (let j = 0; j < numDice; j++) {
-                    const result = rollDice(diceSides);
-                    results.push(result);
-                    sum += result;
-                 }
-                 updateDiceVisuals(results);
-                 currentSumEl.textContent = sum;
-            }
-
-            isRolling = false;
-            updateDisplay();
-        }
-
-        // -----------------------------------
-        // 4. FUNÇÕES DE DISPLAY E GRÁFICO
-        // -----------------------------------
-        
-        // NOVO: Função para interpretar o resultado
-        function updateInterpretation() {
-            const P = theoreticalProbabilities[targetSum];
-            if (P === undefined || P === 0) {
-                interpretationTextEl.innerHTML = `<span style="color: #e74c3c;">A soma **${targetSum}** é **impossível** de ser alcançada com a configuração atual de **${numDice}D${diceSides}**.</span>`;
-                return;
-            }
-
-            // 1. Cálculo da Proporção "1 em X"
-            let fractionDenominator = 1 / P; 
-            
-            let simpleFractionText;
-            if (fractionDenominator < 1000) {
-                 // Arredonda para 1 casa decimal
-                 simpleFractionText = `A chance teórica é de **1 em ${fractionDenominator.toFixed(1).replace('.0', '')}**.`;
-            } else {
-                 // Mantém sem arredondamento para números grandes
-                 simpleFractionText = `A chance teórica é de **1 em ${fractionDenominator.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}**.`;
-            }
-            
-            // 2. Cálculo da Expectativa (usando 100 lançamentos como base)
-            const baseRolls = 100;
-            const expectedCount = P * baseRolls;
-            let expectedCountText;
-            
-            if (expectedCount >= 1) {
-                // Se a expectativa for maior ou igual a 1, usa 100 lançamentos
-                expectedCountText = `Em **${baseRolls} lançamentos**, você esperaria ver a soma ${targetSum} ocorrer **${expectedCount.toFixed(1).replace('.0', '')} vezes**.`;
-            } else {
-                // Se for menor que 1, usa um número base maior
-                const newBaseRolls = Math.ceil(1 / P);
-                expectedCountText = `Você esperaria ver a soma ${targetSum} **pelo menos uma vez** a cada **${newBaseRolls.toLocaleString('pt-BR')} lançamentos**.`;
-            }
-
-            interpretationTextEl.innerHTML = `${simpleFractionText}<br>${expectedCountText}`;
-        }
-
-
-        function calculateExperimentalMean() {
-            let sumOfRolls = 0;
-            for (let s = minSum; s <= maxSum; s++) {
-                sumOfRolls += s * rollCounts[s];
-            }
-            return totalRolls === 0 ? 0 : sumOfRolls / totalRolls;
-        }
-        
-        function updateDisplay() {
-            totalRollsEl.textContent = totalRolls.toLocaleString('pt-BR');
-            experimentalMeanEl.textContent = totalRolls > 0 ? calculateExperimentalMean().toFixed(3) : 'N/A';
-            
-            let targetCount = rollCounts[targetSum] || 0;
-            probTargetEl.textContent = totalRolls > 0 ? (targetCount / totalRolls * 100).toFixed(4) + '%' : '0.0000%';
-
-            updateInterpretation(); // Chama a nova função
-            updateChart();
-        }
-        
-        function updateChart() {
-            chartBarsEl.innerHTML = '';
-            
-            let maxCount = 0;
-            for (let s = minSum; s <= maxSum; s++) {
-                if (rollCounts[s] > maxCount) {
-                    maxCount = rollCounts[s];
-                }
-            }
-            
-            const maxY = maxCount * 1.05; 
-            
-            const yAxis = document.createElement('div');
-            yAxis.classList.add('y-axis');
-            
-            if (totalRolls > 0) {
-                const maxFreq = (maxCount / totalRolls) * 100;
-                yAxis.innerHTML = `
-                    <div style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;">
-                        <span>${maxFreq.toFixed(1)}%</span>
-                        <span>${(maxFreq / 2).toFixed(1)}%</span>
-                        <span>0.0%</span>
-                    </div>
-                `;
-            } else {
-                 yAxis.innerHTML = `
-                    <div style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;">
-                        <span>100.0%</span>
-                        <span>50.0%</span>
-                        <span>0.0%</span>
-                    </div>
-                `;
-            }
-
-            chartBarsEl.appendChild(yAxis);
-            
-            for (let sum = minSum; sum <= maxSum; sum++) {
-                const count = rollCounts[sum] || 0;
-                
-                let height = totalRolls === 0 ? 0 : (count / maxY) * 100;
-                height = Math.min(height, 100); 
-
-                const percentage = totalRolls === 0 ? 0 : (count / totalRolls) * 100;
-                
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('bar-wrapper');
-                
-                if (theoreticalProbabilities[sum] !== undefined) {
-                    const theoreticalHeight = theoreticalProbabilities[sum] * totalRolls;
-                    const theoreticalPercentHeight = (theoreticalHeight / maxY) * 100;
-                    
-                    const theoreticalEl = document.createElement('div');
-                    theoreticalEl.classList.add('theoretical-line');
-                    theoreticalEl.style.height = `${theoreticalPercentHeight}%`;
-                    
-                    if (sum === targetSum) {
-                       theoreticalEl.innerHTML = `<span style="position: absolute; right: 0; top: -15px; background: white; padding: 0 5px; border: 1px dashed #e74c3c; border-radius: 3px; z-index: 20;">Alvo Teórico</span>`;
-                    }
-                    wrapper.appendChild(theoreticalEl);
-                }
-
-                const bar = document.createElement('div');
-                bar.classList.add('bar');
-                bar.style.height = `${height}%`;
-                
-                const valueLabel = document.createElement('span');
-                valueLabel.classList.add('bar-value');
-                valueLabel.textContent = `${percentage.toFixed(1)}% (${count.toLocaleString('pt-BR')})`;
-                
-                bar.appendChild(valueLabel);
-                wrapper.appendChild(bar);
-                
-                chartBarsEl.appendChild(wrapper);
-            }
-        }
-        
-        function updateXAxisLabels() {
-            xAxisLabelsEl.innerHTML = '';
-            
-            for (let sum = minSum; sum <= maxSum; sum++) {
-                const label = document.createElement('span');
-                label.style.flex = 1;
-                label.style.textAlign = 'center';
-                label.style.fontSize = '12px';
-                label.textContent = sum;
-                xAxisLabelsEl.appendChild(label);
-            }
-        }
-        
-        function renderDiceElements() {
-            diceContainerEl.innerHTML = '';
-            const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f', '#9b59b6'];
-
-            for (let i = 0; i < numDice; i++) {
-                const diceEl = document.createElement('div');
-                diceEl.classList.add('dice');
-                diceEl.style.backgroundColor = colors[i % colors.length];
-                diceEl.textContent = '1';
-                diceContainerEl.appendChild(diceEl);
-            }
-        }
-        
-        // -----------------------------------
-        // 5. FUNÇÕES DE CONTROLE E INICIALIZAÇÃO
-        // -----------------------------------
-        
-        function updateConfiguration() {
-            numDice = parseInt(numDiceInput.value) || 1;
-            diceSides = parseInt(diceSidesInput.value) || 6;
-            
-            if (numDice > 5) numDice = 5;
-            if (numDice < 1) numDice = 1;
-            numDiceInput.value = numDice;
-
-            minSum = numDice;
-            maxSum = numDice * diceSides;
-            
-            const distribution = generateDistribution(numDice, diceSides);
-            theoreticalProbabilities = distribution.probs;
-            theoreticalMean = calculateTheoreticalMean(numDice, diceSides);
-            
-            totalRolls = 0;
-            rollCounts = {};
-            for (let s = minSum; s <= maxSum; s++) {
-                rollCounts[s] = 0;
-            }
-            
-            targetSumInput.min = minSum;
-            targetSumInput.max = maxSum;
-            targetSum = parseInt(targetSumInput.value);
-            if (targetSum < minSum || targetSum > maxSum || isNaN(targetSum)) {
-                targetSum = minSum; 
-                targetSumInput.value = targetSum;
-            }
-            
-            currentConfigEl.textContent = `${numDice}D${diceSides}`;
-            visualConfigEl.textContent = `${numDice}D${diceSides}`;
-            theoreticalMeanEl.textContent = theoreticalMean.toFixed(3);
-            targetSumDisplayEl.textContent = targetSum;
-            targetSumDisplayTeoEl.textContent = targetSum;
-
-            if (theoreticalProbabilities[targetSum] !== undefined) {
-                probTargetTheoreticalEl.textContent = (theoreticalProbabilities[targetSum] * 100).toFixed(4) + '%';
-            } else {
-                probTargetTheoreticalEl.textContent = '0.0000%';
-            }
-            
-            renderDiceElements();
-            updateXAxisLabels();
-            updateDisplay(); 
-        }
-
-        function initControls() {
-            updateConfiguration(); 
-            
-            rollCountDisplay.textContent = parseInt(rollCountInput.value).toLocaleString('pt-BR');
-            speedValueEl.textContent = `${animationTime} ms`;
-        }
-
-        // -----------------------------------
-        // 6. EVENT LISTENERS
-        // -----------------------------------
-        
-        rollOneButton.addEventListener('click', () => performRoll(1));
-        
-        rollManyButton.addEventListener('click', () => {
-            const count = parseInt(rollCountInput.value) || 10000;
-            performRoll(count);
+      if (sides === 4) {
+        // Tetraedro regular centrado na origem
+        const r = 1.38;
+        const scale = r / Math.sqrt(3);
+        const vertices = [
+          new THREE.Vector3( 1,  1,  1).multiplyScalar(scale),
+          new THREE.Vector3( 1, -1, -1).multiplyScalar(scale),
+          new THREE.Vector3(-1,  1, -1).multiplyScalar(scale),
+          new THREE.Vector3(-1, -1,  1).multiplyScalar(scale)
+        ];
+        const vertexValues = [1, 2, 3, 4];
+        const rawFaces = [
+          [0, 2, 1],
+          [0, 1, 3],
+          [0, 3, 2],
+          [1, 2, 3]
+        ];
+        const faces = rawFaces.map((f) => {
+          const normF = normalizeFaceOutward(vertices, f);
+          return { ...normF, value: null };
         });
-        
-        updateConfigButton.addEventListener('click', updateConfiguration);
-        
-        resetButton.addEventListener('click', () => {
-            totalRolls = 0;
-            rollCounts = {};
-            for (let s = minSum; s <= maxSum; s++) {
-                rollCounts[s] = 0;
+        return {
+          sides: 4,
+          mode: 'vertex-top',
+          vertices,
+          vertexValues,
+          faces,
+          decalSize: 0.56
+        };
+      }
+
+      if (sides === 6) {
+        // Cubo regular (opostas somam 7)
+        const s = 0.86;
+        const vertices = [
+          new THREE.Vector3(-s, -s, -s), // 0
+          new THREE.Vector3( s, -s, -s), // 1
+          new THREE.Vector3( s,  s, -s), // 2
+          new THREE.Vector3(-s,  s, -s), // 3
+          new THREE.Vector3(-s, -s,  s), // 4
+          new THREE.Vector3( s, -s,  s), // 5
+          new THREE.Vector3( s,  s,  s), // 6
+          new THREE.Vector3(-s,  s,  s)  // 7
+        ];
+        const rawFaces = [
+          { idx: [3, 7, 6, 2], val: 1 }, // +Y
+          { idx: [0, 1, 5, 4], val: 6 }, // -Y
+          { idx: [4, 5, 6, 7], val: 2 }, // +Z
+          { idx: [0, 3, 2, 1], val: 5 }, // -Z
+          { idx: [1, 2, 6, 5], val: 3 }, // +X
+          { idx: [0, 4, 7, 3], val: 4 }  // -X
+        ];
+        const faces = rawFaces.map((rf) => ({
+          ...normalizeFaceOutward(vertices, rf.idx),
+          value: rf.val
+        }));
+        return {
+          sides: 6,
+          mode: 'face-top',
+          vertices,
+          faces,
+          decalSize: 1.05
+        };
+      }
+
+      if (sides === 8) {
+        // Octaedro regular (opostas somam 9)
+        const r = 1.28;
+        const vertices = [
+          new THREE.Vector3( r,  0,  0), // 0 (+X)
+          new THREE.Vector3(-r,  0,  0), // 1 (-X)
+          new THREE.Vector3( 0,  r,  0), // 2 (+Y)
+          new THREE.Vector3( 0, -r,  0), // 3 (-Y)
+          new THREE.Vector3( 0,  0,  r), // 4 (+Z)
+          new THREE.Vector3( 0,  0, -r)  // 5 (-Z)
+        ];
+        const rawFaces = [
+          { idx: [2, 4, 0], val: 1, upVert: 2 },
+          { idx: [3, 1, 5], val: 8, upVert: 3 },
+          { idx: [2, 0, 5], val: 2, upVert: 2 },
+          { idx: [3, 4, 1], val: 7, upVert: 3 },
+          { idx: [2, 5, 1], val: 3, upVert: 2 },
+          { idx: [3, 0, 4], val: 6, upVert: 3 },
+          { idx: [2, 1, 4], val: 4, upVert: 2 },
+          { idx: [3, 5, 0], val: 5, upVert: 3 }
+        ];
+        const faces = rawFaces.map((rf) => ({
+          ...normalizeFaceOutward(vertices, rf.idx),
+          value: rf.val,
+          upVertexIdx: rf.upVert
+        }));
+        return {
+          sides: 8,
+          mode: 'face-top',
+          vertices,
+          faces,
+          decalSize: 0.72
+        };
+      }
+
+      if (sides === 10) {
+        // Trapezoedro pentagonal REAL com coplanaridade exata:
+        // d = h * tan²(π/10) garante que os 4 vértices de cada pipa são estritamente coplanares.
+        const h = 1.16;
+        const R = 1.16;
+        const d = h * Math.pow(Math.tan(Math.PI / 10), 2);
+
+        const vertices = [
+          new THREE.Vector3(0,  h, 0), // 0: ápice superior
+          new THREE.Vector3(0, -h, 0)  // 1: ápice inferior
+        ];
+
+        for (let k = 0; k < 10; k++) {
+          const angle = k * (Math.PI / 5); // 36°
+          const y = (k % 2 === 0 ? 1 : -1) * d;
+          vertices.push(new THREE.Vector3(R * Math.cos(angle), y, R * Math.sin(angle)));
+        }
+
+        // 5 pipas superiores (ímpares 1,3,5,7,9) e 5 inferiores (pares 2,4,6,8,10)
+        const topVals = [1, 3, 5, 7, 9];
+        const botVals = [10, 8, 6, 4, 2]; // garante distribuição balanceada
+        const faces = [];
+
+        for (let m = 0; m < 5; m++) {
+          const a = 2 + ((2 * m) % 10);
+          const b = 2 + ((2 * m + 1) % 10);
+          const c = 2 + ((2 * m + 2) % 10);
+          const fTop = normalizeFaceOutward(vertices, [0, a, b, c]);
+          // Centro visual deslocado ligeiramente da ponta aguda para a área mais larga da pipa
+          const visualCenter = new THREE.Vector3()
+            .addScaledVector(vertices[0], 0.20)
+            .addScaledVector(vertices[a], 0.27)
+            .addScaledVector(vertices[b], 0.26)
+            .addScaledVector(vertices[c], 0.27);
+          faces.push({
+            ...fTop,
+            value: topVals[m],
+            visualCenter,
+            upVertexIdx: 0
+          });
+        }
+
+        for (let m = 0; m < 5; m++) {
+          const a = 2 + ((2 * m + 1) % 10);
+          const b = 2 + ((2 * m + 2) % 10);
+          const c = 2 + ((2 * m + 3) % 10);
+          const fBot = normalizeFaceOutward(vertices, [1, a, b, c]);
+          const visualCenter = new THREE.Vector3()
+            .addScaledVector(vertices[1], 0.20)
+            .addScaledVector(vertices[a], 0.27)
+            .addScaledVector(vertices[b], 0.26)
+            .addScaledVector(vertices[c], 0.27);
+          faces.push({
+            ...fBot,
+            value: botVals[m],
+            visualCenter,
+            upVertexIdx: 1
+          });
+        }
+
+        return {
+          sides: 10,
+          mode: 'face-top',
+          vertices,
+          faces,
+          decalSize: 0.62
+        };
+      }
+
+      if (sides === 12) {
+        // Dodecaedro regular: 20 vértices exatos + 12 faces pentagonais obtidas pela dualidade com o icosaedro
+        const r = 1.24;
+        const scale = r / Math.sqrt(3);
+        const vertices = [];
+
+        for (const x of [-1, 1]) {
+          for (const y of [-1, 1]) {
+            for (const z of [-1, 1]) {
+              vertices.push(new THREE.Vector3(x, y, z).multiplyScalar(scale));
             }
-            document.querySelectorAll('.dice').forEach(el => el.textContent = '1');
-            currentSumEl.textContent = '-';
-            updateDisplay();
+          }
+        }
+        for (const y of [-INV_PHI, INV_PHI]) {
+          for (const z of [-PHI, PHI]) {
+            vertices.push(new THREE.Vector3(0, y, z).multiplyScalar(scale));
+          }
+        }
+        for (const x of [-INV_PHI, INV_PHI]) {
+          for (const y of [-PHI, PHI]) {
+            vertices.push(new THREE.Vector3(x, y, 0).multiplyScalar(scale));
+          }
+        }
+        for (const x of [-PHI, PHI]) {
+          for (const z of [-INV_PHI, INV_PHI]) {
+            vertices.push(new THREE.Vector3(x, 0, z).multiplyScalar(scale));
+          }
+        }
+
+        // 12 normais das faces (vértices normalizados do icosaedro dual)
+        const faceDirs = [];
+        for (const y of [-1, 1]) for (const z of [-PHI, PHI]) faceDirs.push(new THREE.Vector3(0, y, z).normalize());
+        for (const x of [-1, 1]) for (const y of [-PHI, PHI]) faceDirs.push(new THREE.Vector3(x, y, 0).normalize());
+        for (const x of [-PHI, PHI]) for (const z of [-1, 1]) faceDirs.push(new THREE.Vector3(x, 0, z).normalize());
+
+        const pairs = pairOppositeDirections(faceDirs);
+        const faceValues = new Array(12);
+        pairs.forEach(([i, j], k) => {
+          faceValues[i] = k + 1;
+          faceValues[j] = 12 - k;
         });
-        
-        rollCountInput.addEventListener('input', (e) => {
-            let val = parseInt(e.target.value);
-            if (val < 1) val = 1;
-            if (val > 20000000) val = 20000000;
-            e.target.value = val;
-            rollCountDisplay.textContent = val.toLocaleString('pt-BR');
+
+        const faces = faceDirs.map((dir, fIdx) => {
+          const scored = vertices.map((v, idx) => ({ idx, dot: v.dot(dir) }));
+          scored.sort((a, b) => b.dot - a.dot);
+          const top5 = scored.slice(0, 5).map((s) => s.idx);
+          const ordered = sortPolygonCCW(vertices, top5, dir);
+          return {
+            ...normalizeFaceOutward(vertices, ordered),
+            value: faceValues[fIdx]
+          };
         });
-        
-        animationSpeedInput.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            animationTime = 100 - val;
-            if (animationTime === 100) {
-                 animationTime = 0; 
-                 speedValueEl.textContent = 'Instantâneo';
+
+        return {
+          sides: 12,
+          mode: 'face-top',
+          vertices,
+          faces,
+          decalSize: 0.64
+        };
+      }
+
+      if (sides === 20) {
+        // Icosaedro regular: 12 vértices exatos + 20 faces triangulares pela dualidade com o dodecaedro
+        const r = 1.26;
+        const scale = r / Math.sqrt(1 + PHI * PHI);
+        const vertices = [];
+        for (const y of [-1, 1]) for (const z of [-PHI, PHI]) vertices.push(new THREE.Vector3(0, y, z).multiplyScalar(scale));
+        for (const x of [-1, 1]) for (const y of [-PHI, PHI]) vertices.push(new THREE.Vector3(x, y, 0).multiplyScalar(scale));
+        for (const x of [-PHI, PHI]) for (const z of [-1, 1]) vertices.push(new THREE.Vector3(x, 0, z).multiplyScalar(scale));
+
+        // 20 normais das faces (vértices normalizados do dodecaedro dual)
+        const faceDirs = [];
+        for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) faceDirs.push(new THREE.Vector3(x, y, z).normalize());
+        for (const y of [-INV_PHI, INV_PHI]) for (const z of [-PHI, PHI]) faceDirs.push(new THREE.Vector3(0, y, z).normalize());
+        for (const x of [-INV_PHI, INV_PHI]) for (const y of [-PHI, PHI]) faceDirs.push(new THREE.Vector3(x, y, 0).normalize());
+        for (const x of [-PHI, PHI]) for (const z of [-INV_PHI, INV_PHI]) faceDirs.push(new THREE.Vector3(x, 0, z).normalize());
+
+        const pairs = pairOppositeDirections(faceDirs);
+        const faceValues = new Array(20);
+        pairs.forEach(([i, j], k) => {
+          faceValues[i] = k + 1;
+          faceValues[j] = 20 - k;
+        });
+
+        const faces = faceDirs.map((dir, fIdx) => {
+          const scored = vertices.map((v, idx) => ({ idx, dot: v.dot(dir) }));
+          scored.sort((a, b) => b.dot - a.dot);
+          const top3 = scored.slice(0, 3).map((s) => s.idx);
+          const ordered = sortPolygonCCW(vertices, top3, dir);
+          return {
+            ...normalizeFaceOutward(vertices, ordered),
+            value: faceValues[fIdx]
+          };
+        });
+
+        return {
+          sides: 20,
+          mode: 'face-top',
+          vertices,
+          faces,
+          decalSize: 0.50
+        };
+      }
+
+      throw new Error(`Modelo de dado não suportado: D${sides}`);
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. TEXTURAS DE ALTA RESOLUÇÃO PARA NUMERAÇÃO DAS FACES E PLATAFORMA
+    // -------------------------------------------------------------------------
+    const numberTextureCache = new Map();
+
+    /** Gera textura nítida transparente com o número e sublinhado no 6 e 9 quando necessário */
+    function getNumberTexture(num, needUnderline, maxAnisotropy) {
+      const key = `${num}_${needUnderline ? 'u' : 'n'}`;
+      if (numberTextureCache.has(key)) return numberTextureCache.get(key);
+
+      const size = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, size, size);
+      const label = String(num);
+      const fontSize = label.length >= 2 ? 132 : 154;
+
+      ctx.font = `800 ${fontSize}px "Nunito Sans", "Segoe UI", Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Sombra muito sutil para destaque de gravação na face do dado
+      ctx.fillStyle = 'rgba(10, 18, 34, 0.35)';
+      ctx.fillText(label, size / 2, size / 2 + 5);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, size / 2, size / 2);
+
+      // Sublinhado para distinguir 6 e 9 em dados com 10, 12 ou 20 faces
+      if (needUnderline && (num === 6 || num === 9)) {
+        ctx.fillStyle = '#ff8b42';
+        const lineW = 74;
+        const lineH = 11;
+        ctx.beginPath();
+        ctx.roundRect((size - lineW) / 2, size / 2 + 76, lineW, lineH, 5);
+        ctx.fill();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = maxAnisotropy;
+      texture.needsUpdate = true;
+
+      numberTextureCache.set(key, texture);
+      return texture;
+    }
+
+    /** Gera textura de grade científica discreta para a superfície da plataforma */
+    function createPlatformTexture(maxAnisotropy) {
+      const size = 1024;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Base clara de laboratório
+      const grad = ctx.createRadialGradient(size / 2, size / 2, 40, size / 2, size / 2, size / 2);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.82, '#f5f8fc');
+      grad.addColorStop(1, '#eaf0f7');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+
+      // Grade milimetrada sutil
+      ctx.strokeStyle = 'rgba(20, 35, 61, 0.06)';
+      ctx.lineWidth = 1.5;
+      const step = 64;
+      for (let i = 0; i <= size; i += step) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, size);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(size, i);
+        ctx.stroke();
+      }
+
+      // Círculos concêntricos discretos de precisão
+      ctx.strokeStyle = 'rgba(20, 35, 61, 0.08)';
+      ctx.lineWidth = 2;
+      [160, 310, 445].forEach((rad) => {
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, rad, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Anel laranja fino na borda interna
+      ctx.strokeStyle = 'rgba(255, 105, 11, 0.35)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, 470, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = maxAnisotropy;
+      return tex;
+    }
+
+    /** Constrói um plano decal alinhado com precisão a um ponto, normal externa e vetor `up` */
+    function createOrientedDecal(position, normal, upDir, size, texture) {
+      const zAxis = normal.clone().normalize();
+      const yAxis = upDir.clone().addScaledVector(zAxis, -upDir.dot(zAxis)).normalize();
+      const xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis).normalize();
+
+      const basis = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis);
+      const geom = new THREE.PlaneGeometry(size, size);
+      const mat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2
+      });
+
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.copy(position).addScaledVector(zAxis, 0.008);
+      mesh.quaternion.setFromRotationMatrix(basis);
+      return mesh;
+    }
+
+    /** Constrói o grupo Three.js (malha poliédrica real + arestas + números) a partir de polyData */
+    function createDieVisualGroup(polyData, maxAnisotropy) {
+      const group = new THREE.Group();
+
+      // Triangulação em leque das faces poligonais reais com normais planas exatas
+      const positions = [];
+      for (const face of polyData.faces) {
+        const v0 = polyData.vertices[face.indices[0]];
+        for (let i = 1; i < face.indices.length - 1; i++) {
+          const v1 = polyData.vertices[face.indices[i]];
+          const v2 = polyData.vertices[face.indices[i + 1]];
+          positions.push(v0.x, v0.y, v0.z, v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.computeVertexNormals();
+
+      // Material uniforme azul-marinho SimuLab com acabamento acetinado científico
+      const bodyMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1b3054,
+        roughness: 0.36,
+        metalness: 0.08,
+        flatShading: true
+      });
+
+      const bodyMesh = new THREE.Mesh(geometry, bodyMaterial);
+      bodyMesh.castShadow = true;
+      bodyMesh.receiveShadow = true;
+      group.add(bodyMesh);
+
+      // Arestas destacadas suavemente para evidenciar a geometria poliédrica real
+      const edgesGeom = new THREE.EdgesGeometry(geometry, 12);
+      const edgesMat = new THREE.LineBasicMaterial({
+        color: 0x5c7aa8,
+        transparent: true,
+        opacity: 0.65
+      });
+      const edgesLine = new THREE.LineSegments(edgesGeom, edgesMat);
+      edgesLine.scale.setScalar(1.002);
+      group.add(edgesLine);
+
+      // Posicionamento individual dos números nas faces
+      const needUnderline = polyData.sides >= 10;
+
+      if (polyData.mode === 'vertex-top') {
+        // D4: cada face triangular recebe os 3 valores correspondentes aos seus 3 vértices,
+        // com o topo de cada dígito orientado diretamente para o vértice!
+        for (const face of polyData.faces) {
+          for (const vIdx of face.indices) {
+            const vert = polyData.vertices[vIdx];
+            const val = polyData.vertexValues[vIdx];
+            const pos = new THREE.Vector3().lerpVectors(face.centroid, vert, 0.50);
+            const upDir = new THREE.Vector3().subVectors(vert, face.centroid).normalize();
+            const tex = getNumberTexture(val, false, maxAnisotropy);
+            const decal = createOrientedDecal(pos, face.normal, upDir, polyData.decalSize, tex);
+            group.add(decal);
+          }
+        }
+      } else {
+        // D6, D8, D10, D12, D20: número centralizado em cada face
+        for (const face of polyData.faces) {
+          const center = face.visualCenter || face.centroid;
+          let upDir;
+          if (typeof face.upVertexIdx === 'number') {
+            upDir = new THREE.Vector3().subVectors(polyData.vertices[face.upVertexIdx], center);
+          } else {
+            // Alinha o topo do dígito ao primeiro vértice da face para consistência geométrica
+            upDir = new THREE.Vector3().subVectors(polyData.vertices[face.indices[0]], center);
+          }
+          const tex = getNumberTexture(face.value, needUnderline, maxAnisotropy);
+          const decal = createOrientedDecal(center, face.normal, upDir, polyData.decalSize, tex);
+          group.add(decal);
+        }
+      }
+
+      return group;
+    }
+
+    /** Descarta geometrias e materiais do dado anterior ao trocar de modelo */
+    function disposeGroup(group) {
+      if (!group) return;
+      group.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. MOTOR 3D (THREE.JS) + FÍSICA REAL (CANNON-ES)
+    // -------------------------------------------------------------------------
+    const stageViewport = document.getElementById('stageViewport');
+    const sceneCanvas = document.getElementById('sceneCanvas');
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: sceneCanvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xeef3f9);
+    scene.fog = new THREE.Fog(0xeef3f9, 20, 42);
+
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    const DEFAULT_CAM_POS = new THREE.Vector3(0, 7.6, 8.6);
+    const DEFAULT_CAM_TARGET = new THREE.Vector3(0, 0.7, 0);
+    camera.position.copy(DEFAULT_CAM_POS);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 4.6;
+    controls.maxDistance = 16;
+    controls.minPolarAngle = 0.15;
+    controls.maxPolarAngle = Math.PI / 2 - 0.08; // impede câmera de atravessar a plataforma
+    controls.target.copy(DEFAULT_CAM_TARGET);
+    controls.update();
+
+    // Iluminação realista de laboratório (sem sombras duras artificiais)
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcbd8ea, 1.05);
+    hemiLight.position.set(0, 14, 0);
+    scene.add(hemiLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfffaf4, 1.55);
+    keyLight.position.set(6.5, 13.5, 7.2);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.camera.near = 2;
+    keyLight.shadow.camera.far = 32;
+    const dCam = 7.2;
+    keyLight.shadow.camera.left = -dCam;
+    keyLight.shadow.camera.right = dCam;
+    keyLight.shadow.camera.top = dCam;
+    keyLight.shadow.camera.bottom = -dCam;
+    keyLight.shadow.bias = -0.0004;
+    keyLight.shadow.radius = 3;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.65);
+    fillLight.position.set(-7, 6, -5);
+    scene.add(fillLight);
+
+    // Plataforma octogonal/circular de lançamento
+    const platformGroup = new THREE.Group();
+    const platformRadius = 5.4;
+    const platformTex = createPlatformTexture(maxAnisotropy);
+
+    const padGeom = new THREE.CylinderGeometry(platformRadius, platformRadius + 0.18, 0.36, 48);
+    const padSideMat = new THREE.MeshStandardMaterial({ color: 0x1e3252, roughness: 0.45, metalness: 0.15 });
+    const padTopMat = new THREE.MeshStandardMaterial({ map: platformTex, roughness: 0.72, metalness: 0.02 });
+    const padMesh = new THREE.Mesh(padGeom, [padSideMat, padTopMat, padSideMat]);
+    padMesh.position.y = -0.18;
+    padMesh.receiveShadow = true;
+    platformGroup.add(padMesh);
+
+    // Borda elevada sutil ao redor da arena para delimitar visualmente a contenção
+    const rimGeom = new THREE.TorusGeometry(platformRadius - 0.08, 0.11, 16, 64);
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0x14233d, roughness: 0.35, metalness: 0.25 });
+    const rimMesh = new THREE.Mesh(rimGeom, rimMat);
+    rimMesh.rotation.x = Math.PI / 2;
+    rimMesh.position.y = 0.04;
+    rimMesh.receiveShadow = true;
+    platformGroup.add(rimMesh);
+
+    // Friso laranja discreto de identidade SimuLab na base externa
+    const accentRingGeom = new THREE.TorusGeometry(platformRadius + 0.06, 0.032, 12, 64);
+    const accentRingMat = new THREE.MeshStandardMaterial({ color: 0xff690b, roughness: 0.4, metalness: 0.1 });
+    const accentRingMesh = new THREE.Mesh(accentRingGeom, accentRingMat);
+    accentRingMesh.rotation.x = Math.PI / 2;
+    accentRingMesh.position.y = -0.02;
+    platformGroup.add(accentRingMesh);
+
+    scene.add(platformGroup);
+
+    // Mundo Físico Cannon-es
+    const world = new CANNON.World({
+      gravity: new CANNON.Vec3(0, -28, 0)
+    });
+    world.broadphase = new CANNON.NaiveBroadphase();
+    world.solver.iterations = 14;
+    world.allowSleep = false;
+
+    const diePhysMat = new CANNON.Material('die');
+    const floorPhysMat = new CANNON.Material('floor');
+    const wallPhysMat = new CANNON.Material('wall');
+
+    world.addContactMaterial(new CANNON.ContactMaterial(diePhysMat, floorPhysMat, {
+      friction: 0.36,
+      restitution: 0.40
+    }));
+    world.addContactMaterial(new CANNON.ContactMaterial(diePhysMat, wallPhysMat, {
+      friction: 0.14,
+      restitution: 0.56
+    }));
+
+    // Piso físico (y = 0)
+    const floorBody = new CANNON.Body({ mass: 0, material: floorPhysMat });
+    floorBody.addShape(new CANNON.Plane());
+    floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(floorBody);
+
+    // Contenção física invisível: 8 paredes formando arena octogonal + teto
+    const wallCount = 8;
+    const arenaRadius = 4.55;
+    for (let i = 0; i < wallCount; i++) {
+      const theta = (i * Math.PI * 2) / wallCount;
+      const wallBody = new CANNON.Body({ mass: 0, material: wallPhysMat });
+      wallBody.addShape(new CANNON.Plane());
+      wallBody.position.set(Math.cos(theta) * arenaRadius, 0, Math.sin(theta) * arenaRadius);
+
+      const inward = new CANNON.Vec3(-Math.cos(theta), 0, -Math.sin(theta));
+      const defaultNormal = new CANNON.Vec3(0, 0, 1);
+      if (inward.dot(defaultNormal) < -0.9999) {
+        wallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+      } else {
+        wallBody.quaternion.setFromVectors(defaultNormal, inward);
+      }
+      world.addBody(wallBody);
+    }
+
+    // Teto invisível de segurança
+    const ceilingBody = new CANNON.Body({ mass: 0, material: wallPhysMat });
+    ceilingBody.addShape(new CANNON.Plane());
+    ceilingBody.position.set(0, 9.2, 0);
+    ceilingBody.quaternion.setFromEuler(Math.PI / 2, 0, 0);
+    world.addBody(ceilingBody);
+
+    // Estado 3D do dado ativo
+    let activePolyData = null;
+    let activeDieMesh = null;
+    let activeDieBody = null;
+
+    /** Gera um quaternion uniformemente aleatório em SO(3) (algoritmo de Shoemake) */
+    function randomUniformQuaternion() {
+      const u1 = Math.random();
+      const u2 = Math.random() * Math.PI * 2;
+      const u3 = Math.random() * Math.PI * 2;
+      const sq1 = Math.sqrt(1 - u1);
+      const sq2 = Math.sqrt(u1);
+      return new CANNON.Quaternion(
+        sq1 * Math.sin(u2),
+        sq1 * Math.cos(u2),
+        sq2 * Math.sin(u3),
+        sq2 * Math.cos(u3)
+      );
+    }
+
+    /** Reconstrói completamente a geometria 3D e o corpo físico Cannon-es do dado escolhido */
+    function buildActiveDie(sides) {
+      if (activeDieMesh) {
+        scene.remove(activeDieMesh);
+        disposeGroup(activeDieMesh);
+        activeDieMesh = null;
+      }
+      if (activeDieBody) {
+        world.removeBody(activeDieBody);
+        activeDieBody = null;
+      }
+
+      activePolyData = buildPolyhedronData(sides);
+      activeDieMesh = createDieVisualGroup(activePolyData, maxAnisotropy);
+      scene.add(activeDieMesh);
+
+      // Corpo físico ConvexPolyhedron com vértices e faces exatamente iguais aos do Three.js
+      const cannonVerts = activePolyData.vertices.map((v) => new CANNON.Vec3(v.x, v.y, v.z));
+      const cannonFaces = activePolyData.faces.map((f) => f.indices);
+      const shape = new CANNON.ConvexPolyhedron({ vertices: cannonVerts, faces: cannonFaces });
+
+      activeDieBody = new CANNON.Body({
+        mass: 1.5,
+        material: diePhysMat,
+        shape,
+        linearDamping: 0.12,
+        angularDamping: 0.15
+      });
+
+      placeDieAtRest();
+      world.addBody(activeDieBody);
+    }
+
+    /** Posiciona o dado em repouso elegante no centro da plataforma */
+    function placeDieAtRest() {
+      if (!activeDieBody || !activePolyData) return;
+      activeDieBody.velocity.set(0, 0, 0);
+      activeDieBody.angularVelocity.set(0, 0, 0);
+      activeDieBody.force.set(0, 0, 0);
+      activeDieBody.torque.set(0, 0, 0);
+
+      // Alinha uma face (ou base no D4) perfeitamente paralela ao chão para apresentação inicial limpa
+      const q = new THREE.Quaternion();
+      if (activePolyData.mode === 'vertex-top') {
+        // Coloca o vértice 1 (índice 0) apontando para cima (+Y)
+        const vTop = activePolyData.vertices[0].clone().normalize();
+        q.setFromUnitVectors(vTop, new THREE.Vector3(0, 1, 0));
+      } else {
+        // Coloca a face 1 (índice 0) apontando para cima (+Y)
+        q.setFromUnitVectors(activePolyData.faces[0].normal.clone().normalize(), new THREE.Vector3(0, 1, 0));
+      }
+
+      activeDieBody.quaternion.set(q.x, q.y, q.z, q.w);
+
+      // Calcula a menor coordenada Y após rotação para pousar exatamente em y = 0
+      let minY = Infinity;
+      for (const v of activePolyData.vertices) {
+        const tv = v.clone().applyQuaternion(q);
+        if (tv.y < minY) minY = tv.y;
+      }
+      activeDieBody.position.set(0, -minY + 0.01, 0);
+      syncVisualFromPhysics();
+    }
+
+    /** Sincroniza posição e rotação da malha Three.js com o corpo físico Cannon-es */
+    function syncVisualFromPhysics() {
+      if (!activeDieMesh || !activeDieBody) return;
+      activeDieMesh.position.set(
+        activeDieBody.position.x,
+        activeDieBody.position.y,
+        activeDieBody.position.z
+      );
+      activeDieMesh.quaternion.set(
+        activeDieBody.quaternion.x,
+        activeDieBody.quaternion.y,
+        activeDieBody.quaternion.z,
+        activeDieBody.quaternion.w
+      );
+    }
+
+    /**
+     * Identifica matematicamente qual face (ou vértice superior no D4) está voltada para cima (+Y)
+     * no espaço do mundo com base no quaternion físico atual do dado.
+     */
+    function detectTopResult() {
+      const worldUp = new THREE.Vector3(0, 1, 0);
+      const q = new THREE.Quaternion(
+        activeDieBody.quaternion.x,
+        activeDieBody.quaternion.y,
+        activeDieBody.quaternion.z,
+        activeDieBody.quaternion.w
+      );
+
+      let bestVal = 1;
+      let maxDot = -Infinity;
+
+      if (activePolyData.mode === 'vertex-top') {
+        for (let i = 0; i < activePolyData.vertices.length; i++) {
+          const dir = activePolyData.vertices[i].clone().normalize().applyQuaternion(q);
+          const dot = dir.dot(worldUp);
+          if (dot > maxDot) {
+            maxDot = dot;
+            bestVal = activePolyData.vertexValues[i];
+          }
+        }
+      } else {
+        for (const face of activePolyData.faces) {
+          const dir = face.normal.clone().applyQuaternion(q);
+          const dot = dir.dot(worldUp);
+          if (dot > maxDot) {
+            maxDot = dot;
+            bestVal = face.value;
+          }
+        }
+      }
+
+      return { value: bestVal, alignment: maxDot };
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. ESTADO DO EXPERIMENTO, ESTATÍSTICAS E GRÁFICO CHART.JS
+    // -------------------------------------------------------------------------
+    const state = {
+      sides: 6,
+      totalRolls: 0,
+      counts: new Array(6).fill(0),
+      lastResult: null,
+      history: [],       // últimos 10 resultados (índice 0 = mais recente)
+      isRolling: false,
+      isSimulating: false,
+      rollToken: 0,      // garante registro único por lançamento
+      rollElapsed: 0,
+      stableFrames: 0,
+      cockedFrames: 0
+    };
+
+    // Referências de DOM
+    const el = {
+      headerDieText: document.getElementById('headerDieText'),
+      resetExperimentBtn: document.getElementById('resetExperimentBtn'),
+      diceButtons: Array.from(document.querySelectorAll('.die-btn')),
+      stageStatusPill: document.getElementById('stageStatusPill'),
+      stageStatusText: document.getElementById('stageStatusText'),
+      resetCameraBtn: document.getElementById('resetCameraBtn'),
+      floatingResult: document.getElementById('floatingResult'),
+      floatingResultVal: document.getElementById('floatingResultVal'),
+      launchDieBtn: document.getElementById('launchDieBtn'),
+      launchBtnLabel: document.getElementById('launchBtnLabel'),
+      d4Tip: document.getElementById('d4Tip'),
+      historyBadges: document.getElementById('historyBadges'),
+      massCountInput: document.getElementById('massCountInput'),
+      simulateBtn: document.getElementById('simulateBtn'),
+      shortcutBtns: Array.from(document.querySelectorAll('.shortcut-btn')),
+      simFeedback: document.getElementById('simFeedback'),
+      simProgressWrap: document.getElementById('simProgressWrap'),
+      simProgressLabel: document.getElementById('simProgressLabel'),
+      simProgressPct: document.getElementById('simProgressPct'),
+      simProgressFill: document.getElementById('simProgressFill'),
+      kpiDie: document.getElementById('kpiDie'),
+      kpiFaces: document.getElementById('kpiFaces'),
+      kpiTotal: document.getElementById('kpiTotal'),
+      kpiLast: document.getElementById('kpiLast'),
+      kpiLastSub: document.getElementById('kpiLastSub'),
+      kpiTheoPct: document.getElementById('kpiTheoPct'),
+      kpiTheoFrac: document.getElementById('kpiTheoFrac'),
+      tmTheo: document.getElementById('tmTheo'),
+      tmMae: document.getElementById('tmMae'),
+      tmMaxDev: document.getElementById('tmMaxDev'),
+      theoryDynamicText: document.getElementById('theoryDynamicText'),
+      tableSubtitle: document.getElementById('tableSubtitle'),
+      freqTableBody: document.getElementById('freqTableBody'),
+      freqChartCanvas: document.getElementById('freqChart')
+    };
+
+    // Instância Chart.js
+    let freqChart = null;
+
+    function initOrRebuildChart() {
+      if (!hasChartJs) return;
+      if (freqChart) {
+        freqChart.destroy();
+        freqChart = null;
+      }
+
+      const n = state.sides;
+      const theoPct = 100 / n;
+      const labels = Array.from({ length: n }, (_, i) => String(i + 1));
+
+      freqChart = new window.Chart(el.freqChartCanvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Frequência experimental (%)',
+              data: new Array(n).fill(0),
+              backgroundColor: 'rgba(255, 105, 11, 0.86)',
+              hoverBackgroundColor: '#e95700',
+              borderColor: '#e95700',
+              borderWidth: 1,
+              borderRadius: n >= 12 ? 3 : 6,
+              order: 2
+            },
+            {
+              type: 'line',
+              label: 'Probabilidade teórica (%)',
+              data: new Array(n).fill(theoPct),
+              borderColor: '#14233d',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              fill: false,
+              tension: 0,
+              order: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 240 },
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#14233d',
+              titleFont: { family: 'Nunito Sans', size: 12, weight: '800' },
+              bodyFont: { family: 'Nunito Sans', size: 12, weight: '600' },
+              padding: 10,
+              cornerRadius: 9,
+              callbacks: {
+                title: (items) => `Face ${items[0].label}`,
+                label: (ctx) => {
+                  const idx = ctx.dataIndex;
+                  if (ctx.datasetIndex === 0) {
+                    const count = state.counts[idx] || 0;
+                    const rel = state.totalRolls > 0 ? (count / state.totalRolls) * 100 : 0;
+                    return [
+                      ` Ocorrências: ${fmtInt(count)}`,
+                      ` Experimental: ${fmtPct(rel)}`
+                    ];
+                  }
+                  return ` Teórica: ${fmtPct(100 / state.sides)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: '#14233d',
+                font: { family: 'Nunito Sans', size: n >= 20 ? 10 : 11, weight: '700' },
+                autoSkip: false
+              },
+              title: {
+                display: true,
+                text: 'Face do dado',
+                color: '#64748b',
+                font: { family: 'Nunito Sans', size: 11, weight: '700' }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: Math.ceil(theoPct * 2.1),
+              grid: { color: 'rgba(20, 35, 61, 0.07)' },
+              ticks: {
+                color: '#64748b',
+                font: { family: 'Nunito Sans', size: 11, weight: '600' },
+                callback: (val) => `${val}%`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /** Atualiza KPIs, gráfico, comparação Teoria x Prática, histórico e tabela */
+    function updateAllAnalytics(animateChart = true) {
+      const spec = DICE_SPECS[state.sides];
+      const n = state.sides;
+      const total = state.totalRolls;
+      const theoPct = 100 / n;
+
+      // Cabeçalho e KPIs
+      el.headerDieText.textContent = `${spec.code} • ${n} faces`;
+      el.kpiDie.textContent = spec.code;
+      el.kpiFaces.textContent = `${n} faces • ${spec.shape}`;
+      el.kpiTotal.textContent = fmtInt(total);
+      el.kpiLast.textContent = state.lastResult !== null ? String(state.lastResult) : '—';
+      el.kpiLastSub.textContent = state.lastResult !== null
+        ? (total === 1 ? '1º lançamento registrado' : `Lançamento nº ${fmtInt(total)}`)
+        : 'Aguardando lançamento';
+      el.kpiTheoPct.textContent = fmtPct(theoPct);
+      el.kpiTheoFrac.textContent = `P(face) = 1/${n}`;
+      el.floatingResultVal.textContent = state.lastResult !== null ? String(state.lastResult) : '—';
+      el.d4Tip.classList.toggle('visible', n === 4);
+      el.tableSubtitle.textContent = `${n} faces equiprováveis`;
+
+      // Histórico dos últimos 10
+      el.historyBadges.innerHTML = '';
+      if (state.history.length === 0) {
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'history-empty';
+        emptySpan.textContent = 'Nenhum lançamento realizado ainda.';
+        el.historyBadges.appendChild(emptySpan);
+      } else {
+        state.history.forEach((val, idx) => {
+          const pill = document.createElement('span');
+          pill.className = idx === 0 ? 'hist-pill latest' : 'hist-pill';
+          pill.textContent = String(val);
+          pill.title = idx === 0 ? 'Lançamento mais recente' : `${idx + 1}º mais recente`;
+          el.historyBadges.appendChild(pill);
+        });
+      }
+
+      // Cálculos de frequência relativa e desvios em relação à teórica
+      const relFreqs = [];
+      let sumAbsDev = 0;
+      let maxAbsDev = 0;
+
+      for (let i = 0; i < n; i++) {
+        const rel = total > 0 ? (state.counts[i] / total) * 100 : 0;
+        relFreqs.push(rel);
+        if (total > 0) {
+          const absDev = Math.abs(rel - theoPct);
+          sumAbsDev += absDev;
+          if (absDev > maxAbsDev) maxAbsDev = absDev;
+        }
+      }
+
+      const mae = total > 0 ? sumAbsDev / n : null;
+
+      // Atualiza Chart.js
+      if (freqChart) {
+        freqChart.data.datasets[0].data = relFreqs;
+        freqChart.data.datasets[1].data = new Array(n).fill(theoPct);
+        const maxObserved = Math.max(...relFreqs, theoPct * 1.45);
+        freqChart.options.scales.y.suggestedMax = Math.min(100, Math.ceil(maxObserved * 1.18));
+        freqChart.update(animateChart ? undefined : 'none');
+      }
+
+      // Seção educativa Teoria x Prática
+      el.tmTheo.textContent = fmtPct(theoPct);
+      el.tmMae.textContent = mae !== null ? `${fmtDec(mae)} pp` : '—';
+      el.tmMaxDev.textContent = total > 0 ? `${fmtDec(maxAbsDev)} pp` : '—';
+
+      let dynamicMsg = '';
+      if (total === 0) {
+        dynamicMsg = `Dado selecionado: ${spec.code} (${spec.fullShape}). A probabilidade teórica de sair qualquer face é 1/${n} (${fmtPct(theoPct)}). Lance o dado manualmente ou execute uma simulação em massa para comparar teoria e experimento.`;
+      } else if (total < 30) {
+        dynamicMsg = `Com apenas ${fmtInt(total)} lançamento(s), é totalmente normal haver grandes oscilações nas barras (desvio médio atual: ${fmtDec(mae)} pontos percentuais). Amostras pequenas exibem alta variabilidade aleatória.`;
+      } else if (total < 300) {
+        dynamicMsg = `Com ${fmtInt(total)} lançamentos, o desvio médio está em ${fmtDec(mae)} pp. As barras já começam a se distribuir ao redor da linha teórica de ${fmtPct(theoPct)}, embora diferenças aleatórias ainda sejam visíveis.`;
+      } else if (total < 2000) {
+        dynamicMsg = `Com ${fmtInt(total)} lançamentos, o desvio médio caiu para ${fmtDec(mae)} pp. Note como as frequências experimentais tendem a se agrupar mais perto de ${fmtPct(theoPct)}, mesmo sem precisarem ficar exatamente iguais.`;
+      } else {
+        dynamicMsg = `Excelente amostra com ${fmtInt(total)} lançamentos! O desvio médio atual é de apenas ${fmtDec(mae)} pp em relação aos ${fmtPct(theoPct)} teóricos — uma demonstração visual clara da Lei dos Grandes Números.`;
+      }
+      el.theoryDynamicText.textContent = dynamicMsg;
+
+      // Atualiza tabela detalhada de frequências
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < n; i++) {
+        const faceNum = i + 1;
+        const absCount = state.counts[i];
+        const rel = relFreqs[i];
+        const diff = total > 0 ? rel - theoPct : 0;
+
+        const tr = document.createElement('tr');
+        if (state.lastResult === faceNum) tr.className = 'last-hit';
+
+        const tdFace = document.createElement('td');
+        tdFace.style.textAlign = 'center';
+        const tag = document.createElement('span');
+        tag.className = 'face-tag';
+        tag.textContent = String(faceNum);
+        tdFace.appendChild(tag);
+
+        const tdAbs = document.createElement('td');
+        tdAbs.textContent = fmtInt(absCount);
+
+        const tdRel = document.createElement('td');
+        tdRel.textContent = total > 0 ? fmtPct(rel) : '0,00%';
+
+        const tdTheo = document.createElement('td');
+        tdTheo.textContent = fmtPct(theoPct);
+
+        const tdDiff = document.createElement('td');
+        if (total === 0) {
+          tdDiff.textContent = '—';
+        } else {
+          const sign = diff > 0.005 ? '+' : '';
+          tdDiff.textContent = `${sign}${fmtDec(diff)} pp`;
+          tdDiff.className = Math.abs(diff) < 0.05 ? 'diff-zero' : (diff > 0 ? 'diff-pos' : 'diff-neg');
+        }
+
+        tr.append(tdFace, tdAbs, tdRel, tdTheo, tdDiff);
+        frag.appendChild(tr);
+      }
+      el.freqTableBody.innerHTML = '';
+      el.freqTableBody.appendChild(frag);
+    }
+
+    /** Atualiza estado visual de bloqueio dos controles durante rolagem ou simulação em massa */
+    function setControlsBusy(busy, statusMessage) {
+      el.launchDieBtn.disabled = busy;
+      el.simulateBtn.disabled = busy;
+      el.resetExperimentBtn.disabled = busy;
+      el.massCountInput.disabled = busy;
+      el.diceButtons.forEach((b) => { b.disabled = busy; });
+      el.shortcutBtns.forEach((b) => { b.disabled = busy; });
+
+      el.stageStatusPill.classList.toggle('rolling', busy);
+      if (statusMessage) {
+        el.stageStatusText.textContent = statusMessage;
+      } else {
+        el.stageStatusText.textContent = `${DICE_SPECS[state.sides].fullShape} • Pronto para lançar`;
+      }
+      el.launchBtnLabel.textContent = state.isRolling ? 'ROLANDO DADO...' : 'LANÇAR DADO';
+    }
+
+    /** Reinicia estatísticas, histórico e reposiciona o dado no palco */
+    function resetExperiment(rebuildGeometry = false) {
+      // Invalida qualquer lançamento anterior
+      state.rollToken++;
+      state.isRolling = false;
+      state.rollElapsed = 0;
+      state.stableFrames = 0;
+      state.cockedFrames = 0;
+
+      state.totalRolls = 0;
+      state.counts = new Array(state.sides).fill(0);
+      state.lastResult = null;
+      state.history = [];
+
+      if (rebuildGeometry) {
+        buildActiveDie(state.sides);
+        initOrRebuildChart();
+      } else {
+        placeDieAtRest();
+      }
+
+      el.simProgressWrap.classList.remove('visible');
+      el.simFeedback.classList.remove('visible');
+      setControlsBusy(false);
+      updateAllAnalytics(true);
+    }
+
+    /** Troca o modelo de dado selecionado */
+    function selectDie(sides) {
+      if (state.isRolling || state.isSimulating || state.sides === sides) return;
+      state.sides = sides;
+      el.diceButtons.forEach((btn) => {
+        btn.classList.toggle('active', Number(btn.dataset.die) === sides);
+      });
+      resetExperiment(true);
+    }
+
+    /** Registra o resultado de um lançamento manual (com proteção contra dupla contagem) */
+    function finishManualRoll(expectedToken) {
+      if (!state.isRolling || expectedToken !== state.rollToken) return;
+
+      const { value } = detectTopResult();
+      state.isRolling = false;
+      state.rollToken++;
+
+      // Congela o dado suavemente na posição final real
+      activeDieBody.velocity.set(0, 0, 0);
+      activeDieBody.angularVelocity.set(0, 0, 0);
+
+      // Atualiza estatísticas exatamente uma vez
+      state.totalRolls += 1;
+      state.counts[value - 1] += 1;
+      state.lastResult = value;
+      state.history.unshift(value);
+      if (state.history.length > 10) state.history.pop();
+
+      setControlsBusy(false, `${DICE_SPECS[state.sides].code} estabilizado • Resultado: ${value}`);
+      updateAllAnalytics(true);
+
+      // Microanimação de destaque no badge flutuante
+      el.floatingResult.classList.remove('pop');
+      void el.floatingResult.offsetWidth;
+      el.floatingResult.classList.add('pop');
+    }
+
+    /** Aplica impulso físico e rotação aleatória real ao dado 3D */
+    function launchManualRoll() {
+      if (state.isRolling || state.isSimulating || !activeDieBody) return;
+
+      const token = ++state.rollToken;
+      state.isRolling = true;
+      state.rollElapsed = 0;
+      state.stableFrames = 0;
+      state.cockedFrames = 0;
+
+      // Posição inicial acima da plataforma com variação natural
+      const startX = (Math.random() - 0.5) * 2.2;
+      const startZ = (Math.random() - 0.5) * 2.2;
+      const startY = 3.9 + Math.random() * 0.8;
+
+      activeDieBody.position.set(startX, startY, startZ);
+      activeDieBody.quaternion.copy(randomUniformQuaternion());
+
+      // Impulso linear apontando levemente para dentro da arena + aleatoriedade
+      const vx = -startX * 1.45 + (Math.random() - 0.5) * 6.5;
+      const vy = -1.2 + Math.random() * 2.2;
+      const vz = -startZ * 1.45 + (Math.random() - 0.5) * 6.5;
+      activeDieBody.velocity.set(vx, vy, vz);
+
+      // Rotação angular forte e imprevisível nos 3 eixos
+      const randSpin = () => (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 11);
+      activeDieBody.angularVelocity.set(randSpin(), randSpin(), randSpin());
+      activeDieBody.force.set(0, 0, 0);
+      activeDieBody.torque.set(0, 0, 0);
+
+      setControlsBusy(true, 'Rolando dado...');
+      activeRollTokenRef = token;
+    }
+
+    let activeRollTokenRef = 0;
+
+    // -------------------------------------------------------------------------
+    // 7. SIMULAÇÃO EM MASSA (1 A 10.000 LANÇAMENTOS COM PROGRESSO SUAVE)
+    // -------------------------------------------------------------------------
+    function runMassSimulation() {
+      if (state.isRolling || state.isSimulating) return;
+
+      const raw = el.massCountInput.value.trim();
+      const qty = Number(raw);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 10000) {
+        el.simFeedback.textContent = 'Informe um número inteiro entre 1 e 10.000 lançamentos.';
+        el.simFeedback.classList.add('visible');
+        el.massCountInput.focus();
+        return;
+      }
+
+      el.simFeedback.classList.remove('visible');
+      state.isSimulating = true;
+      setControlsBusy(true, `Simulando ${fmtInt(qty)} lançamentos...`);
+
+      el.simProgressWrap.classList.add('visible');
+      el.simProgressFill.style.width = '0%';
+      el.simProgressPct.textContent = '0%';
+      el.simProgressLabel.textContent = `Executando ${fmtInt(qty)} lançamentos...`;
+
+      const n = state.sides;
+      let done = 0;
+      // Divide em ~12 passos suaves para quantidades grandes (rápido e responsivo)
+      const chunkSize = qty <= 150 ? qty : Math.ceil(qty / 12);
+      let lastDrawn = state.lastResult;
+      const tailBuffer = [];
+
+      function stepBatch() {
+        const end = Math.min(done + chunkSize, qty);
+        for (let i = done; i < end; i++) {
+          const r = Math.floor(Math.random() * n) + 1;
+          state.counts[r - 1] += 1;
+          lastDrawn = r;
+          // Mantém os últimos 10 sorteios para o histórico
+          if (qty - i <= 10) {
+            tailBuffer.push(r);
+          }
+        }
+
+        state.totalRolls += (end - done);
+        done = end;
+        const pct = Math.round((done / qty) * 100);
+        el.simProgressFill.style.width = `${pct}%`;
+        el.simProgressPct.textContent = `${pct}%`;
+
+        if (done < qty) {
+          updateAllAnalytics(false);
+          requestAnimationFrame(stepBatch);
+        } else {
+          // Finaliza simulação e atualiza últimos 10 (mais recente primeiro)
+          for (const val of tailBuffer) {
+            state.history.unshift(val);
+          }
+          if (state.history.length > 10) state.history.length = 10;
+          state.lastResult = lastDrawn;
+          state.isSimulating = false;
+
+          el.simProgressLabel.textContent = `Simulação de ${fmtInt(qty)} lançamentos concluída!`;
+          setControlsBusy(false, `${fmtInt(qty)} lançamentos simulados • Último: ${lastDrawn}`);
+          updateAllAnalytics(true);
+
+          el.floatingResult.classList.remove('pop');
+          void el.floatingResult.offsetWidth;
+          el.floatingResult.classList.add('pop');
+        }
+      }
+
+      requestAnimationFrame(stepBatch);
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. LOOP DE ANIMAÇÃO (REQUESTANIMATIONFRAME) E REDIMENSIONAMENTO
+    // -------------------------------------------------------------------------
+    function resizeRenderer() {
+      const w = stageViewport.clientWidth;
+      const h = stageViewport.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+
+    const resizeObserver = new ResizeObserver(resizeRenderer);
+    resizeObserver.observe(stageViewport);
+    resizeRenderer();
+
+    let lastTime = performance.now();
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      if (state.isRolling && activeDieBody) {
+        world.step(1 / 60, dt, 4);
+        syncVisualFromPhysics();
+
+        state.rollElapsed += dt;
+
+        // Segurança de contenção caso o dado tente sair dos limites
+        const radialDist = Math.hypot(activeDieBody.position.x, activeDieBody.position.z);
+        if (radialDist > arenaRadius - 0.1 || activeDieBody.position.y < -1) {
+          activeDieBody.position.set(
+            Math.max(-2.5, Math.min(2.5, activeDieBody.position.x)),
+            Math.max(1.8, activeDieBody.position.y),
+            Math.max(-2.5, Math.min(2.5, activeDieBody.position.z))
+          );
+          activeDieBody.velocity.scale(0.5, activeDieBody.velocity);
+        }
+
+        // Detecção real de estabilidade após o primeiro impacto
+        if (state.rollElapsed >= 0.55) {
+          const linSpeed = activeDieBody.velocity.length();
+          const angSpeed = activeDieBody.angularVelocity.length();
+
+          if (linSpeed < 0.065 && angSpeed < 0.09 && activeDieBody.position.y < 2.2) {
+            const { alignment } = detectTopResult();
+            if (alignment >= 0.945) {
+              state.stableFrames++;
+              state.cockedFrames = 0;
             } else {
-                 speedValueEl.textContent = `${animationTime} ms`;
+              // Se parou inclinado sobre uma aresta, aplica um leve empurrão físico
+              state.cockedFrames++;
+              state.stableFrames = 0;
+              if (state.cockedFrames >= 10) {
+                activeDieBody.angularVelocity.set(
+                  (Math.random() - 0.5) * 3.5,
+                  (Math.random() - 0.5) * 1.5,
+                  (Math.random() - 0.5) * 3.5
+                );
+                state.cockedFrames = 0;
+              }
             }
-        });
-        
-        targetSumInput.addEventListener('input', () => {
-            let val = parseInt(targetSumInput.value);
-            
-            if (isNaN(val)) val = minSum;
+          } else {
+            state.stableFrames = 0;
+          }
 
-            if (val < minSum) val = minSum;
-            if (val > maxSum) val = maxSum;
-            targetSumInput.value = val;
+          if (state.stableFrames >= 12 || state.rollElapsed >= 6.5) {
+            finishManualRoll(activeRollTokenRef);
+          }
+        }
+      }
 
-            targetSum = val;
-            
-            targetSumDisplayEl.textContent = targetSum;
-            targetSumDisplayTeoEl.textContent = targetSum;
-            
-            if (theoreticalProbabilities[targetSum] !== undefined) {
-                probTargetTheoreticalEl.textContent = (theoreticalProbabilities[targetSum] * 100).toFixed(4) + '%';
-            } else {
-                probTargetTheoreticalEl.textContent = '0.0000%';
-            }
-            
-            updateDisplay(); 
-        });
+      controls.update();
+      renderer.render(scene, camera);
+    }
 
-        // Inicialização
-        initControls();
-    </script>
+    // -------------------------------------------------------------------------
+    // 9. EVENTOS DE INTERFACE
+    // -------------------------------------------------------------------------
+    el.diceButtons.forEach((btn) => {
+      btn.addEventListener('click', () => selectDie(Number(btn.dataset.die)));
+    });
+
+    el.launchDieBtn.addEventListener('click', launchManualRoll);
+    el.resetExperimentBtn.addEventListener('click', () => resetExperiment(false));
+
+    el.resetCameraBtn.addEventListener('click', () => {
+      camera.position.copy(DEFAULT_CAM_POS);
+      controls.target.copy(DEFAULT_CAM_TARGET);
+      controls.update();
+    });
+
+    el.simulateBtn.addEventListener('click', runMassSimulation);
+
+    el.massCountInput.addEventListener('input', () => {
+      el.simFeedback.classList.remove('visible');
+      const v = Number(el.massCountInput.value);
+      el.shortcutBtns.forEach((btn) => {
+        btn.classList.toggle('selected', Number(btn.dataset.qty) === v);
+      });
+    });
+
+    el.massCountInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runMassSimulation();
+      }
+    });
+
+    el.shortcutBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const qty = Number(btn.dataset.qty);
+        el.massCountInput.value = String(qty);
+        el.simFeedback.classList.remove('visible');
+        el.shortcutBtns.forEach((b) => b.classList.toggle('selected', b === btn));
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // 10. INICIALIZAÇÃO DO LABORATÓRIO
+    // -------------------------------------------------------------------------
+    buildActiveDie(state.sides);
+    initOrRebuildChart();
+    updateAllAnalytics(false);
+    requestAnimationFrame(animate);
+  </script>
 </body>
 </html>
