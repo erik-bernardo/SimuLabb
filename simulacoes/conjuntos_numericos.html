@@ -1,552 +1,3282 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explorador de Conjuntos Numéricos - Matemática</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        /* ----------------------------------- */
-        /* VARIÁVEIS E ESTILOS GERAIS */
-        /* ----------------------------------- */
-        :root {
-            --cor-primaria: #D2691E; /* Cor de Destaque (Laranja/Terra) */
-            --cor-secundaria: #34495e; /* Cor de Texto Principal (Azul Escuro) */
-            --cor-matematica: #9c27b0; /* Roxo para Matemática */
-            --cor-fundo: #f8f8f8;
-            --cor-fundo-card: #ffffff;
-            --cor-borda: #ccc;
-            
-            /* Cores dos Conjuntos */
-            --cor-N: #fbc02d; /* Amarelo (Naturais) */
-            --cor-Z: #1565c0; /* Azul (Inteiros) */
-            --cor-Q: #00897b; /* Verde-água (Racionais) */
-            --cor-I: #d84315; /* Laranja (Irracionais) */
-            --cor-R: #4a148c; /* Roxo Escuro (Reais) */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conjuntos Numéricos — Laboratório Matemático</title>
+  <!-- Tipografia moderna com fallback instantâneo para fontes nativas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet" />
 
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--cor-fundo);
-            color: var(--cor-secundaria);
-        }
+  <style>
+    /* =========================================================================
+       1. DESIGN TOKENS — LABORATÓRIO MATEMÁTICO MINIMALISTA
+       ========================================================================= */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
 
-        .content-area {
-            padding: 30px 60px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      --text-primary: #0f2544;
+      --text-secondary: #334e68;
+      --text-muted: #64748b;
 
-        /* ----------------------------------- */
-        /* TOP BAR (Mantida) */
-        /* ----------------------------------- */
-      
-        }
+      --accent: #ff690b;
+      --accent-hover: #e55a00;
+      --accent-soft: #fff4ec;
+      --accent-border: #ffd4b8;
 
-        .logo-link {
-            text-decoration: none;
-            color: var(--cor-primaria); 
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 25px; 
-            display: flex;
-            align-items: center; 
-            border-right: 1px solid #ddd; 
-            transition: background-color 0.3s;
-        }
-        
-        .nav-buttons {
-            display: flex;
-            justify-content: flex-start;
-            flex-grow: 1;
-        }
+      /* Paleta distinta e harmoniosa dos conjuntos */
+      --N-color: #059669;
+      --N-fill: #d1fae5;
+      --N-lit: #a7f3d0;
+      --N-bg: #ecfdf5;
 
-        .nav-button {
-            background: none;
-            border: none;
-            padding: 15px 25px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #555;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: background-color 0.3s;
-            border-bottom: 3px solid transparent;
-            text-decoration: none; 
-            display: flex; 
-            align-items: center; 
-        }
+      --Z-color: #7c3aed;
+      --Z-fill: #ede9fe;
+      --Z-lit: #ddd6fe;
+      --Z-bg: #f5f3ff;
 
-        .nav-button.active {
-            color: var(--cor-primaria); 
-            border-bottom: 3px solid var(--cor-primaria);
-        }
+      --Q-color: #0284c7;
+      --Q-fill: #e0f2fe;
+      --Q-lit: #bae6fd;
+      --Q-bg: #f0f9ff;
 
-        .nav-button .fas {
-             margin-right: 8px;
-             font-size: 14px;
-        }
+      --I-color: #db2777;
+      --I-fill: #fce7f3;
+      --I-lit: #fbcfe8;
+      --I-bg: #fdf2f8;
 
-        /* ----------------------------------- */
-        /* EXPLORADOR E DIAGRAMA (LAYOUT) */
-        /* ----------------------------------- */
+      --R-color: #1d4ed8;
+      --R-fill: #eff6ff;
+      --R-lit: #dbeafe;
+      --R-bg: #eff6ff;
 
-        h1 {
-            color: var(--cor-matematica);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
+      --complex-color: #6d28d9;
+      --complex-bg: #f5f3ff;
+      --error-color: #dc2626;
+      --error-bg: #fef2f2;
 
-        .explorer-container {
-            display: flex;
-            flex-wrap: wrap; 
-            gap: 30px;
-            background-color: var(--cor-fundo-card);
-            border: 1px solid var(--cor-borda);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 2px 6px rgba(15, 37, 68, 0.04);
+      --shadow-md: 0 8px 24px rgba(15, 37, 68, 0.06);
+      --ease: 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+      --font-sans: 'Nunito Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
 
-        .selector-panel {
-            flex: 1;
-            min-width: 350px;
-        }
+    /* =========================================================================
+       2. BASE E RESET
+       ========================================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .definition-box {
-            margin-top: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            min-height: 250px;
-        }
-        
-        .definition-box h2 {
-            margin-top: 0;
-            padding-left: 0;
-            border-left: none;
-            color: var(--cor-secundaria);
-            font-size: 1.4em;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        
-        /* ----------------------------------- */
-        /* DIAGRAMA E LEGENDAS */
-        /* ----------------------------------- */
-        
-        .diagram-wrapper {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 20px;
-            min-width: 400px;
-        }
+    html {
+      font-size: 16px;
+    }
 
-        .venn-diagram {
-            display: inline-block;
-            position: relative;
-            width: 450px;
-            height: 350px;
-            margin-bottom: 20px;
-        }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        .set-ring {
-            position: absolute;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            color: white;
-            box-sizing: border-box;
-            background-color: rgba(255, 255, 255, 0); 
-            border: 3px solid rgba(0, 0, 0, 0.2); 
-            transition: all 0.4s ease-in-out;
-            cursor: pointer;
-        }
-        
-        /* Cores Base dos Conjuntos */
-        .r-set { background-color: rgba(74, 20, 140, 0.1); border-color: var(--cor-R); top: 0; left: 0; width: 100%; height: 100%; }
-        .q-set { background-color: rgba(0, 137, 123, 0.1); border-color: var(--cor-Q); top: 50px; left: 20px; width: 60%; height: 60%; flex-direction: column; padding-top: 50px; }
-        .i-set { background-color: rgba(216, 67, 21, 0.1); border-color: var(--cor-I); top: 70px; right: 20px; width: 35%; height: 35%; }
-        .z-set { background-color: rgba(21, 101, 192, 0.1); border-color: var(--cor-Z); position: relative; top: -40px; left: -10px; width: 70%; height: 70%; }
-        .n-set { background-color: rgba(251, 192, 45, 0.1); border-color: var(--cor-N); position: relative; top: -20px; width: 60%; height: 60%; }
-        
-        /* ESTILO DE DESTAQUE (HIGHLIGHT) */
-        .highlight-r { background-color: var(--cor-R); border-color: #311b92; color: white; }
-        .highlight-q { background-color: var(--cor-Q); border-color: #00695c; color: white; }
-        .highlight-i { background-color: var(--cor-I); border-color: #bf360c; color: white; }
-        .highlight-z { background-color: var(--cor-Z); border-color: #0d47a1; color: white; }
-        .highlight-n { background-color: var(--cor-N); border-color: #f9a825; color: var(--cor-secundaria); }
+    button, input {
+      font-family: inherit;
+    }
 
-        /* SEÇÃO: LEGENDA */
-        .legend-section {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-            padding: 15px 0;
-            border-top: 1px solid #eee;
-            width: 100%;
-        }
+    button {
+      cursor: pointer;
+    }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.9em;
-            font-weight: bold;
-            color: #555;
-        }
+    /* =========================================================================
+       3. CABEÇALHO COMPACTO EM UMA LINHA
+       ========================================================================= */
+    .lab-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
 
-        .color-box {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 8px;
-            border: 1px solid #ccc;
-        }
+    .header-inner {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 11px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-        /* ----------------------------------- */
-        /* VERIFICADOR NUMÉRICO */
-        /* ----------------------------------- */
-        
-        .number-checker-section {
-            margin-top: 40px;
-            padding: 25px;
-            background-color: var(--cor-fundo-card);
-            border: 1px solid var(--cor-borda);
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
 
-        .checker-input-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            align-items: center;
-        }
-        
-        #numberInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid var(--cor-matematica);
-            border-radius: 5px;
-            font-size: 16px;
-        }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff690b 0%, #ff8a3d 100%);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(255, 105, 11, 0.24);
+    }
 
-        .check-button {
-            padding: 10px 20px;
-            background-color: var(--cor-matematica);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .checker-result-box {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            background-color: #f7f7f7;
-        }
-        
-        .checker-result-box strong {
-            color: var(--cor-secundaria);
-        }
-        
-        .set-tag {
-            display: inline-block;
-            padding: 5px 10px;
-            margin-right: 8px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            font-weight: bold;
-            color: white;
-            font-size: 0.9em;
-        }
-        
-        .tag-R { background-color: var(--cor-R); }
-        .tag-Q { background-color: var(--cor-Q); }
-        .tag-I { background-color: var(--cor-I); }
-        .tag-Z { background-color: var(--cor-Z); }
-        .tag-N { background-color: var(--cor-N); color: var(--cor-secundaria); }
-        
-    </style>
+    .brand-copy {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-copy h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .brand-copy p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* =========================================================================
+       4. LAYOUT EM DUAS COLUNAS EQUILIBRADAS (1366x768 & 1920x1080)
+       ========================================================================= */
+    .lab-grid {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 18px 22px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.96fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    /* =========================================================================
+       5. ÁREA ESQUERDA — SELETOR DE CONJUNTOS + DIAGRAMA SVG (SEM BOLINHA)
+       ========================================================================= */
+    .diagram-panel {
+      padding: 16px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Barra de pills para seleção direta */
+    .set-selector-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .set-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 700;
+      transition: all var(--ease);
+    }
+
+    .set-pill:hover {
+      border-color: var(--border-strong);
+      background: var(--bg-page);
+      transform: translateY(-1px);
+    }
+
+    .set-pill .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .set-pill[data-select="ALL"] .pill-dot { background: var(--text-primary); }
+    .set-pill[data-select="N"] .pill-dot { background: var(--N-color); }
+    .set-pill[data-select="Z"] .pill-dot { background: var(--Z-color); }
+    .set-pill[data-select="Q"] .pill-dot { background: var(--Q-color); }
+    .set-pill[data-select="I"] .pill-dot { background: var(--I-color); }
+    .set-pill[data-select="R"] .pill-dot { background: var(--R-color); }
+
+    /* Estados ativos das pills */
+    .set-pill.active[data-select="ALL"] {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+      color: #ffffff;
+    }
+    .set-pill.active[data-select="ALL"] .pill-dot { background: #ffffff; }
+
+    .set-pill.active[data-select="N"] {
+      background: var(--N-color);
+      border-color: var(--N-color);
+      color: #ffffff;
+    }
+    .set-pill.active[data-select="Z"] {
+      background: var(--Z-color);
+      border-color: var(--Z-color);
+      color: #ffffff;
+    }
+    .set-pill.active[data-select="Q"] {
+      background: var(--Q-color);
+      border-color: var(--Q-color);
+      color: #ffffff;
+    }
+    .set-pill.active[data-select="I"] {
+      background: var(--I-color);
+      border-color: var(--I-color);
+      color: #ffffff;
+    }
+    .set-pill.active[data-select="R"] {
+      background: var(--R-color);
+      border-color: var(--R-color);
+      color: #ffffff;
+    }
+    .set-pill.active .pill-dot {
+      background: #ffffff;
+    }
+
+    /* Palco do diagrama SVG */
+    .diagram-canvas {
+      position: relative;
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: #fcfdff;
+      overflow: hidden;
+    }
+
+    #setsSvg {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Regiões interativas do SVG */
+    .svg-region {
+      cursor: pointer;
+      outline: none;
+    }
+
+    .svg-region .region-shape {
+      transition: fill 0.3s ease, stroke 0.3s ease, stroke-width 0.25s ease, filter 0.3s ease;
+    }
+
+    .svg-region text {
+      font-family: var(--font-sans);
+      pointer-events: none;
+      transition: fill 0.3s ease, opacity 0.3s ease;
+    }
+
+    .svg-title {
+      font-weight: 800;
+    }
+
+    .svg-sub {
+      font-weight: 700;
+    }
+
+    .svg-ex {
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .svg-region:hover .region-shape {
+      stroke-width: 3.2px;
+      filter: drop-shadow(0 0 8px rgba(15, 37, 68, 0.14));
+    }
+
+    /* Estado ACESO (conjunto pertencente / relacionado na hierarquia) */
+    .svg-region.is-lit .region-shape {
+      stroke-width: 3px;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 0 8px rgba(15, 37, 68, 0.11));
+    }
+
+    .svg-region.is-lit[data-set="N"] .region-shape { fill: var(--N-lit); stroke: #047857; }
+    .svg-region.is-lit[data-set="Z"] .region-shape { fill: var(--Z-lit); stroke: #6d28d9; }
+    .svg-region.is-lit[data-set="Q"] .region-shape { fill: var(--Q-lit); stroke: #0369a1; }
+    .svg-region.is-lit[data-set="I"] .region-shape { fill: var(--I-lit); stroke: #be185d; }
+    .svg-region.is-lit[data-set="R"] .region-shape { fill: var(--R-lit); stroke: #1d4ed8; }
+
+    /* Destaque extra no conjunto foco (mais específico) */
+    .svg-region.is-primary .region-shape {
+      stroke-width: 3.8px;
+      filter: drop-shadow(0 0 11px rgba(15, 37, 68, 0.18));
+    }
+
+    /* Estado APAGADO / NEUTRO (não relacionado na hierarquia ou não pertencente) */
+    .svg-region.is-dimmed .region-shape {
+      fill: #f1f5f9 !important;
+      stroke: #cbd5e1 !important;
+      stroke-width: 1.6px !important;
+      stroke-dasharray: 5 4;
+      filter: none;
+    }
+
+    .svg-region.is-dimmed text {
+      fill: #94a3b8 !important;
+      opacity: 0.65;
+    }
+
+    .svg-region.is-dimmed:hover .region-shape {
+      fill: #e2e8f0 !important;
+      stroke: #94a3b8 !important;
+    }
+
+    /* Faixa discreta e limpa abaixo do diagrama */
+    .diagram-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      transition: background var(--ease), border-color var(--ease);
+    }
+
+    .diagram-status-bar.status-outside {
+      background: var(--complex-bg);
+      border-color: #ddd6fe;
+      color: var(--complex-color);
+    }
+
+    .diagram-status-bar.status-error {
+      background: var(--error-bg);
+      border-color: #fecaca;
+      color: var(--error-color);
+    }
+
+    .status-main {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .status-relation-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      font-weight: 800;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .status-relation-tag.accent {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent-hover);
+    }
+
+    .status-text {
+      font-weight: 600;
+    }
+
+    /* =========================================================================
+       6. ÁREA DIREITA — DISPLAY ANALISADOR + RESUMO + 3 ABAS LIMPAS
+       ========================================================================= */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .input-panel {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .input-box {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    #exprInput {
+      width: 100%;
+      padding: 12px 38px 12px 14px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      background: var(--bg-page);
+      border: 2px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: all var(--ease);
+    }
+
+    #exprInput::placeholder {
+      font-weight: 600;
+      color: #94a3b8;
+      font-size: 0.94rem;
+    }
+
+    #exprInput:focus {
+      background: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 105, 11, 0.13);
+    }
+
+    .clear-x-btn {
+      position: absolute;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: #e2e8f0;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--ease);
+    }
+
+    .clear-x-btn:hover {
+      background: #cbd5e1;
+      color: var(--text-primary);
+    }
+
+    .btn-analyze {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 0 22px;
+      border-radius: var(--radius-md);
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 12px rgba(255, 105, 11, 0.25);
+      transition: all var(--ease);
+      white-space: nowrap;
+    }
+
+    .btn-analyze:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(255, 105, 11, 0.32);
+    }
+
+    .btn-analyze:active {
+      transform: translateY(0);
+    }
+
+    /* Linhas compactas de atalhos de símbolos e exemplos */
+    .compact-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .row-label {
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-right: 3px;
+    }
+
+    .sym-btn {
+      min-width: 30px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--ease);
+    }
+
+    .sym-btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent-hover);
+    }
+
+    .quick-ex {
+      padding: 4px 9px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all var(--ease);
+    }
+
+    .quick-ex:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-hover);
+    }
+
+    /* =========================================================================
+       7. CARD DE RESUMO + ABAS DO PAINEL DIREITO
+       ========================================================================= */
+    .analysis-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Resumo limpo e objetivo */
+    .summary-area {
+      padding: 15px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+      animation: softFade 0.22s ease;
+    }
+
+    @keyframes softFade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 11px;
+    }
+
+    .summary-value-group {
+      min-width: 0;
+    }
+
+    .summary-expr {
+      font-size: 1.24rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
+    .summary-sub {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .primary-badge {
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.79rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .bg-N { background: var(--N-color); }
+    .bg-Z { background: var(--Z-color); }
+    .bg-Q { background: var(--Q-color); }
+    .bg-I { background: var(--I-color); }
+    .bg-R { background: var(--R-color); }
+    .bg-C { background: var(--complex-color); }
+    .bg-ERR { background: var(--error-color); }
+
+    /* 5 pílulas compactas de pertencimento (∈ / ∉) */
+    .membership-pills {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .m-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 4px;
+      border-radius: 9px;
+      font-size: 0.83rem;
+      font-weight: 800;
+      border: 1.5px solid var(--border);
+      background: var(--bg-page);
+      color: #94a3b8;
+      transition: all var(--ease);
+    }
+
+    .m-pill.in[data-set="N"] { background: var(--N-bg); border-color: rgba(5, 150, 105, 0.4); color: #065f46; }
+    .m-pill.in[data-set="Z"] { background: var(--Z-bg); border-color: rgba(124, 58, 237, 0.4); color: #5b21b6; }
+    .m-pill.in[data-set="Q"] { background: var(--Q-bg); border-color: rgba(2, 132, 199, 0.4); color: #075985; }
+    .m-pill.in[data-set="I"] { background: var(--I-bg); border-color: rgba(219, 39, 119, 0.4); color: #9d174d; }
+    .m-pill.in[data-set="R"] { background: var(--R-bg); border-color: rgba(29, 78, 216, 0.4); color: #1e3a8a; }
+
+    /* Navegação das 3 Abas Limpas */
+    .tabs-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-page);
+      padding: 0 10px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      padding: 11px 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: color var(--ease);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 0;
+      height: 2.5px;
+      border-radius: 3px 3px 0 0;
+      background: var(--accent);
+    }
+
+    /* Corpo das abas */
+    .tab-content {
+      padding: 16px 18px 18px;
+      min-height: 300px;
+    }
+
+    .tab-pane {
+      display: none;
+      animation: softFade 0.2s ease;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Aba 1: Lista objetiva de pertencimento + Entenda a classificação */
+    .detail-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      padding: 8px 11px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.42;
+    }
+
+    .detail-item.is-in {
+      background: #f8fffe;
+      border-color: rgba(5, 150, 105, 0.22);
+    }
+
+    .detail-sym {
+      font-weight: 800;
+      font-size: 0.82rem;
+      min-width: 44px;
+      flex-shrink: 0;
+    }
+
+    .detail-item.is-in .detail-sym { color: var(--N-color); }
+    .detail-item.is-out .detail-sym { color: #94a3b8; }
+
+    .explain-box {
+      padding: 13px 14px;
+      border-radius: var(--radius-md);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+    }
+
+    .explain-title {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .explain-title span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    .steps-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .steps-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .step-idx {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent-hover);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .explain-conclusion {
+      padding: 9px 11px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-soft);
+      border-left: 3.5px solid var(--accent);
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .alert-banner {
+      padding: 11px 13px;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .alert-banner.complex {
+      background: var(--complex-bg);
+      border: 1px solid #ddd6fe;
+      color: #4c1d95;
+    }
+
+    .alert-banner.error {
+      background: var(--error-bg);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    /* Aba 2: Detalhes do Conjunto Selecionado */
+    .set-info-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .set-info-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .set-info-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 1.35rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .set-info-head h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .set-info-head p {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .set-info-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .meta-tile {
+      padding: 9px 11px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+    }
+
+    .meta-tile small {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .meta-tile span {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .set-info-desc {
+      font-size: 0.89rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .set-info-examples {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    /* Aba 3: Histórico & Glossário */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .section-head h4 {
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .btn-clear-hist {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      transition: all var(--ease);
+    }
+
+    .btn-clear-hist:hover {
+      border-color: #fca5a5;
+      color: var(--error-color);
+      background: var(--error-bg);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 170px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding-right: 2px;
+    }
+
+    .history-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      text-align: left;
+      transition: all var(--ease);
+    }
+
+    .history-row:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .history-expr {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-tag {
+      font-size: 0.71rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .empty-msg {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .glossary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .glossary-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all var(--ease);
+    }
+
+    .glossary-row:hover {
+      border-color: var(--border-strong);
+      background: #ffffff;
+    }
+
+    .g-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .glossary-row div {
+      font-size: 0.81rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .glossary-row strong {
+      color: var(--text-primary);
+    }
+
+    /* =========================================================================
+       8. RESPONSIVIDADE (1366x768, TABLETS E TELAS MENORES)
+       ========================================================================= */
+    @media (max-width: 1280px) {
+      .lab-grid {
+        padding: 14px 16px 24px;
+        gap: 14px;
+      }
+      .header-inner {
+        padding: 10px 16px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .brand-copy {
+        gap: 2px;
+        flex-direction: column;
+      }
+      .input-row {
+        flex-direction: column;
+      }
+      .btn-analyze {
+        height: 42px;
+        width: 100%;
+      }
+      .set-info-meta {
+        grid-template-columns: 1fr;
+      }
+      .diagram-panel, .input-panel, .summary-area, .tab-content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- =======================================================================
+       CABEÇALHO COMPACTO EM UMA LINHA
+       ======================================================================= -->
+  <header class="lab-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="2.5" y="3.5" width="19" height="17" rx="5" stroke="currentColor" stroke-width="2.1" />
+            <circle cx="9.8" cy="12" r="4.3" stroke="currentColor" stroke-width="1.9" />
+            <circle cx="9.8" cy="12" r="1.7" fill="currentColor" />
+            <rect x="16" y="7.5" width="3" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7" />
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <h1>Conjuntos Numéricos</h1>
+          <p>Explore, classifique e compreenda os números</p>
+        </div>
+      </div>
+    </div>
+  </header>
 
-      <script src="https://erik-bernardo.github.io/SimuLab/dados/head.js"></script>
+  <!-- =======================================================================
+       LABORATÓRIO EM DUAS COLUNAS EQUILIBRADAS
+       ======================================================================= -->
+  <main class="lab-grid">
+    <!-- =====================================================================
+         ÁREA ESQUERDA: SELETOR DE CONJUNTOS + DIAGRAMA INTERATIVO SVG
+         ===================================================================== -->
+    <section class="panel diagram-panel" aria-label="Diagrama interativo dos conjuntos numéricos">
+      <!-- Barra limpa de seleção direta dos conjuntos -->
+      <div class="set-selector-bar" role="group" aria-label="Selecionar conjunto numérico">
+        <button type="button" class="set-pill active" data-select="ALL"><span class="pill-dot"></span>Todos</button>
+        <button type="button" class="set-pill" data-select="N"><span class="pill-dot"></span>ℕ Naturais</button>
+        <button type="button" class="set-pill" data-select="Z"><span class="pill-dot"></span>ℤ Inteiros</button>
+        <button type="button" class="set-pill" data-select="Q"><span class="pill-dot"></span>ℚ Racionais</button>
+        <button type="button" class="set-pill" data-select="I"><span class="pill-dot"></span>𝕀 Irracionais</button>
+        <button type="button" class="set-pill" data-select="R"><span class="pill-dot"></span>ℝ Reais</button>
+      </div>
 
+      <!-- Diagrama SVG rigoroso: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ e 𝕀 ⊂ ℝ com 𝕀 ∩ ℚ = ∅ (sem bolinhas) -->
+      <div class="diagram-canvas">
+        <svg id="setsSvg" viewBox="0 0 700 420" role="img" aria-label="Diagrama de inclusão dos conjuntos numéricos Reais, Racionais, Inteiros, Naturais e Irracionais">
+          <defs>
+            <pattern id="labGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(15, 37, 68, 0.045)" stroke-width="1" />
+            </pattern>
+          </defs>
 
-    <main class="content-area">
+          <!-- Grade discreta de laboratório -->
+          <rect x="0" y="0" width="700" height="420" fill="url(#labGrid)" />
 
-        <h1><i class="fas fa-calculator"></i> Explorador Interativo dos Conjuntos Numéricos</h1>
-        
-        <div class="explorer-container">
+          <!-- REAIS (ℝ): envolve Racionais (ℚ) e Irracionais (𝕀) -->
+          <g class="svg-region" data-set="R" tabindex="0" role="button" aria-label="Conjunto dos Números Reais">
+            <rect class="region-shape" x="14" y="14" width="672" height="392" rx="24" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2.2" />
+            <text class="svg-title" x="34" y="42" fill="#1e3a8a" font-size="16.5">ℝ — Reais</text>
+            <text class="svg-sub" x="668" y="41" fill="#3b82f6" font-size="11.5" text-anchor="end">ℝ = ℚ ∪ 𝕀</text>
+          </g>
 
-            <div class="selector-panel">
-                <div class="select-group">
-                    <label for="setSelector"><i class="fas fa-hand-pointer"></i> SELECIONE O CONJUNTO PARA VER A DEFINIÇÃO:</label>
-                    <select id="setSelector" onchange="exploreSet(this.value)">
-                        <option value="none">-- Selecione um Conjunto para Explorar --</option>
-                        <option value="N">Naturais (N)</option>
-                        <option value="Z">Inteiros (Z)</option>
-                        <option value="Q">Racionais (Q)</option>
-                        <option value="I">Irracionais (I)</option>
-                        <option value="R">Reais (R)</option>
-                    </select>
-                </div>
-                
-                <div class="definition-box" id="definitionBox">
-                    <h2><i class="fas fa-info-circle"></i> Definição e Inclusão</h2>
-                    <p>Ao selecionar um conjunto (ou clicar no diagrama), a descrição aparecerá aqui. O diagrama ao lado irá se iluminar, mostrando todos os conjuntos que ele contém.</p>
-                </div>
+          <!-- RACIONAIS (ℚ): região esquerda/central dentro de ℝ -->
+          <g class="svg-region" data-set="Q" tabindex="0" role="button" aria-label="Conjunto dos Números Racionais">
+            <rect class="region-shape" x="32" y="58" width="442" height="330" rx="108" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.2" />
+            <text class="svg-title" x="114" y="90" fill="#075985" font-size="15.5">ℚ — Racionais</text>
+            <text class="svg-sub" x="114" y="107" fill="#0284c7" font-size="11">Frações, decimais exatos e dízimas</text>
+            <text class="svg-ex" x="76" y="146" fill="#075985">1/2</text>
+            <text class="svg-ex" x="404" y="108" fill="#075985" text-anchor="middle">2,5</text>
+            <text class="svg-ex" x="427" y="216" fill="#075985" text-anchor="middle">0,333...</text>
+            <text class="svg-ex" x="421" y="298" fill="#075985" text-anchor="middle">-7/4</text>
+          </g>
+
+          <!-- INTEIROS (ℤ): totalmente contido em ℚ -->
+          <g class="svg-region" data-set="Z" tabindex="0" role="button" aria-label="Conjunto dos Números Inteiros">
+            <rect class="region-shape" x="62" y="140" width="322" height="226" rx="82" fill="#ede9fe" stroke="#7c3aed" stroke-width="2.2" />
+            <text class="svg-title" x="128" y="170" fill="#5b21b6" font-size="15">ℤ — Inteiros</text>
+            <text class="svg-sub" x="128" y="186" fill="#7c3aed" font-size="10.8">Naturais e negativos</text>
+            <text class="svg-ex" x="88" y="250" fill="#5b21b6">-1</text>
+            <text class="svg-ex" x="88" y="302" fill="#5b21b6">-8</text>
+            <text class="svg-ex" x="348" y="290" fill="#5b21b6" text-anchor="middle">-42</text>
+          </g>
+
+          <!-- NATURAIS (ℕ): totalmente contido em ℤ -->
+          <g class="svg-region" data-set="N" tabindex="0" role="button" aria-label="Conjunto dos Números Naturais">
+            <rect class="region-shape" x="124" y="212" width="194" height="132" rx="56" fill="#d1fae5" stroke="#059669" stroke-width="2.2" />
+            <text class="svg-title" x="221" y="248" fill="#065f46" font-size="15" text-anchor="middle">ℕ — Naturais</text>
+            <text class="svg-sub" x="221" y="266" fill="#059669" font-size="10.8" text-anchor="middle">Inteiros ≥ 0</text>
+            <text class="svg-ex" x="162" y="314" fill="#065f46" text-anchor="middle">0</text>
+            <text class="svg-ex" x="200" y="314" fill="#065f46" text-anchor="middle">1</text>
+            <text class="svg-ex" x="238" y="314" fill="#065f46" text-anchor="middle">5</text>
+            <text class="svg-ex" x="280" y="314" fill="#065f46" text-anchor="middle">12</text>
+          </g>
+
+          <!-- Separador visual da disjunção 𝕀 ∩ ℚ = ∅ -->
+          <g aria-hidden="true">
+            <line x1="491" y1="68" x2="491" y2="378" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5" />
+            <rect x="461" y="352" width="60" height="20" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.1" />
+            <text x="491" y="365.5" text-anchor="middle" font-family="Nunito Sans, sans-serif" font-size="10" font-weight="800" fill="#64748b">𝕀 ∩ ℚ = ∅</text>
+          </g>
+
+          <!-- IRRACIONAIS (𝕀): totalmente separado de ℚ, dentro de ℝ -->
+          <g class="svg-region" data-set="I" tabindex="0" role="button" aria-label="Conjunto dos Números Irracionais">
+            <rect class="region-shape" x="508" y="58" width="160" height="330" rx="48" fill="#fce7f3" stroke="#db2777" stroke-width="2.2" />
+            <text class="svg-title" x="588" y="100" fill="#9d174d" font-size="15.5" text-anchor="middle">𝕀 — Irracionais</text>
+            <text class="svg-sub" x="588" y="120" fill="#db2777" font-size="10.8" text-anchor="middle">Infinitos e</text>
+            <text class="svg-sub" x="588" y="134" fill="#db2777" font-size="10.8" text-anchor="middle">não periódicos</text>
+            <text class="svg-ex" x="554" y="226" fill="#9d174d" text-anchor="middle">π</text>
+            <text class="svg-ex" x="622" y="226" fill="#9d174d" text-anchor="middle">√2</text>
+            <text class="svg-ex" x="554" y="286" fill="#9d174d" text-anchor="middle">e</text>
+            <text class="svg-ex" x="622" y="286" fill="#9d174d" text-anchor="middle">φ</text>
+            <text class="svg-ex" x="588" y="340" fill="#9d174d" text-anchor="middle">√3</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Faixa discreta da relação ativa / resultado no diagrama -->
+      <div class="diagram-status-bar" id="diagramStatusBar" aria-live="polite">
+        <div class="status-main">
+          <span class="status-relation-tag" id="diagramRelationTag">ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ  |  𝕀 ⊂ ℝ</span>
+          <span class="status-text" id="diagramStatusText">Selecione um conjunto acima ou clique no diagrama para destacar sua hierarquia.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         ÁREA DIREITA: DISPLAY ANALISADOR + RESUMO + 3 ABAS LIMPAS
+         ===================================================================== -->
+    <section class="right-column" aria-label="Verificador inteligente e explicações">
+      <!-- Painel de Entrada -->
+      <div class="panel input-panel">
+        <form id="analyzerForm" novalidate>
+          <div class="input-row">
+            <div class="input-box">
+              <input
+                type="text"
+                id="exprInput"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Digite um número, fração, raiz, expressão ou letra (ex.: 2,5, √2, 2x)"
+                aria-label="Expressão matemática para analisar"
+              />
+              <button type="button" class="clear-x-btn" id="clearInputBtn" title="Limpar campo" aria-label="Limpar campo">×</button>
             </div>
+            <button type="submit" class="btn-analyze">Analisar</button>
+          </div>
+        </form>
 
-            <div class="diagram-wrapper">
-                <div class="venn-diagram">
-                    <div class="set-ring r-set" id="set-R" onclick="exploreSet('R')">
-                        <div class="set-ring q-set" id="set-Q" onclick="exploreSet('Q')">
-                            <div class="set-ring z-set" id="set-Z" onclick="exploreSet('Z')">
-                                <div class="set-ring n-set" id="set-N" onclick="exploreSet('N')">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="set-ring i-set" id="set-I" onclick="exploreSet('I')" style="position: absolute; right: 20px; bottom: 50px;">
-                        </div>
-                        
-                    </div>
-                </div>
-
-                <div class="legend-section">
-                    <div class="legend-item"><div class="color-box" style="background-color: var(--cor-R);"></div>Reais (R)</div>
-                    <div class="legend-item"><div class="color-box" style="background-color: var(--cor-Q);"></div>Racionais (Q)</div>
-                    <div class="legend-item"><div class="color-box" style="background-color: var(--cor-I);"></div>Irracionais (I)</div>
-                    <div class="legend-item"><div class="color-box" style="background-color: var(--cor-Z);"></div>Inteiros (Z)</div>
-                    <div class="legend-item"><div class="color-box" style="background-color: var(--cor-N);"></div>Naturais (N)</div>
-                </div>
-            </div>
+        <!-- Linha compacta de símbolos -->
+        <div class="compact-row" role="toolbar" aria-label="Atalhos de símbolos matemáticos">
+          <span class="row-label">Símbolos</span>
+          <button type="button" class="sym-btn" data-insert="√" title="Raiz quadrada">√</button>
+          <button type="button" class="sym-btn" data-insert="∛" title="Raiz cúbica">∛</button>
+          <button type="button" class="sym-btn" data-insert="π" title="Pi">π</button>
+          <button type="button" class="sym-btn" data-insert="e" title="Número de Euler">e</button>
+          <button type="button" class="sym-btn" data-insert="φ" title="Razão Áurea (Phi)">φ</button>
+          <button type="button" class="sym-btn" data-insert="/" title="Fração / Divisão">/</button>
+          <button type="button" class="sym-btn" data-insert="^" title="Potência">^</button>
+          <button type="button" class="sym-btn" data-insert="," title="Vírgula decimal">,</button>
+          <button type="button" class="sym-btn" data-insert="..." title="Dízima periódica">...</button>
         </div>
 
-        <div class="number-checker-section">
-            <h2><i class="fas fa-question-circle"></i> Verificador Numérico</h2>
-            <p>Digite um número, fração ou constante matemática para ver a qual(is) conjunto(s) ele pertence. (Ex: 5, -1/2, 0.333, pi, 2pi, alfa)</p>
-            <div class="checker-input-group">
-                <input type="text" id="numberInput" placeholder="Ex: pi, 2pi, e, 5, -1/2, sqrt(2)">
-                <button class="check-button" onclick="checkNumber()">VERIFICAR</button>
+        <!-- Linha compacta de exemplos rápidos -->
+        <div class="compact-row" aria-label="Exemplos rápidos">
+          <span class="row-label">Exemplos</span>
+          <button type="button" class="quick-ex" data-expr="7">7</button>
+          <button type="button" class="quick-ex" data-expr="-3">-3</button>
+          <button type="button" class="quick-ex" data-expr="3/4">3/4</button>
+          <button type="button" class="quick-ex" data-expr="2,5">2,5</button>
+          <button type="button" class="quick-ex" data-expr="0,333...">0,333...</button>
+          <button type="button" class="quick-ex" data-expr="√2">√2</button>
+          <button type="button" class="quick-ex" data-expr="√16">√16</button>
+          <button type="button" class="quick-ex" data-expr="π">π</button>
+          <button type="button" class="quick-ex" data-expr="x">x</button>
+          <button type="button" class="quick-ex" data-expr="√(-4)">√(-4)</button>
+          <button type="button" class="quick-ex" data-expr="5/0">5/0</button>
+        </div>
+      </div>
+
+      <!-- Painel de Resumo + 3 Abas Limpas -->
+      <div class="panel analysis-panel">
+        <!-- Resumo do Resultado (sempre visível e objetivo) -->
+        <div class="summary-area" id="summaryArea" aria-live="polite">
+          <div class="summary-top">
+            <div class="summary-value-group">
+              <div class="summary-expr" id="summaryExpr">—</div>
+              <div class="summary-sub" id="summarySub">Digite uma expressão acima para classificar</div>
             </div>
-            
-            <div class="checker-result-box" id="checkerResultBox" style="display: none;">
-                <p>O número <strong id="numberDisplay"></strong> pertence aos conjuntos:</p>
-                <div id="setTagsContainer"></div>
-            </div>
+            <span class="primary-badge bg-Q" id="summaryBadge">PRONTO</span>
+          </div>
+
+          <!-- 5 pílulas compactas de pertencimento ∈ / ∉ -->
+          <div class="membership-pills" id="membershipPills" aria-label="Pertencimento aos conjuntos numéricos">
+            <div class="m-pill" data-set="N">∉ ℕ</div>
+            <div class="m-pill" data-set="Z">∉ ℤ</div>
+            <div class="m-pill" data-set="Q">∉ ℚ</div>
+            <div class="m-pill" data-set="I">∉ 𝕀</div>
+            <div class="m-pill" data-set="R">∉ ℝ</div>
+          </div>
         </div>
 
-    </main>
-    
-    <script>
-        const setDefinitions = {
-            'N': {
-                name: 'Conjunto dos Naturais (N)',
-                definition: 'São os números inteiros e positivos, utilizados para contagem. Geralmente, inclui o zero.',
-                examples: 'Exemplos: {0, 1, 2, 3, 4, ...}',
-                inclusion: 'O conjunto Naturais (N) está contido em todos os outros conjuntos (Z, Q, R).'
-            },
-            'Z': {
-                name: 'Conjunto dos Inteiros (Z)',
-                definition: 'Inclui todos os números Naturais (N) e seus opostos (os números negativos inteiros).',
-                examples: 'Exemplos: {..., -3, -2, -1, 0, 1, 2, 3, ...}',
-                inclusion: 'Contém os Naturais (N). Está contido nos Racionais (Q) e Reais (R).'
-            },
-            'Q': {
-                name: 'Conjunto dos Racionais (Q)',
-                definition: 'Inclui todos os Inteiros (Z) e todos os números que podem ser escritos como uma fração (a/b). Inclui decimais exatos e dízimas periódicas.',
-                examples: 'Exemplos: {1/2, -0.75, 5, -10/3, 0.333...}',
-                inclusion: 'Contém os Inteiros (Z) e os Naturais (N). Está contido nos Reais (R).'
-            },
-            'I': {
-                name: 'Conjunto dos Irracionais (I)',
-                definition: 'Formado por números que NÃO podem ser escritos como fração, resultando em decimais infinitos e não periódicos.',
-                examples: 'Exemplos: {pi (π), raiz quadrada de 2 (√2), e (número de Euler)}',
-                inclusion: 'É um conjunto separado dos Racionais (Q), mas está contido nos Reais (R).'
-            },
-            'R': {
-                name: 'Conjunto dos Reais (R)',
-                definition: 'É o conjunto de todos os números Racionais (Q) e Irracionais (I). É o conjunto mais abrangente no Ensino Médio.',
-                examples: 'Inclui: todos os inteiros, frações, dízimas, raízes não exatas, pi.',
-                inclusion: 'Contém todos os outros conjuntos (N, Z, Q, I).'
-            }
-        };
+        <!-- Sistema de 3 Abas -->
+        <nav class="tabs-nav" role="tablist" aria-label="Detalhes da análise">
+          <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="analysis">Análise</button>
+          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="set">Conjunto</button>
+          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="history">Histórico &amp; Glossário</button>
+        </nav>
 
-        /**
-         * Reseta os estilos de destaque de todos os conjuntos.
-         */
-        function resetHighlights() {
-            document.querySelectorAll('.set-ring').forEach(ring => {
-                ring.classList.remove('highlight-r', 'highlight-q', 'highlight-i', 'highlight-z', 'highlight-n');
-            });
+        <!-- Conteúdo das 3 Abas -->
+        <div class="tab-content">
+          <!-- Aba 1: Análise + Entenda a classificação -->
+          <div class="tab-pane active" id="tab-analysis" role="tabpanel"></div>
+
+          <!-- Aba 2: Conjunto Selecionado -->
+          <div class="tab-pane" id="tab-set" role="tabpanel"></div>
+
+          <!-- Aba 3: Histórico & Glossário -->
+          <div class="tab-pane" id="tab-history" role="tabpanel">
+            <div class="section-head">
+              <h4>Últimas Análises</h4>
+              <button type="button" class="btn-clear-hist" id="clearHistoryBtn">Limpar histórico</button>
+            </div>
+            <div id="historyContainer"></div>
+
+            <div class="section-head">
+              <h4>Glossário Resumido</h4>
+            </div>
+            <div class="glossary-list" id="glossaryList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* =======================================================================
+         1. METADADOS DIDÁTICOS E HIERARQUIA DE INCLUSÃO DOS CONJUNTOS
+         ======================================================================= */
+      const SET_ORDER = ['N', 'Z', 'Q', 'I', 'R'];
+
+      // Conjuntos que ficam acesos (coloridos) quando o usuário seleciona cada opção
+      const INCLUSION_MAP = {
+        ALL: ['N', 'Z', 'Q', 'I', 'R'],
+        N: ['N', 'Z', 'Q', 'R'],
+        Z: ['Z', 'Q', 'R'],
+        Q: ['Q', 'R'],
+        I: ['I', 'R'],
+        R: ['N', 'Z', 'Q', 'I', 'R']
+      };
+
+      const SET_INFO = {
+        N: {
+          code: 'N',
+          symbol: 'ℕ',
+          name: 'Números Naturais',
+          badge: 'NATURAL (ℕ)',
+          color: '#059669',
+          notation: 'ℕ = {0, 1, 2, 3, 4, ...}',
+          relation: 'ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ',
+          statusLine: 'Todo número natural pertence aos Naturais, Inteiros, Racionais e Reais.',
+          definition: 'Reúne os números inteiros não negativos usados para contagem e ordenação. Pela inclusão hierárquica, todo natural também é inteiro, racional e real.',
+          shortGloss: 'Inteiros não negativos (0, 1, 2, 3...). Todo natural é inteiro, racional e real.',
+          examples: ['0', '7', '√16', '10/2', '0,5 + 0,5', '∛8']
+        },
+        Z: {
+          code: 'Z',
+          symbol: 'ℤ',
+          name: 'Números Inteiros',
+          badge: 'INTEIRO (ℤ)',
+          color: '#7c3aed',
+          notation: 'ℤ = {..., -3, -2, -1, 0, 1, 2, 3, ...}',
+          relation: 'ℤ ⊂ ℚ ⊂ ℝ',
+          statusLine: 'Todo número inteiro pertence aos Inteiros, Racionais e Reais.',
+          definition: 'Contém os naturais, o zero e os números inteiros negativos (sem parte decimal). Todo inteiro pode ser escrito como fração de denominador 1, logo também é racional e real.',
+          shortGloss: 'Naturais e seus opostos negativos (..., -2, -1, 0, 1, 2...). Sem parte decimal.',
+          examples: ['-8', '-3', '0', '2 - 7', '∛(-8)', '-12/3']
+        },
+        Q: {
+          code: 'Q',
+          symbol: 'ℚ',
+          name: 'Números Racionais',
+          badge: 'RACIONAL (ℚ)',
+          color: '#0284c7',
+          notation: 'ℚ = { p/q | p, q ∈ ℤ e q ≠ 0 }',
+          relation: 'ℚ ⊂ ℝ',
+          statusLine: 'Todo número racional pertence aos Racionais e aos Reais (e nunca aos Irracionais).',
+          definition: 'Qualquer número que pode ser expresso como fração entre dois inteiros com denominador diferente de zero. Inclui inteiros, frações, decimais exatos e dízimas periódicas.',
+          shortGloss: 'Expressáveis como fração p/q (q ≠ 0): inteiros, decimais exatos e dízimas periódicas.',
+          examples: ['3/4', '2,5', '-7/4', '0,333...', '0,1(6)', '1,2323...']
+        },
+        I: {
+          code: 'I',
+          symbol: '𝕀',
+          name: 'Números Irracionais',
+          badge: 'IRRACIONAL (𝕀)',
+          color: '#db2777',
+          notation: '𝕀 = ℝ \\ ℚ  (𝕀 ∩ ℚ = ∅)',
+          relation: '𝕀 ⊂ ℝ  |  𝕀 ∩ ℚ = ∅',
+          statusLine: 'Todo número irracional pertence aos Irracionais e aos Reais, sem interseção com os Racionais.',
+          definition: 'Números reais que não podem ser representados como fração de dois inteiros. Possuem representação decimal infinita e não periódica, como raízes não exatas e constantes irracionais.',
+          shortGloss: 'Reais com expansão decimal infinita e não periódica (π, e, φ, √2, ∛2). Disjunto de ℚ.',
+          examples: ['√2', 'π', 'e', 'φ', '∛2', '2x']
+        },
+        R: {
+          code: 'R',
+          symbol: 'ℝ',
+          name: 'Números Reais',
+          badge: 'REAL (ℝ)',
+          color: '#1d4ed8',
+          notation: 'ℝ = ℚ ∪ 𝕀',
+          relation: 'ℝ = ℚ ∪ 𝕀',
+          statusLine: 'Os Reais reúnem todos os Racionais (ℕ, ℤ, ℚ) e todos os Irracionais (𝕀) na reta numérica.',
+          definition: 'União completa dos conjuntos dos Racionais (ℚ) e Irracionais (𝕀). Raízes de índice par de números negativos ficam fora de ℝ (pertencem aos Complexos ℂ).',
+          shortGloss: 'União de Racionais e Irracionais (ℝ = ℚ ∪ 𝕀). Preenche toda a reta numérica.',
+          examples: ['7', '-3', '2,5', '0,333...', '√2', 'π']
+        }
+      };
+
+      // Constantes irracionais conhecidas e seus valores aproximados
+      const KNOWN_CONSTANTS = {
+        'π': { name: 'π (Pi)', approx: Math.PI, desc: 'a constante irracional π (razão entre perímetro e diâmetro da circunferência)' },
+        'e': { name: 'e (Número de Euler)', approx: Math.E, desc: 'a constante irracional e (base dos logaritmos naturais)' },
+        'φ': { name: 'φ (Razão Áurea)', approx: (1 + Math.sqrt(5)) / 2, desc: 'a constante irracional φ (razão áurea, (1 + √5)/2)' },
+        'τ': { name: 'τ (Tau = 2π)', approx: 2 * Math.PI, desc: 'a constante irracional τ (equivalente a 2π)' }
+      };
+
+      /* =======================================================================
+         2. MOTOR MATEMÁTICO SIMBÓLICO EXATO (BigInt, SEM eval())
+            + SUPORTE A RAÍZES CÚBICAS, CONSTANTES E REGRA DE LETRAS = IRRACIONAL
+         ======================================================================= */
+
+      class MathSyntaxError extends Error {
+        constructor(msg) { super(msg); this.name = 'MathSyntaxError'; }
+      }
+      class DivisionByZeroError extends Error {
+        constructor(msg) { super(msg); this.name = 'DivisionByZeroError'; }
+      }
+      class ComplexNumberError extends Error {
+        constructor(msg, detail = '') {
+          super(msg);
+          this.name = 'ComplexNumberError';
+          this.detail = detail;
+        }
+      }
+
+      /** Operações inteiras exatas com BigInt */
+      const BigMath = {
+        abs(n) { return n < 0n ? -n : n; },
+
+        gcd(a, b) {
+          a = this.abs(a);
+          b = this.abs(b);
+          while (b !== 0n) {
+            const t = a % b;
+            a = b;
+            b = t;
+          }
+          return a === 0n ? 1n : a;
+        },
+
+        isqrt(n) {
+          if (n < 0n) throw new ComplexNumberError('Raiz quadrada de número negativo não pertence aos Reais (ℝ).');
+          if (n < 2n) return n;
+          let x0 = 1n << BigInt((n.toString(2).length + 1) >> 1);
+          let x1 = (x0 + n / x0) >> 1n;
+          while (x1 < x0) {
+            x0 = x1;
+            x1 = (x0 + n / x0) >> 1n;
+          }
+          return x0;
+        },
+
+        exactNthRoot(value, n) {
+          if (n <= 0) return null;
+          if (value === 0n) return 0n;
+          if (value === 1n) return 1n;
+          if (value < 0n) {
+            if (n % 2 === 0) return null;
+            const pos = this.exactNthRoot(-value, n);
+            return pos === null ? null : -pos;
+          }
+          if (n === 1) return value;
+          if (n === 2) {
+            const r = this.isqrt(value);
+            return r * r === value ? r : null;
+          }
+          let low = 1n;
+          let high = 1n << BigInt(Math.ceil(value.toString(2).length / n) + 1);
+          const bn = BigInt(n);
+          while (low <= high) {
+            const mid = (low + high) >> 1n;
+            const p = mid ** bn;
+            if (p === value) return mid;
+            if (p < value) low = mid + 1n;
+            else high = mid - 1n;
+          }
+          return null;
+        },
+
+        splitSquareFree(n) {
+          if (n === 0n) return { square: 0n, free: 1n };
+          const root = this.isqrt(n);
+          if (root * root === n) return { square: root, free: 1n };
+          if (n > 10000000000000000n) return { square: 1n, free: n };
+
+          let square = 1n;
+          let rem = n;
+          while (rem % 4n === 0n) {
+            square *= 2n;
+            rem /= 4n;
+          }
+          let d = 3n;
+          const maxTrial = 100000n;
+          while (d * d <= rem && d <= maxTrial) {
+            const sq = d * d;
+            while (rem % sq === 0n) {
+              square *= d;
+              rem /= sq;
+            }
+            d += 2n;
+          }
+          const remRoot = this.isqrt(rem);
+          if (remRoot > 1n && remRoot * remRoot === rem) {
+            square *= remRoot;
+            rem = 1n;
+          }
+          return { square, free: rem };
+        }
+      };
+
+      /** Fração Racional Exata (p/q) usando BigInt */
+      class Rat {
+        constructor(n, d = 1n) {
+          if (d === 0n) throw new DivisionByZeroError('Divisão por zero não é definida na matemática.');
+          if (d < 0n) { n = -n; d = -d; }
+          if (n === 0n) {
+            this.n = 0n;
+            this.d = 1n;
+          } else {
+            const g = BigMath.gcd(n, d);
+            this.n = n / g;
+            this.d = d / g;
+          }
         }
 
-        /**
-         * Explora e exibe as informações do conjunto selecionado.
-         */
-        function exploreSet(setKey) {
-            const definitionBox = document.getElementById('definitionBox');
-            const selector = document.getElementById('setSelector');
+        static zero() { return new Rat(0n, 1n); }
+        static one() { return new Rat(1n, 1n); }
 
-            resetHighlights();
-            
-            if (setKey === 'none') {
-                definitionBox.innerHTML = `
-                    <h2><i class="fas fa-info-circle"></i> Definição e Inclusão</h2>
-                    <p>Ao selecionar um conjunto (ou clicar no diagrama), a descrição aparecerá aqui. O diagrama ao lado irá se iluminar, mostrando todos os conjuntos que ele contém.</p>
-                `;
-                return;
-            }
+        isZero() { return this.n === 0n; }
+        isOne() { return this.n === 1n && this.d === 1n; }
+        isNeg() { return this.n < 0n; }
+        isInt() { return this.d === 1n; }
 
-            const data = setDefinitions[setKey];
-            
-            // 1. ATUALIZA O SELETOR (se a chamada veio do clique no diagrama)
-            selector.value = setKey;
+        neg() { return new Rat(-this.n, this.d); }
+        abs() { return new Rat(BigMath.abs(this.n), this.d); }
 
-            // 2. ATUALIZA O PAINEL DE DEFINIÇÃO
-            definitionBox.innerHTML = `
-                <h2><i class="fas fa-check-circle"></i> ${data.name}</h2>
-                <p>${data.definition}</p>
-                <strong>Exemplos:</strong>
-                <p>${data.examples}</p>
-                <strong>Inclusão no Diagrama:</strong>
-                <p>${data.inclusion}</p>
-            `;
-
-            // 3. ATUALIZA OS DESTAQUES NO DIAGRAMA
-            
-            // Destaque o conjunto em si e seus superconjuntos
-            document.getElementById('set-R').classList.add('highlight-r'); // Todos estão nos Reais
-            if (setKey === 'N') {
-                document.getElementById('set-Q').classList.add('highlight-q');
-                document.getElementById('set-Z').classList.add('highlight-z');
-                document.getElementById('set-N').classList.add('highlight-n');
-            } else if (setKey === 'Z') {
-                document.getElementById('set-Q').classList.add('highlight-q');
-                document.getElementById('set-Z').classList.add('highlight-z');
-            } else if (setKey === 'Q') {
-                document.getElementById('set-Q').classList.add('highlight-q');
-            } else if (setKey === 'I') {
-                document.getElementById('set-I').classList.add('highlight-i');
-            }
+        add(o) { return new Rat(this.n * o.d + o.n * this.d, this.d * o.d); }
+        sub(o) { return new Rat(this.n * o.d - o.n * this.d, this.d * o.d); }
+        mul(o) { return new Rat(this.n * o.n, this.d * o.d); }
+        div(o) {
+          if (o.isZero()) throw new DivisionByZeroError('Divisão por zero não é definida na matemática.');
+          return new Rat(this.n * o.d, this.d * o.n);
         }
-        
-        /**
-         * Verifica a qual(is) conjunto(s) o número/constante pertence.
-         */
-        function checkNumber() {
-            // Remove espaços, converte para minúsculas e padroniza vírgulas para pontos.
-            let input = document.getElementById('numberInput').value.trim().toLowerCase().replace(',', '.').replace(/\s/g, ''); 
-            const numberDisplay = document.getElementById('numberDisplay');
-            const tagsContainer = document.getElementById('setTagsContainer');
-            const resultBox = document.getElementById('checkerResultBox');
-            
-            tagsContainer.innerHTML = '';
-            resultBox.style.display = 'block';
 
-            // Armazena o input original para exibição
-            let originalInput = document.getElementById('numberInput').value.trim();
-            numberDisplay.textContent = originalInput;
+        powInt(exp) {
+          if (Math.abs(exp) > 120) {
+            throw new MathSyntaxError('Expoente muito elevado para cálculo exato (use até ±120).');
+          }
+          if (exp === 0) {
+            if (this.isZero()) throw new DivisionByZeroError('A expressão 0^0 é uma forma indeterminada.');
+            return Rat.one();
+          }
+          const e = BigInt(Math.abs(exp));
+          if (exp > 0) return new Rat(this.n ** e, this.d ** e);
+          if (this.isZero()) throw new DivisionByZeroError('Zero elevado a expoente negativo equivale a divisão por zero.');
+          return new Rat(this.d ** e, this.n ** e);
+        }
 
-            // --- 1. CLASSIFICAÇÃO DE CONSTANTES E SÍMBOLOS ESPECIAIS ---
-            
-            // Números Irracionais e constantes conhecidas
-            const knownIrrationals = ['pi', 'e', 'sqrt(2)', 'raiz(2)'];
-            const knownIrrationalExpressions = ['2pi', '2*pi'];
+        toNumber() {
+          const nStr = this.n.toString();
+          const dStr = this.d.toString();
+          if (nStr.length < 16 && dStr.length < 16) return Number(this.n) / Number(this.d);
+          const shift = Math.max(nStr.length, dStr.length) - 15;
+          const factor = 10n ** BigInt(Math.max(0, shift));
+          return Number(this.n / factor) / Number(this.d / factor);
+        }
 
-            // Símbolos reconhecidos como Reais Simbólicos (Não-numéricos)
-            const knownRealsSymbols = ['alpha', 'alfa', 'beta', 'gama', 'omega'];
+        hasTerminatingDecimal() {
+          let d = this.d;
+          while (d % 2n === 0n) d /= 2n;
+          while (d % 5n === 0n) d /= 5n;
+          return d === 1n;
+        }
 
-            // A) SÍMBOLOS NÃO-NUMÉRICOS (Real Simbólico)
-            if (knownRealsSymbols.includes(input)) {
-                tagsContainer.innerHTML = '<p style="color: #666;">Símbolo reconhecido como: </p>';
-                addTag('R', 'Reais (Simbólico)');
-                return;
+        toExactDecimalBR(maxDigits = 10) {
+          if (this.d === 1n) return this.n.toString();
+          if (!this.hasTerminatingDecimal()) return null;
+          let d = this.d;
+          let twos = 0, fives = 0;
+          while (d % 2n === 0n) { d /= 2n; twos++; }
+          while (d % 5n === 0n) { d /= 5n; fives++; }
+          const k = Math.max(twos, fives);
+          if (k > maxDigits) return null;
+
+          const sign = this.n < 0n ? '-' : '';
+          const scale = (2n ** BigInt(k - twos)) * (5n ** BigInt(k - fives));
+          const scaled = BigMath.abs(this.n) * scale;
+          const str = scaled.toString().padStart(k + 1, '0');
+          const intPart = str.slice(0, str.length - k);
+          const fracPart = str.slice(str.length - k).replace(/0+$/, '');
+          return fracPart ? `${sign}${intPart},${fracPart}` : `${sign}${intPart}`;
+        }
+
+        toString() {
+          return this.d === 1n ? this.n.toString() : `${this.n.toString()}/${this.d.toString()}`;
+        }
+      }
+
+      /**
+       * Valor Simbólico Exato:
+       * Combinação linear de termos: coef * √(rad) * ∏(sym^exp)
+       * Suporta cancelamento algébrico exato (π - π = 0, x - x = 0, 0 * x = 0, x / x = 1, √2 * √2 = 2)
+       * e encapsulamento seguro para irracionais compostos (∛2, 1/(x+1), √x, etc.).
+       */
+      class SymVal {
+        constructor(termsMap = null, opaque = null) {
+          this.opaque = opaque; // null ou { display, approx, symbols: Set<string>, hasRad: boolean, note: string }
+          this.terms = new Map();
+          if (termsMap && !opaque) {
+            for (const [k, t] of termsMap.entries()) {
+              if (!t.coef.isZero()) this.terms.set(k, t);
             }
+          }
+        }
 
-            // B) NÚMEROS IRRACIONAIS E EXPRESSÕES COM PI
-            if (knownIrrationals.includes(input) || knownIrrationalExpressions.includes(input) || input.includes('pi')) {
-                 addTag('I', 'Irracionais');
-                 addTag('R', 'Reais');
-                 return;
+        static normalizeVars(varsObj) {
+          const clean = {};
+          const keys = Object.keys(varsObj || {}).sort();
+          for (const k of keys) {
+            if (varsObj[k] !== 0) clean[k] = varsObj[k];
+          }
+          return clean;
+        }
+
+        static keyOf(rad, varsObj) {
+          const clean = SymVal.normalizeVars(varsObj);
+          const vPart = Object.keys(clean).map((k) => `${k}^${clean[k]}`).join('*');
+          return `${rad.toString()}|${vPart}`;
+        }
+
+        static fromRat(rat) {
+          const sv = new SymVal();
+          if (!rat.isZero()) {
+            sv.terms.set('1|', { coef: rat, rad: 1n, vars: {} });
+          }
+          return sv;
+        }
+
+        static fromSymbol(symName) {
+          const vars = { [symName]: 1 };
+          return new SymVal(new Map([
+            [SymVal.keyOf(1n, vars), { coef: Rat.one(), rad: 1n, vars }]
+          ]));
+        }
+
+        static fromOpaque(display, approx, symbols, hasRad = false, note = '') {
+          return new SymVal(null, {
+            display,
+            approx: Number.isFinite(approx) ? approx : null,
+            symbols: new Set(symbols || []),
+            hasRad,
+            note
+          });
+        }
+
+        isZero() { return !this.opaque && this.terms.size === 0; }
+
+        isRational() {
+          if (this.opaque) return false;
+          if (this.terms.size === 0) return true;
+          return this.terms.size === 1 && this.terms.has('1|');
+        }
+
+        asRat() {
+          if (!this.isRational()) return null;
+          return this.terms.size === 0 ? Rat.zero() : this.terms.get('1|').coef;
+        }
+
+        collectSymbols() {
+          const set = new Set();
+          if (this.opaque) {
+            this.opaque.symbols.forEach((s) => set.add(s));
+            return set;
+          }
+          for (const t of this.terms.values()) {
+            Object.keys(t.vars).forEach((s) => set.add(s));
+          }
+          return set;
+        }
+
+        hasRadicals() {
+          if (this.opaque) return this.opaque.hasRad;
+          for (const t of this.terms.values()) {
+            if (t.rad > 1n) return true;
+          }
+          return false;
+        }
+
+        hasGenericLetters() {
+          for (const s of this.collectSymbols()) {
+            if (!KNOWN_CONSTANTS[s]) return true;
+          }
+          return false;
+        }
+
+        toApprox() {
+          if (this.opaque) return this.opaque.approx;
+          if (this.hasGenericLetters()) return null;
+          let sum = 0;
+          for (const t of this.terms.values()) {
+            let v = t.coef.toNumber() * (t.rad === 1n ? 1 : Math.sqrt(Number(t.rad)));
+            for (const [sym, exp] of Object.entries(t.vars)) {
+              const c = KNOWN_CONSTANTS[sym];
+              if (!c) return null;
+              v *= Math.pow(c.approx, exp);
             }
-            
-            // --- 2. CLASSIFICAÇÃO NUMÉRICA ---
-            
-            let val = NaN;
-            
-            // Tenta avaliar frações
-            if (input.includes('/')) {
-                const parts = input.split('/');
-                if (parts.length === 2) {
-                    const numerator = parseFloat(parts[0]);
-                    const denominator = parseFloat(parts[1]);
-                    if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-                        val = numerator / denominator;
-                    }
-                }
+            sum += v;
+          }
+          return Number.isFinite(sum) ? sum : null;
+        }
+
+        neg() {
+          if (this.opaque) {
+            return SymVal.fromOpaque(
+              `-(${this.opaque.display})`,
+              this.opaque.approx !== null ? -this.opaque.approx : null,
+              this.opaque.symbols,
+              this.opaque.hasRad,
+              this.opaque.note
+            );
+          }
+          const m = new Map();
+          for (const [k, t] of this.terms.entries()) {
+            m.set(k, { ...t, coef: t.coef.neg() });
+          }
+          return new SymVal(m);
+        }
+
+        add(other) {
+          if (this.isZero()) return other;
+          if (other.isZero()) return this;
+
+          if (this.opaque || other.opaque) {
+            // Cancelamento exato se displays forem opostos diretos
+            if (this.opaque && other.opaque && this.opaque.display === `-(${other.opaque.display})`) {
+              return SymVal.fromRat(Rat.zero());
+            }
+            const syms = new Set([...this.collectSymbols(), ...other.collectSymbols()]);
+            const a1 = this.toApprox();
+            const a2 = other.toApprox();
+            const approx = (a1 !== null && a2 !== null) ? a1 + a2 : null;
+            return SymVal.fromOpaque(
+              `${this.toDisplayString()} + ${other.toDisplayString()}`,
+              approx,
+              syms,
+              this.hasRadicals() || other.hasRadicals()
+            );
+          }
+
+          const m = new Map(this.terms);
+          for (const [k, t] of other.terms.entries()) {
+            if (m.has(k)) {
+              const sumCoef = m.get(k).coef.add(t.coef);
+              if (sumCoef.isZero()) m.delete(k);
+              else m.set(k, { ...t, coef: sumCoef });
             } else {
-                // Tenta avaliar como float
-                val = parseFloat(input);
+              m.set(k, { ...t });
             }
-            
-            if (isNaN(val)) {
-                tagsContainer.innerHTML = '<p style="color: #c0392b;">Entrada Inválida ou Não-Numérica.</p>';
-                return;
-            }
-            
-            // --- 3. TESTE DE PERTENCIMENTO ---
-            
-            // A) Reais (R)
-            addTag('R', 'Reais');
-
-            // B) Racionais (Q)
-            addTag('Q', 'Racionais');
-
-            // C) Inteiros (Z)
-            // Verifica se é inteiro (com tolerância devido a imprecisão do float)
-            const isInteger = Math.abs(val - Math.round(val)) < 1e-9;
-            
-            if (isInteger) {
-                addTag('Z', 'Inteiros');
-                
-                // D) Naturais (N)
-                if (Math.round(val) >= 0) {
-                    addTag('N', 'Naturais');
-                }
-            }
+          }
+          return new SymVal(m);
         }
+
+        sub(other) {
+          if (this.opaque && other.opaque && this.opaque.display === other.opaque.display) {
+            return SymVal.fromRat(Rat.zero());
+          }
+          return this.add(other.neg());
+        }
+
+        mul(other) {
+          if (this.isZero() || other.isZero()) return SymVal.fromRat(Rat.zero());
+
+          if (this.opaque || other.opaque) {
+            const syms = new Set([...this.collectSymbols(), ...other.collectSymbols()]);
+            const a1 = this.toApprox();
+            const a2 = other.toApprox();
+            const approx = (a1 !== null && a2 !== null) ? a1 * a2 : null;
+            return SymVal.fromOpaque(
+              `(${this.toDisplayString()})·(${other.toDisplayString()})`,
+              approx,
+              syms,
+              this.hasRadicals() || other.hasRadicals()
+            );
+          }
+
+          const m = new Map();
+          for (const t1 of this.terms.values()) {
+            for (const t2 of other.terms.values()) {
+              let coef = t1.coef.mul(t2.coef);
+              const { square, free } = BigMath.splitSquareFree(t1.rad * t2.rad);
+              if (square !== 1n) coef = coef.mul(new Rat(square, 1n));
+
+              const mergedVars = { ...t1.vars };
+              for (const [sym, exp] of Object.entries(t2.vars)) {
+                mergedVars[sym] = (mergedVars[sym] || 0) + exp;
+              }
+              const normVars = SymVal.normalizeVars(mergedVars);
+              const key = SymVal.keyOf(free, normVars);
+
+              if (m.has(key)) {
+                const c = m.get(key).coef.add(coef);
+                if (c.isZero()) m.delete(key);
+                else m.set(key, { coef: c, rad: free, vars: normVars });
+              } else if (!coef.isZero()) {
+                m.set(key, { coef, rad: free, vars: normVars });
+              }
+            }
+          }
+          return new SymVal(m);
+        }
+
+        div(other) {
+          if (other.isZero()) {
+            throw new DivisionByZeroError('Divisão por zero não é definida na matemática.');
+          }
+          if (this.isZero()) return SymVal.fromRat(Rat.zero());
+
+          // Cancelamento direto de expressões idênticas: ex (x+1)/(x+1) = 1
+          if (this.toDisplayString() === other.toDisplayString()) {
+            return SymVal.fromRat(Rat.one());
+          }
+
+          // Divisor com um único termo -> divisão simbólica exata (ex: π/π = 1, 2x/x = 2, 1/√2 = √2/2)
+          if (!this.opaque && !other.opaque && other.terms.size === 1) {
+            const d = Array.from(other.terms.values())[0];
+            const invCoef = Rat.one().div(d.coef.mul(new Rat(d.rad, 1n)));
+            const invVars = {};
+            for (const [sym, exp] of Object.entries(d.vars)) {
+              invVars[sym] = -exp;
+            }
+            const invTerm = new SymVal(new Map([
+              [SymVal.keyOf(d.rad, invVars), { coef: invCoef, rad: d.rad, vars: invVars }]
+            ]));
+            return this.mul(invTerm);
+          }
+
+          // Divisor binômio quadrático puro (sem símbolos) -> racionalização pelo conjugado
+          if (!this.opaque && !other.opaque && other.terms.size === 2 && other.collectSymbols().size === 0) {
+            const [t1, t2] = Array.from(other.terms.values());
+            const conj = new SymVal(new Map([
+              [SymVal.keyOf(t1.rad, {}), { ...t1 }],
+              [SymVal.keyOf(t2.rad, {}), { ...t2, coef: t2.coef.neg() }]
+            ]));
+            const den = other.mul(conj);
+            if (den.isZero()) throw new DivisionByZeroError('Divisão por zero detectada após simplificação.');
+            if (den.terms.size === 1) return this.mul(conj).div(den);
+          }
+
+          // Demais quocientes envolvendo símbolos/irracionais
+          const syms = new Set([...this.collectSymbols(), ...other.collectSymbols()]);
+          const a1 = this.toApprox();
+          const a2 = other.toApprox();
+          const approx = (a1 !== null && a2 !== null && a2 !== 0) ? a1 / a2 : null;
+          return SymVal.fromOpaque(
+            `(${this.toDisplayString()}) / (${other.toDisplayString()})`,
+            approx,
+            syms,
+            this.hasRadicals() || other.hasRadicals()
+          );
+        }
+
+        sqrt() {
+          if (this.isZero()) return SymVal.fromRat(Rat.zero());
+
+          if (this.isRational()) {
+            const r = this.asRat();
+            if (r.isNeg()) {
+              throw new ComplexNumberError(
+                'Raiz quadrada de número negativo não pertence aos Reais (ℝ).',
+                `Não existe número real x tal que x² = ${r.toString()}. O resultado pertence aos Números Complexos (ℂ).`
+              );
+            }
+            const prod = r.n * r.d;
+            const { square, free } = BigMath.splitSquareFree(prod);
+            const coef = new Rat(square, r.d);
+            return new SymVal(new Map([
+              [SymVal.keyOf(free, {}), { coef, rad: free, vars: {} }]
+            ]));
+          }
+
+          // Verifica se o valor aproximado conhecido é negativo (ex: √(1 - π))
+          const approx = this.toApprox();
+          if (approx !== null && approx < -1e-12) {
+            throw new ComplexNumberError(
+              'Raiz quadrada de número negativo não pertence aos Reais (ℝ).',
+              `O valor dentro da raiz é negativo (≈ ${formatBR(approx)}), pertencendo aos Complexos (ℂ).`
+            );
+          }
+
+          // Termo único com expoentes pares de símbolos (ex: √(π²) = π)
+          if (!this.opaque && this.terms.size === 1) {
+            const t = Array.from(this.terms.values())[0];
+            const allEven = Object.values(t.vars).every((e) => e % 2 === 0);
+            if (t.rad === 1n && allEven) {
+              if (t.coef.isNeg()) {
+                throw new ComplexNumberError('Raiz quadrada de número negativo não pertence aos Reais (ℝ).');
+              }
+              const subRoot = SymVal.fromRat(t.coef).sqrt();
+              const halfVars = {};
+              for (const [sym, exp] of Object.entries(t.vars)) {
+                halfVars[sym] = exp / 2;
+              }
+              const varFactor = new SymVal(new Map([
+                [SymVal.keyOf(1n, halfVars), { coef: Rat.one(), rad: 1n, vars: halfVars }]
+              ]));
+              return subRoot.mul(varFactor);
+            }
+          }
+
+          return SymVal.fromOpaque(
+            `√(${this.toDisplayString()})`,
+            approx !== null && approx >= 0 ? Math.sqrt(approx) : null,
+            this.collectSymbols(),
+            true,
+            'Raiz quadrada de expressão irracional ou simbólica.'
+          );
+        }
+
+        cbrt() {
+          if (this.isZero()) return SymVal.fromRat(Rat.zero());
+
+          if (this.isRational()) {
+            const r = this.asRat();
+            const neg = r.isNeg();
+            const rootN = BigMath.exactNthRoot(BigMath.abs(r.n), 3);
+            const rootD = BigMath.exactNthRoot(r.d, 3);
+            if (rootN !== null && rootD !== null) {
+              return SymVal.fromRat(new Rat(neg ? -rootN : rootN, rootD));
+            }
+            const approx = Math.cbrt(r.toNumber());
+            return SymVal.fromOpaque(
+              `∛(${r.toString()})`,
+              approx,
+              [],
+              true,
+              `A raiz cúbica de ${r.toString()} não é exata nos racionais, possuindo representação decimal infinita e não periódica.`
+            );
+          }
+
+          const approx = this.toApprox();
+          return SymVal.fromOpaque(
+            `∛(${this.toDisplayString()})`,
+            approx !== null ? Math.cbrt(approx) : null,
+            this.collectSymbols(),
+            true,
+            'Raiz cúbica de expressão irracional ou simbólica.'
+          );
+        }
+
+        pow(expVal) {
+          // Expoente racional
+          if (expVal.isRational()) {
+            const eRat = expVal.asRat();
+
+            // Expoente inteiro
+            if (eRat.isInt()) {
+              const k = Number(eRat.n);
+              if (!Number.isSafeInteger(k) || Math.abs(k) > 120) {
+                throw new MathSyntaxError('Expoente fora do limite suportado (use até ±120).');
+              }
+              if (k === 0) {
+                if (this.isZero()) throw new DivisionByZeroError('A expressão 0^0 é uma forma indeterminada.');
+                return SymVal.fromRat(Rat.one());
+              }
+              if (this.isRational()) return SymVal.fromRat(this.asRat().powInt(k));
+              if (!this.opaque && Math.abs(k) <= 20) {
+                let base = this;
+                let absK = Math.abs(k);
+                let res = SymVal.fromRat(Rat.one());
+                while (absK > 0) {
+                  if (absK & 1) res = res.mul(base);
+                  absK >>= 1;
+                  if (absK > 0) base = base.mul(base);
+                }
+                return k > 0 ? res : SymVal.fromRat(Rat.one()).div(res);
+              }
+              const a = this.toApprox();
+              return SymVal.fromOpaque(
+                `(${this.toDisplayString()})^${k}`,
+                a !== null ? Math.pow(a, k) : null,
+                this.collectSymbols(),
+                this.hasRadicals()
+              );
+            }
+
+            // Expoente com denominador 2 -> raiz quadrada + potência
+            if (eRat.d === 2n) {
+              return this.sqrt().pow(SymVal.fromRat(new Rat(eRat.n, 1n)));
+            }
+
+            // Expoente com denominador 3 -> raiz cúbica + potência
+            if (eRat.d === 3n) {
+              return this.cbrt().pow(SymVal.fromRat(new Rat(eRat.n, 1n)));
+            }
+
+            // Expoente fracionário geral p/q com base racional
+            if (this.isRational()) {
+              const bRat = this.asRat();
+              const q = Number(eRat.d);
+              const p = Number(eRat.n);
+              if (bRat.isNeg() && q % 2 === 0) {
+                throw new ComplexNumberError(
+                  'Raiz de índice par de número negativo não pertence aos Reais (ℝ).',
+                  `(${bRat.toString()})^(${eRat.toString()}) exige raiz de índice par de valor negativo (Complexo ℂ).`
+                );
+              }
+              if (bRat.isZero()) {
+                if (p < 0) throw new DivisionByZeroError('Zero elevado a expoente negativo equivale a divisão por zero.');
+                return SymVal.fromRat(Rat.zero());
+              }
+              if (q <= 20 && Math.abs(p) <= 40) {
+                const neg = bRat.isNeg();
+                const rN = BigMath.exactNthRoot(BigMath.abs(bRat.n), q);
+                const rD = BigMath.exactNthRoot(bRat.d, q);
+                if (rN !== null && rD !== null) {
+                  return SymVal.fromRat(new Rat(neg ? -rN : rN, rD).powInt(p));
+                }
+              }
+              const baseNum = bRat.toNumber();
+              const approx = (bRat.isNeg() ? -1 : 1) * Math.pow(Math.abs(baseNum), p / q);
+              return SymVal.fromOpaque(
+                `(${bRat.toString()})^(${eRat.toString()})`,
+                approx,
+                [],
+                true,
+                `A raiz de índice ${q} de ${bRat.toString()} não é exata nos racionais.`
+              );
+            }
+          }
+
+          // Expoente simbólico / irracional (ex: 2^x, e^π)
+          const syms = new Set([...this.collectSymbols(), ...expVal.collectSymbols()]);
+          const a1 = this.toApprox();
+          const a2 = expVal.toApprox();
+          const approx = (a1 !== null && a2 !== null && a1 >= 0) ? Math.pow(a1, a2) : null;
+          return SymVal.fromOpaque(
+            `${this.toDisplayString()}^(${expVal.toDisplayString()})`,
+            approx,
+            syms,
+            this.hasRadicals() || expVal.hasRadicals()
+          );
+        }
+
+        toDisplayString() {
+          if (this.opaque) return this.opaque.display;
+          if (this.isZero()) return '0';
+          if (this.isRational()) return this.asRat().toString();
+
+          const sorted = Array.from(this.terms.values()).sort((a, b) => {
+            const sA = (a.rad === 1n && Object.keys(a.vars).length === 0) ? 0 : 1;
+            const sB = (b.rad === 1n && Object.keys(b.vars).length === 0) ? 0 : 1;
+            return sA - sB;
+          });
+
+          let out = '';
+          sorted.forEach((t, idx) => {
+            const isNeg = t.coef.isNeg();
+            const absCoef = t.coef.abs();
+            const varKeys = Object.keys(t.vars);
+            const hasSym = t.rad > 1n || varKeys.length > 0;
+
+            let symPart = '';
+            if (t.rad > 1n) symPart += `√${t.rad.toString()}`;
+            varKeys.forEach((sym) => {
+              const e = t.vars[sym];
+              symPart += e === 1 ? sym : `${sym}^${e}`;
+            });
+
+            let termStr = '';
+            if (!hasSym) {
+              termStr = absCoef.toString();
+            } else if (absCoef.isOne()) {
+              termStr = symPart;
+            } else if (absCoef.d === 1n) {
+              termStr = `${absCoef.n.toString()}${symPart}`;
+            } else if (absCoef.n === 1n) {
+              termStr = `${symPart}/${absCoef.d.toString()}`;
+            } else {
+              termStr = `(${absCoef.toString()})${symPart}`;
+            }
+
+            out += idx === 0
+              ? (isNeg ? '-' : '') + termStr
+              : (isNeg ? ' - ' : ' + ') + termStr;
+          });
+          return out;
+        }
+      }
+
+      /* =======================================================================
+         3. PARSER DE DECIMAIS EXATOS E DÍZIMAS PERIÓDICAS
+         ======================================================================= */
+      function detectRepeatingPeriod(frac) {
+        const len = frac.length;
+        if (len < 3) return null;
+        for (let p = 1; p <= Math.floor(len / 2); p++) {
+          const minNeeded = p === 1 ? 3 : 2 * p;
+          if (len < minNeeded) continue;
+          for (let start = 0; start <= len - minNeeded; start++) {
+            const period = frac.slice(start, start + p);
+            let ok = true;
+            for (let i = start; i < len; i++) {
+              if (frac[i] !== period[(i - start) % p]) {
+                ok = false;
+                break;
+              }
+            }
+            if (ok) return { nonRep: frac.slice(0, start), rep: period };
+          }
+        }
+        return null;
+      }
+
+      function parseNumberLiteral(rawToken) {
+        const clean = rawToken.replace(',', '.');
+
+        // Dízima com parênteses: 0.(3), 0.1(6)
+        const parenMatch = /^(\d+)\.(\d*)\((\d+)\)$/.exec(clean);
+        if (parenMatch) {
+          const [, intPart, nonRep, rep] = parenMatch;
+          const allDigits = BigInt(intPart + nonRep + rep);
+          const beforeRep = BigInt(intPart + nonRep);
+          const num = allDigits - beforeRep;
+          const den = (10n ** BigInt(rep.length) - 1n) * (10n ** BigInt(nonRep.length));
+          const rat = new Rat(num, den);
+          return { rat, meta: { kind: 'repeating', raw: rawToken, rep, fraction: rat.toString() } };
+        }
+
+        // Dízima com reticências: 0.333..., 1.2323...
+        const dotsMatch = /^(\d+)\.(\d+)\.\.\.$/.exec(clean);
+        if (dotsMatch) {
+          const [, intPart, frac] = dotsMatch;
+          const detected = detectRepeatingPeriod(frac);
+          if (!detected) {
+            throw new MathSyntaxError(`Período não identificado em "${rawToken}". Repita o período (ex.: 0,333... ou 1,2323...) ou use parênteses (ex.: 0,(3)).`);
+          }
+          const { nonRep, rep } = detected;
+          const allDigits = BigInt(intPart + nonRep + rep);
+          const beforeRep = BigInt(intPart + nonRep);
+          const num = allDigits - beforeRep;
+          const den = (10n ** BigInt(rep.length) - 1n) * (10n ** BigInt(nonRep.length));
+          const rat = new Rat(num, den);
+          return { rat, meta: { kind: 'repeating', raw: rawToken, rep, fraction: rat.toString() } };
+        }
+
+        // Decimal finito exato: 2.5, 3.14159265
+        const decMatch = /^(\d+)\.(\d+)$/.exec(clean);
+        if (decMatch) {
+          const [, intPart, frac] = decMatch;
+          const rat = new Rat(BigInt(intPart + frac), 10n ** BigInt(frac.length));
+          return { rat, meta: { kind: 'decimal', raw: rawToken, decimals: frac.length, fraction: rat.toString() } };
+        }
+
+        // Inteiro
+        if (/^\d+$/.test(clean)) {
+          return { rat: new Rat(BigInt(clean), 1n), meta: { kind: 'integer', raw: rawToken } };
+        }
+
+        throw new MathSyntaxError(`Número malformado: "${rawToken}".`);
+      }
+
+      /* =======================================================================
+         4. TOKENIZER & PARSER DESCENDENTE RECURSIVO (SEM eval())
+            Reconhece funções (sqrt, raiz, cbrt), constantes (π, pi, e, φ, phi, τ, tau)
+            e qualquer letra/símbolo literal (x, y, a, b, k, α, β...)
+         ======================================================================= */
+      const LETTER_REGEX = /^[a-zA-Z\u0370-\u03FF]$/;
+
+      function tokenize(input) {
+        const src = input
+          .trim()
+          .replace(/[−–—]/g, '-')
+          .replace(/[×·]/g, '*')
+          .replace(/÷/g, '/')
+          .replace(/…/g, '...')
+          .replace(/²/g, '^2')
+          .replace(/³/g, '^3');
+
+        if (!src) {
+          throw new MathSyntaxError('Digite um número, expressão ou símbolo para analisar.');
+        }
+
+        const rawTokens = [];
+        let i = 0;
+        const n = src.length;
+
+        while (i < n) {
+          const ch = src[i];
+
+          if (/\s/.test(ch)) {
+            i++;
+            continue;
+          }
+
+          // Números, decimais e dízimas
+          if (/\d/.test(ch)) {
+            const start = i;
+            while (i < n && /\d/.test(src[i])) i++;
+
+            if (i < n && (src[i] === '.' || src[i] === ',')) {
+              if (src.slice(i, i + 3) === '...') {
+                throw new MathSyntaxError('Use reticências após a parte decimal para dízimas (ex.: 0,333...).');
+              }
+              i++;
+              const fracStart = i;
+              while (i < n && /\d/.test(src[i])) i++;
+
+              if (i < n && src[i] === '(') {
+                const closeIdx = src.indexOf(')', i);
+                if (closeIdx > i + 1 && /^\d+$/.test(src.slice(i + 1, closeIdx))) {
+                  i = closeIdx + 1;
+                } else if (i === fracStart) {
+                  throw new MathSyntaxError('Formato de dízima periódica inválido.');
+                }
+              } else {
+                if (i === fracStart) {
+                  throw new MathSyntaxError('Faltam dígitos após a vírgula ou ponto decimal.');
+                }
+                if (src.slice(i, i + 3) === '...') i += 3;
+              }
+
+              if (i < n && (src[i] === '.' || src[i] === ',')) {
+                throw new MathSyntaxError('Número inválido: mais de um separador decimal.');
+              }
+            }
+
+            rawTokens.push({ type: 'NUMBER', value: src.slice(start, i) });
+            continue;
+          }
+
+          // Raiz quadrada e raiz cúbica Unicode
+          if (ch === '√') {
+            rawTokens.push({ type: 'SQRT', value: '√' });
+            i++;
+            continue;
+          }
+          if (ch === '∛') {
+            rawTokens.push({ type: 'CBRT', value: '∛' });
+            i++;
+            continue;
+          }
+
+          // Palavras e letras (funções válidas, constantes ou letras literais)
+          if (LETTER_REGEX.test(ch)) {
+            const start = i;
+            while (i < n && LETTER_REGEX.test(src[i])) i++;
+            const word = src.slice(start, i);
+            const lower = word.toLowerCase();
+
+            if (lower === 'sqrt' || lower === 'raiz') {
+              rawTokens.push({ type: 'SQRT', value: lower });
+            } else if (lower === 'cbrt') {
+              rawTokens.push({ type: 'CBRT', value: lower });
+            } else if (lower === 'pi' || word === 'π' || word === 'Π') {
+              rawTokens.push({ type: 'SYMBOL', value: 'π' });
+            } else if (lower === 'phi' || word === 'φ' || word === 'Φ') {
+              rawTokens.push({ type: 'SYMBOL', value: 'φ' });
+            } else if (lower === 'tau' || word === 'τ') {
+              rawTokens.push({ type: 'SYMBOL', value: 'τ' });
+            } else if (word === 'e' || word === 'E') {
+              rawTokens.push({ type: 'SYMBOL', value: 'e' });
+            } else {
+              // Letras genéricas (ex: x, y, a, b, k, α, β, ou sequência como xy -> x * y)
+              for (const letter of word) {
+                const mapped = letter === 'π' || letter === 'Π' ? 'π'
+                  : letter === 'φ' || letter === 'Φ' ? 'φ'
+                    : letter === 'τ' ? 'τ' : letter;
+                rawTokens.push({ type: 'SYMBOL', value: mapped });
+              }
+            }
+            continue;
+          }
+
+          // Operadores e parênteses
+          if ('+-*/^()'.includes(ch)) {
+            const map = { '+': 'PLUS', '-': 'MINUS', '*': 'MUL', '/': 'DIV', '^': 'POW', '(': 'LPAREN', ')': 'RPAREN' };
+            rawTokens.push({ type: map[ch], value: ch });
+            i++;
+            continue;
+          }
+
+          if (ch === '.' || ch === ',') {
+            throw new MathSyntaxError(`Use um zero antes do separador decimal (ex.: 0${ch}5).`);
+          }
+
+          throw new MathSyntaxError(`Caractere não reconhecido: "${ch}".`);
+        }
+
+        // Multiplicação implícita: 2π, 3√2, 2x, xy, 2(3+1), (x)(y), πe
+        const tokens = [];
+        for (let k = 0; k < rawTokens.length; k++) {
+          const curr = rawTokens[k];
+          tokens.push(curr);
+          if (k + 1 < rawTokens.length) {
+            const next = rawTokens[k + 1];
+            const prevEndsTerm = curr.type === 'NUMBER' || curr.type === 'SYMBOL' || curr.type === 'RPAREN';
+            const nextStartsTerm = next.type === 'SYMBOL' || next.type === 'SQRT' || next.type === 'CBRT' || next.type === 'LPAREN';
+            if (prevEndsTerm && nextStartsTerm) {
+              tokens.push({ type: 'MUL', value: '*' });
+            }
+          }
+        }
+
+        return tokens;
+      }
+
+      function parseAndEvaluate(input) {
+        const tokens = tokenize(input);
+        let pos = 0;
+        const literalMetas = [];
+        let opCount = 0;
+
+        const peek = () => tokens[pos] || null;
+        const consume = () => tokens[pos++];
+
+        function parseExpr() {
+          let left = parseTerm();
+          while (peek() && (peek().type === 'PLUS' || peek().type === 'MINUS')) {
+            const op = consume().type;
+            const right = parseTerm();
+            opCount++;
+            left = op === 'PLUS' ? left.add(right) : left.sub(right);
+          }
+          return left;
+        }
+
+        function parseTerm() {
+          let left = parseUnary();
+          while (peek() && (peek().type === 'MUL' || peek().type === 'DIV')) {
+            const op = consume().type;
+            const right = parseUnary();
+            opCount++;
+            left = op === 'MUL' ? left.mul(right) : left.div(right);
+          }
+          return left;
+        }
+
+        function parseUnary() {
+          if (peek() && peek().type === 'PLUS') {
+            consume();
+            return parseUnary();
+          }
+          if (peek() && peek().type === 'MINUS') {
+            consume();
+            return parseUnary().neg();
+          }
+          return parsePower();
+        }
+
+        function parsePower() {
+          let base = parseRadical();
+          if (peek() && peek().type === 'POW') {
+            consume();
+            const exp = parseUnary();
+            opCount++;
+            base = base.pow(exp);
+          }
+          return base;
+        }
+
+        function parseRadical() {
+          if (peek() && (peek().type === 'SQRT' || peek().type === 'CBRT')) {
+            const kind = consume().type;
+            opCount++;
+            let arg;
+            if (peek() && peek().type === 'MINUS') {
+              consume();
+              arg = parseRadical().neg();
+            } else {
+              arg = parseRadical();
+            }
+            return kind === 'SQRT' ? arg.sqrt() : arg.cbrt();
+          }
+          return parsePrimary();
+        }
+
+        function parsePrimary() {
+          const tok = peek();
+          if (!tok) throw new MathSyntaxError('Expressão incompleta.');
+          if (tok.type === 'NUMBER') {
+            consume();
+            const parsed = parseNumberLiteral(tok.value);
+            literalMetas.push(parsed.meta);
+            return SymVal.fromRat(parsed.rat);
+          }
+          if (tok.type === 'SYMBOL') {
+            consume();
+            literalMetas.push({ kind: 'symbol', name: tok.value });
+            return SymVal.fromSymbol(tok.value);
+          }
+          if (tok.type === 'LPAREN') {
+            consume();
+            const val = parseExpr();
+            if (!peek() || peek().type !== 'RPAREN') {
+              throw new MathSyntaxError('Parênteses não fechados: verifique se falta ")".');
+            }
+            consume();
+            return val;
+          }
+          throw new MathSyntaxError(`Símbolo inesperado: "${tok.value}".`);
+        }
+
+        const value = parseExpr();
+        if (pos < tokens.length) {
+          throw new MathSyntaxError(`Trecho inesperado após a expressão: "${tokens[pos].value}".`);
+        }
+
+        return { value, literalMetas, opCount };
+      }
+
+      /* =======================================================================
+         5. CLASSIFICADOR DIDÁTICO + EXPLICAÇÃO PASSO A PASSO
+         ======================================================================= */
+      function formatBR(num, digits = 8) {
+        if (num === null || !Number.isFinite(num)) return '';
+        return Number(num.toFixed(digits)).toString().replace('.', ',');
+      }
+
+      function normCompare(str) {
+        return str.replace(/\s+/g, '').replace('.', ',').replace(/[−–]/g, '-');
+      }
+
+      function analyzeExpression(rawInput) {
+        const input = rawInput.trim();
+        try {
+          const { value, literalMetas, opCount } = parseAndEvaluate(input);
+          const simplified = value.toDisplayString();
+          const approx = value.toApprox();
+
+          const wasSimplified = opCount > 0 || (
+            literalMetas.length === 1 &&
+            (literalMetas[0].kind === 'repeating' || literalMetas[0].kind === 'decimal') &&
+            normCompare(input) !== normCompare(simplified)
+          );
+
+          const singleRepeating = literalMetas.length === 1 && opCount === 0 && literalMetas[0].kind === 'repeating'
+            ? literalMetas[0] : null;
+          const singleDecimal = literalMetas.length === 1 && opCount === 0 && literalMetas[0].kind === 'decimal'
+            ? literalMetas[0] : null;
+
+          // -------------------------------------------------------------------
+          // RAMO 1: RACIONAL EXATO (ℕ, ℤ ou ℚ)
+          // -------------------------------------------------------------------
+          if (value.isRational()) {
+            const rat = value.asRat();
+            const fracStr = rat.toString();
+            const exactDec = rat.toExactDecimalBR(10);
+
+            // 1A. NATURAL (ℕ)
+            if (rat.isInt() && !rat.isNeg()) {
+              const intStr = rat.n.toString();
+              const simpSuffix = wasSimplified ? ` (pois ${input} = ${intStr})` : '';
+              const steps = [];
+              if (wasSimplified) {
+                steps.push(`Simplificamos a expressão algebricamente: ${input} = ${intStr}.`);
+              }
+              steps.push(`O resultado ${intStr} não tem parte decimal nem sinal negativo.`);
+              steps.push(`Logo, pertence aos Naturais (ℕ = {0, 1, 2, 3, ...}).`);
+              steps.push(`Pela hierarquia ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ, também pertence a ℤ, ℚ (${intStr}/1) e ℝ, e não pertence a 𝕀.`);
+
+              return {
+                status: 'classified',
+                primarySet: 'N',
+                primaryLabel: 'NATURAL (ℕ)',
+                input,
+                simplified: intStr,
+                wasSimplified,
+                subline: wasSimplified ? `Simplificação exata: ${input} = ${intStr}` : 'Inteiro não negativo (ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ)',
+                belongs: ['N', 'Z', 'Q', 'R'],
+                memberships: {
+                  N: { in: true, text: `É um número inteiro não negativo${simpSuffix}.` },
+                  Z: { in: true, text: `Todo número natural também é inteiro (ℕ ⊂ ℤ).` },
+                  Q: { in: true, text: `Pode ser escrito como a fração ${intStr}/1 (ℤ ⊂ ℚ).` },
+                  I: { in: false, text: `É racional; Racionais e Irracionais são disjuntos (𝕀 ∩ ℚ = ∅).` },
+                  R: { in: true, text: `Todo número racional é real (ℚ ⊂ ℝ).` }
+                },
+                steps,
+                conclusion: `Conclusão: ${input}${wasSimplified ? ` (= ${intStr})` : ''} ∈ ℕ, ℤ, ℚ e ℝ.`
+              };
+            }
+
+            // 1B. INTEIRO NEGATIVO (ℤ \ ℕ)
+            if (rat.isInt() && rat.isNeg()) {
+              const intStr = rat.n.toString();
+              const simpSuffix = wasSimplified ? ` (pois ${input} = ${intStr})` : '';
+              const steps = [];
+              if (wasSimplified) {
+                steps.push(`Simplificamos a expressão: ${input} = ${intStr}.`);
+              }
+              steps.push(`Por ser negativo, ${intStr} não pertence aos Naturais (ℕ).`);
+              steps.push(`Como não possui parte decimal, pertence aos Inteiros (ℤ).`);
+              steps.push(`Pode ser escrito como fração de denominador 1 (${intStr}/1), logo pertence a ℚ e a ℝ.`);
+
+              return {
+                status: 'classified',
+                primarySet: 'Z',
+                primaryLabel: 'INTEIRO (ℤ)',
+                input,
+                simplified: intStr,
+                wasSimplified,
+                subline: wasSimplified ? `Simplificação exata: ${input} = ${intStr}` : 'Inteiro negativo (ℤ ⊂ ℚ ⊂ ℝ)',
+                belongs: ['Z', 'Q', 'R'],
+                memberships: {
+                  N: { in: false, text: `É negativo; os naturais contêm apenas inteiros ≥ 0.` },
+                  Z: { in: true, text: `É um número inteiro negativo sem parte decimal${simpSuffix}.` },
+                  Q: { in: true, text: `Pode ser escrito como a fração ${intStr}/1 (ℤ ⊂ ℚ).` },
+                  I: { in: false, text: `É racional, portanto não pertence a 𝕀 (𝕀 ∩ ℚ = ∅).` },
+                  R: { in: true, text: `Todo número racional é real (ℚ ⊂ ℝ).` }
+                },
+                steps,
+                conclusion: `Conclusão: ${input}${wasSimplified ? ` (= ${intStr})` : ''} ∈ ℤ, ℚ e ℝ (e ∉ ℕ, 𝕀).`
+              };
+            }
+
+            // 1C. RACIONAL NÃO INTEIRO (ℚ \ ℤ)
+            const isExactDec = rat.hasTerminatingDecimal();
+            const steps = [];
+            if (singleRepeating) {
+              steps.push(`Identificamos uma dízima periódica de período "${singleRepeating.rep}", cuja fração geratriz exata é ${fracStr}.`);
+            } else if (wasSimplified) {
+              steps.push(`Simplificamos para a fração irredutível ${fracStr}${exactDec ? ` (decimal exato ${exactDec})` : ''}.`);
+            } else {
+              steps.push(`O número está na forma de fração irredutível ${fracStr} entre dois inteiros com denominador não nulo.`);
+            }
+            if (singleDecimal && /^3[.,]14\d*$/.test(input) && singleDecimal.decimals >= 2) {
+              steps.push(`Nota: embora lembre π, ${input} tem número finito de casas decimais (${singleDecimal.decimals}), portanto é uma fração exata (${fracStr}) e pertence a ℚ.`);
+            }
+            steps.push(`Possui parte decimal não nula, por isso não pertence a ℕ nem a ℤ.`);
+            steps.push(`Por ser razão de dois inteiros (${fracStr}), pertence a ℚ e a ℝ (e não a 𝕀).`);
+
+            const subline = exactDec && normCompare(exactDec) !== normCompare(input)
+              ? `Fração: ${fracStr}  •  Decimal exato: ${exactDec}`
+              : !exactDec
+                ? `Fração: ${fracStr}  •  Decimal ≈ ${formatBR(approx, 6)}...`
+                : `Fração equivalente: ${fracStr}`;
+
+            return {
+              status: 'classified',
+              primarySet: 'Q',
+              primaryLabel: 'RACIONAL (ℚ)',
+              input,
+              simplified: fracStr,
+              wasSimplified: normCompare(input) !== normCompare(fracStr),
+              subline,
+              belongs: ['Q', 'R'],
+              memberships: {
+                N: { in: false, text: `Não é um número inteiro não negativo.` },
+                Z: { in: false, text: `Possui parte decimal/fracionária (não é inteiro).` },
+                Q: {
+                  in: true,
+                  text: singleRepeating
+                    ? `É uma dízima periódica equivalente à fração ${fracStr}.`
+                    : `Pode ser representado pela fração exata ${fracStr}.`
+                },
+                I: {
+                  in: false,
+                  text: singleRepeating
+                    ? `Apesar de infinita, sua expansão decimal é periódica (não irracional).`
+                    : isExactDec
+                      ? `É um decimal exato (finito), não infinito e não periódico.`
+                      : `Pode ser escrito como fração de inteiros (${fracStr}).`
+                },
+                R: { in: true, text: `Todo número racional é real (ℚ ⊂ ℝ).` }
+              },
+              steps,
+              conclusion: `Conclusão: ${input}${normCompare(input) !== normCompare(fracStr) ? ` (= ${fracStr})` : ''} ∈ ℚ e ℝ (e ∉ ℕ, ℤ, 𝕀).`
+            };
+          }
+
+          // -------------------------------------------------------------------
+          // RAMO 2: IRRACIONAL (𝕀) — RADICAIS NÃO EXATOS, CONSTANTES E LETRAS
+          // -------------------------------------------------------------------
+          const symbols = Array.from(value.collectSymbols());
+          const knownSyms = symbols.filter((s) => Boolean(KNOWN_CONSTANTS[s]));
+          const genericLetters = symbols.filter((s) => !KNOWN_CONSTANTS[s]);
+          const hasRad = value.hasRadicals();
+
+          const steps = [];
+          let irratReason = '';
+          let subline = '';
+
+          if (normCompare(input) !== normCompare(simplified)) {
+            steps.push(`Simplificamos a expressão para ${simplified}.`);
+          }
+
+          if (genericLetters.length > 0) {
+            // Regra solicitada: letra/símbolo literal remanescente -> assume Irracional (𝕀) e Real (ℝ)
+            const lettersText = genericLetters.join(', ');
+            irratReason = `Contém o símbolo literal "${lettersText}" não redutível a fração inteira; o analisador assume classificação como Irracional (𝕀).`;
+            subline = `Símbolo literal detectado (${lettersText}) — assumido como Irracional (𝕀)`;
+            steps.push(`O analisador detectou o símbolo literal "${lettersText}" remanescente após a simplificação (sem cancelamento algébrico).`);
+            steps.push(`Como a expressão com "${lettersText}" não se reduz a uma fração de dois inteiros, este simulador assume sua classificação no conjunto dos Irracionais (𝕀).`);
+            steps.push(`Por ser classificada em 𝕀, não pertence a ℚ, ℤ ou ℕ, mas pertence aos Reais (ℝ), pois 𝕀 ⊂ ℝ.`);
+          } else if (knownSyms.length > 0) {
+            const constNames = knownSyms.map((s) => KNOWN_CONSTANTS[s].name).join(' e ');
+            const approxStr = approx !== null ? formatBR(approx, 8) : null;
+            irratReason = `Envolve ${knownSyms.length === 1 ? KNOWN_CONSTANTS[knownSyms[0]].desc : `constantes irracionais (${constNames})`}, com representação decimal infinita e não periódica.`;
+            subline = approxStr ? `Aproximação decimal: ≈ ${approxStr}... (infinita e não periódica)` : `Expressão com ${constNames}`;
+            steps.push(`A expressão mantém ${constNames} após a simplificação${approxStr ? ` (valor aproximado: ${approxStr}...)` : ''}.`);
+            steps.push(`Essa expressão possui expansão decimal infinita e não periódica, não podendo ser escrita como fração de inteiros.`);
+            steps.push(`Portanto, pertence aos Irracionais (𝕀) e aos Reais (ℝ), ficando fora de ℕ, ℤ e ℚ.`);
+          } else {
+            // Radical não exato puro (√2, √3, ∛2, 2^(1/2), etc.)
+            const approxStr = approx !== null ? formatBR(approx, 8) : null;
+            irratReason = (value.opaque && value.opaque.note)
+              ? value.opaque.note
+              : `Envolve raiz não exata (${simplified}), cuja representação decimal é infinita e não periódica.`;
+            subline = approxStr ? `Aproximação decimal: ≈ ${approxStr}... (infinita e não periódica)` : `Radical irracional: ${simplified}`;
+            steps.push(`A raiz em "${simplified}" não resulta em um número racional exato${approxStr ? ` (≈ ${approxStr}...)` : ''}.`);
+            steps.push(`Sua representação decimal é infinita e não periódica, logo não pode ser escrita como fração p/q de inteiros.`);
+            steps.push(`Assim, pertence aos Irracionais (𝕀) e aos Reais (ℝ), e não pertence a ℕ, ℤ ou ℚ.`);
+          }
+
+          return {
+            status: 'classified',
+            primarySet: 'I',
+            primaryLabel: 'IRRACIONAL (𝕀)',
+            input,
+            simplified,
+            wasSimplified: normCompare(input) !== normCompare(simplified),
+            subline,
+            belongs: ['I', 'R'],
+            memberships: {
+              N: { in: false, text: `Não é um número inteiro não negativo.` },
+              Z: { in: false, text: `Não representa um número inteiro.` },
+              Q: { in: false, text: `Não se reduz a uma fração p/q de dois inteiros.` },
+              I: { in: true, text: irratReason },
+              R: { in: true, text: `Todo número irracional pertence ao conjunto dos Reais (𝕀 ⊂ ℝ).` }
+            },
+            steps,
+            conclusion: `Conclusão: ${input} ∈ 𝕀 e ℝ (e ∉ ℕ, ℤ, ℚ).`
+          };
+
+        } catch (err) {
+          // -------------------------------------------------------------------
+          // RAMO 3: COMPLEXO (ℂ \ ℝ), INDEFINIDO (5/0) OU ERRO DE SINTAXE
+          // -------------------------------------------------------------------
+          if (err instanceof ComplexNumberError) {
+            return {
+              status: 'complex',
+              primarySet: 'C',
+              primaryLabel: 'NÃO REAL — COMPLEXO (ℂ)',
+              input,
+              subline: 'Fora do conjunto dos Números Reais (ℝ)',
+              message: err.message,
+              detail: err.detail,
+              belongs: [],
+              memberships: {
+                N: { in: false, text: 'Não pertence, pois não é um número real.' },
+                Z: { in: false, text: 'Não pertence, pois não é um número real.' },
+                Q: { in: false, text: 'Não pertence, pois não é um número real.' },
+                I: { in: false, text: 'Não pertence, pois os irracionais estão contidos em ℝ.' },
+                R: { in: false, text: 'Nenhum número real elevado a expoente par produz valor negativo.' }
+              },
+              steps: [
+                `Ao avaliar "${input}", encontramos uma raiz de índice par de um número negativo.`,
+                `Em ℝ, o quadrado de qualquer número é sempre maior ou igual a zero.`,
+                `Logo, "${input}" está fora de ℝ e pertence aos Números Complexos (ℂ), definidos com i = √(-1).`
+              ],
+              conclusion: `Conclusão: ${input} ∉ ℝ (e ∉ ℕ, ℤ, ℚ, 𝕀) — pertence aos Complexos (ℂ).`
+            };
+          }
+
+          if (err instanceof DivisionByZeroError) {
+            return {
+              status: 'undefined',
+              primarySet: 'ERR',
+              primaryLabel: 'INDEFINIDO',
+              input,
+              subline: 'Expressão matematicamente indefinida (fora de ℝ)',
+              message: err.message,
+              detail: 'Na definição dos racionais ℚ = {p/q}, o denominador deve ser sempre diferente de zero (q ≠ 0).',
+              belongs: [],
+              memberships: {
+                N: { in: false, text: 'Expressão indefinida não pertence a nenhum conjunto.' },
+                Z: { in: false, text: 'Expressão indefinida não pertence a nenhum conjunto.' },
+                Q: { in: false, text: 'Exige denominador q ≠ 0 na definição de fração racional.' },
+                I: { in: false, text: 'Não define um número real.' },
+                R: { in: false, text: 'Divisão por zero não tem resultado em ℝ.' }
+              },
+              steps: [
+                `Ao calcular "${input}", ocorre uma divisão por zero (ou forma indeterminada).`,
+                `Não existe número real x que satisfaça x · 0 = a para a ≠ 0.`,
+                `Por isso, a expressão é indefinida e não pertence a ℕ, ℤ, ℚ, 𝕀 ou ℝ.`
+              ],
+              conclusion: `Conclusão: "${input}" é indefinido e está fora de todos os conjuntos reais.`
+            };
+          }
+
+          return {
+            status: 'error',
+            primarySet: 'ERR',
+            primaryLabel: 'ENTRADA INVÁLIDA',
+            input,
+            subline: 'Verifique a sintaxe da expressão',
+            message: err.message || 'Expressão inválida.',
+            detail: 'Exemplos aceitos: 7, -3, 3/4, 2,5, 0,333..., √2, √16, ∛8, π, φ, x, 2x + 1, √(-4), 5/0.',
+            belongs: null,
+            memberships: null,
+            steps: [
+              `Não foi possível interpretar "${input || '(vazio)'}".`,
+              `Use vírgula ou ponto para decimais (2,5), barra para frações (3/4), √ ou ∛ para raízes e letras/constantes (π, e, φ, x).`
+            ],
+            conclusion: `Ajuste a entrada e clique em "Analisar".`
+          };
+        }
+      }
+
+      /* =======================================================================
+         6. CONTROLADOR DO DIAGRAMA SVG (ILUMINAÇÃO POR HIERARQUIA, SEM BOLINHA)
+         ======================================================================= */
+      const Diagram = {
+        regions: Array.from(document.querySelectorAll('.svg-region')),
+        pills: Array.from(document.querySelectorAll('.set-pill')),
+        statusBar: document.getElementById('diagramStatusBar'),
+        relationTag: document.getElementById('diagramRelationTag'),
+        statusText: document.getElementById('diagramStatusText'),
+        selectedMode: 'ALL',
+
+        init(onSelectSet) {
+          this.onSelectSet = onSelectSet;
+
+          // Clique nas pills superiores
+          this.pills.forEach((pill) => {
+            pill.addEventListener('click', () => {
+              const target = pill.dataset.select;
+              this.selectSet(target, true);
+            });
+          });
+
+          // Clique direto nas regiões do SVG (clicar no mesmo volta para "Todos")
+          this.regions.forEach((region) => {
+            const code = region.dataset.set;
+            const handleActivate = () => {
+              const next = this.selectedMode === code ? 'ALL' : code;
+              this.selectSet(next, true);
+            };
+
+            region.addEventListener('click', (e) => {
+              e.stopPropagation();
+              handleActivate();
+            });
+
+            region.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleActivate();
+              }
+            });
+          });
+        },
 
         /**
-         * Adiciona uma tag de conjunto ao resultado do verificador.
+         * Seleciona um conjunto diretamente (via botão ou SVG):
+         * Colore todos os conjuntos relacionados pela hierarquia e apaga os demais.
          */
-        function addTag(setKey, setName) {
-            const tagsContainer = document.getElementById('setTagsContainer');
-            const tag = document.createElement('span');
-            tag.classList.add('set-tag', `tag-${setKey}`);
-            tag.textContent = setName;
-            tagsContainer.appendChild(tag);
-        }
+        selectSet(code, notifyUI = false) {
+          this.selectedMode = code;
+          this.updatePillStates(code);
+          this.statusBar.classList.remove('status-outside', 'status-error');
+          this.relationTag.classList.remove('accent');
 
-    </script>
+          if (code === 'ALL') {
+            this.regions.forEach((r) => r.classList.remove('is-lit', 'is-dimmed', 'is-primary'));
+            this.relationTag.textContent = 'ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ  |  𝕀 ⊂ ℝ';
+            this.statusText.textContent = 'Visualização completa — clique em um conjunto para destacar sua hierarquia.';
+          } else {
+            const litSets = INCLUSION_MAP[code];
+            this.regions.forEach((r) => {
+              const setCode = r.dataset.set;
+              const isLit = litSets.includes(setCode);
+              r.classList.toggle('is-lit', isLit);
+              r.classList.toggle('is-dimmed', !isLit);
+              r.classList.toggle('is-primary', setCode === code);
+            });
+
+            const info = SET_INFO[code];
+            this.relationTag.textContent = info.relation;
+            this.statusText.textContent = info.statusLine;
+          }
+
+          if (notifyUI && this.onSelectSet) {
+            this.onSelectSet(code);
+          }
+        },
+
+        /**
+         * Destaca exatamente os conjuntos aos quais o número analisado pertence (sem bolinha).
+         */
+        applyAnalysis(analysis) {
+          this.statusBar.classList.remove('status-outside', 'status-error');
+          this.relationTag.classList.remove('accent');
+
+          if (analysis.status === 'classified') {
+            this.selectedMode = analysis.primarySet;
+            this.updatePillStates(analysis.primarySet);
+
+            this.regions.forEach((r) => {
+              const setCode = r.dataset.set;
+              const isMember = analysis.belongs.includes(setCode);
+              r.classList.toggle('is-lit', isMember);
+              r.classList.toggle('is-dimmed', !isMember);
+              r.classList.toggle('is-primary', setCode === analysis.primarySet);
+            });
+
+            const belongsSymbols = analysis.belongs.map((c) => SET_INFO[c].symbol).join(', ');
+            const displayVal = analysis.wasSimplified && analysis.simplified.length <= 12
+              ? `${analysis.input} = ${analysis.simplified}`
+              : analysis.input;
+            this.relationTag.classList.add('accent');
+            this.relationTag.textContent = `${displayVal} ∈ ${belongsSymbols}`;
+            this.statusText.textContent = `Classificação principal: ${analysis.primaryLabel} — conjuntos relacionados destacados no diagrama.`;
+            return;
+          }
+
+          if (analysis.status === 'complex' || analysis.status === 'undefined') {
+            this.selectedMode = 'NONE';
+            this.updatePillStates(null);
+            this.regions.forEach((r) => {
+              r.classList.remove('is-lit', 'is-primary');
+              r.classList.add('is-dimmed');
+            });
+
+            this.statusBar.classList.add(analysis.status === 'complex' ? 'status-outside' : 'status-error');
+            this.relationTag.textContent = analysis.status === 'complex'
+              ? `${analysis.input} ∉ ℝ  (Complexo ℂ)`
+              : `${analysis.input} — Indefinido`;
+            this.statusText.textContent = analysis.status === 'complex'
+              ? 'Fora dos Números Reais (ℝ): nenhuma região real contém esta expressão.'
+              : 'Fora dos Números Reais (ℝ): divisão por zero não pertence a nenhum conjunto numérico.';
+            return;
+          }
+
+          // Erro de sintaxe: mantém estado limpo
+          this.selectSet('ALL', false);
+        },
+
+        updatePillStates(activeCode) {
+          this.pills.forEach((p) => {
+            p.classList.toggle('active', p.dataset.select === activeCode);
+          });
+        }
+      };
+
+      /* =======================================================================
+         7. CONTROLADOR DE INTERFACE (ABAS, RESUMO, HISTÓRICO E GLOSSÁRIO)
+         ======================================================================= */
+      const STORAGE_KEY = 'simulador_conjuntos_v2_hist';
+
+      const UI = {
+        form: document.getElementById('analyzerForm'),
+        input: document.getElementById('exprInput'),
+        clearBtn: document.getElementById('clearInputBtn'),
+        clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+        summaryExpr: document.getElementById('summaryExpr'),
+        summarySub: document.getElementById('summarySub'),
+        summaryBadge: document.getElementById('summaryBadge'),
+        membershipPills: Array.from(document.querySelectorAll('#membershipPills .m-pill')),
+        tabBtns: Array.from(document.querySelectorAll('.tab-btn')),
+        tabPanes: {
+          analysis: document.getElementById('tab-analysis'),
+          set: document.getElementById('tab-set'),
+          history: document.getElementById('tab-history')
+        },
+        historyContainer: document.getElementById('historyContainer'),
+        glossaryList: document.getElementById('glossaryList'),
+        activeSetCode: 'N',
+        history: [],
+
+        init() {
+          this.loadHistory();
+          this.renderGlossary();
+          this.renderHistory();
+          this.renderSetTab('N');
+
+          Diagram.init((selectedCode) => {
+            if (selectedCode !== 'ALL') {
+              this.activeSetCode = selectedCode;
+              this.renderSetTab(selectedCode);
+              this.switchTab('set');
+            }
+          });
+
+          this.bindEvents();
+
+          // Demonstração inicial limpa
+          this.runAnalysis('2,5', false);
+        },
+
+        bindEvents() {
+          this.form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.runAnalysis(this.input.value, true);
+          });
+
+          this.clearBtn.addEventListener('click', () => {
+            this.input.value = '';
+            this.input.focus();
+          });
+
+          // Atalhos de símbolos inseridos no cursor
+          document.querySelectorAll('.sym-btn').forEach((btn) => {
+            btn.addEventListener('click', () => this.insertAtCursor(btn.dataset.insert));
+          });
+
+          // Exemplos rápidos clicáveis
+          document.querySelectorAll('.quick-ex').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              this.input.value = btn.dataset.expr;
+              this.runAnalysis(btn.dataset.expr, true);
+            });
+          });
+
+          // Navegação entre as 3 abas
+          this.tabBtns.forEach((btn) => {
+            btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+          });
+
+          // Limpar histórico
+          this.clearHistoryBtn.addEventListener('click', () => {
+            this.history = [];
+            this.saveHistory();
+            this.renderHistory();
+          });
+        },
+
+        insertAtCursor(text) {
+          const el = this.input;
+          const start = el.selectionStart ?? el.value.length;
+          const end = el.selectionEnd ?? el.value.length;
+          el.value = el.value.slice(0, start) + text + el.value.slice(end);
+          const pos = start + text.length;
+          el.focus();
+          el.setSelectionRange(pos, pos);
+        },
+
+        switchTab(tabName) {
+          this.tabBtns.forEach((btn) => {
+            const active = btn.dataset.tab === tabName;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', String(active));
+          });
+          Object.entries(this.tabPanes).forEach(([key, pane]) => {
+            pane.classList.toggle('active', key === tabName);
+          });
+        },
+
+        runAnalysis(expression, recordHistory = true) {
+          this.input.value = expression;
+          const result = analyzeExpression(expression);
+
+          this.renderSummary(result);
+          this.renderAnalysisTab(result);
+          Diagram.applyAnalysis(result);
+          this.switchTab('analysis');
+
+          if (result.status === 'classified') {
+            this.activeSetCode = result.primarySet;
+            this.renderSetTab(result.primarySet);
+          }
+
+          if (recordHistory && result.status !== 'error') {
+            this.pushHistory(result);
+          }
+        },
+
+        renderSummary(res) {
+          if (res.status === 'classified' && res.wasSimplified) {
+            this.summaryExpr.textContent = `${res.input} = ${res.simplified}`;
+          } else {
+            this.summaryExpr.textContent = res.input || '—';
+          }
+          this.summarySub.textContent = res.subline || '';
+
+          this.summaryBadge.textContent = res.primaryLabel;
+          this.summaryBadge.className = `primary-badge bg-${res.primarySet}`;
+
+          this.membershipPills.forEach((pill) => {
+            const code = pill.dataset.set;
+            const sym = SET_INFO[code].symbol;
+            const isIn = Array.isArray(res.belongs) && res.belongs.includes(code);
+            pill.classList.toggle('in', isIn);
+            pill.textContent = `${isIn ? '∈' : '∉'} ${sym}`;
+            pill.title = isIn ? `Pertence a ${SET_INFO[code].name}` : `Não pertence a ${SET_INFO[code].name}`;
+          });
+        },
+
+        renderAnalysisTab(res) {
+          const pane = this.tabPanes.analysis;
+          pane.innerHTML = '';
+
+          // Aviso para Complexo, Indefinido ou Erro de sintaxe
+          if (res.status !== 'classified') {
+            const banner = document.createElement('div');
+            banner.className = `alert-banner ${res.status === 'complex' ? 'complex' : 'error'}`;
+            const strong = document.createElement('strong');
+            strong.textContent = res.message + ' ';
+            banner.appendChild(strong);
+            if (res.detail) {
+              const span = document.createElement('span');
+              span.textContent = res.detail;
+              banner.appendChild(span);
+            }
+            pane.appendChild(banner);
+          }
+
+          // Lista objetiva de pertencimento (∈ / ∉) por conjunto
+          if (res.memberships) {
+            const ul = document.createElement('ul');
+            ul.className = 'detail-list';
+
+            SET_ORDER.forEach((code) => {
+              const info = SET_INFO[code];
+              const m = res.memberships[code];
+              const li = document.createElement('li');
+              li.className = `detail-item ${m.in ? 'is-in' : 'is-out'}`;
+
+              const sym = document.createElement('span');
+              sym.className = 'detail-sym';
+              sym.textContent = `${m.in ? '∈' : '∉'} ${info.symbol}`;
+
+              const txt = document.createElement('span');
+              txt.textContent = m.text;
+
+              li.appendChild(sym);
+              li.appendChild(txt);
+              ul.appendChild(li);
+            });
+
+            pane.appendChild(ul);
+          }
+
+          // Bloco "Entenda a classificação"
+          const box = document.createElement('div');
+          box.className = 'explain-box';
+
+          const title = document.createElement('div');
+          title.className = 'explain-title';
+          title.innerHTML = '<span class="dot"></span>Entenda a classificação';
+
+          const ol = document.createElement('ol');
+          ol.className = 'steps-list';
+          (res.steps || []).forEach((step, idx) => {
+            const li = document.createElement('li');
+            const badge = document.createElement('span');
+            badge.className = 'step-idx';
+            badge.textContent = String(idx + 1);
+            const text = document.createElement('span');
+            text.textContent = step;
+            li.appendChild(badge);
+            li.appendChild(text);
+            ol.appendChild(li);
+          });
+
+          const conc = document.createElement('div');
+          conc.className = 'explain-conclusion';
+          conc.textContent = res.conclusion || '';
+
+          box.appendChild(title);
+          box.appendChild(ol);
+          box.appendChild(conc);
+          pane.appendChild(box);
+        },
+
+        renderSetTab(code) {
+          const info = SET_INFO[code] || SET_INFO.N;
+          const pane = this.tabPanes.set;
+          pane.innerHTML = '';
+
+          const card = document.createElement('div');
+          card.className = 'set-info-card';
+
+          const head = document.createElement('div');
+          head.className = 'set-info-head';
+
+          const avatar = document.createElement('div');
+          avatar.className = 'set-info-avatar';
+          avatar.style.background = info.color;
+          avatar.textContent = info.symbol;
+
+          const headText = document.createElement('div');
+          const h3 = document.createElement('h3');
+          h3.textContent = `${info.name} (${info.symbol})`;
+          const pSub = document.createElement('p');
+          pSub.textContent = info.statusLine;
+          headText.appendChild(h3);
+          headText.appendChild(pSub);
+
+          head.appendChild(avatar);
+          head.appendChild(headText);
+
+          const meta = document.createElement('div');
+          meta.className = 'set-info-meta';
+
+          const m1 = document.createElement('div');
+          m1.className = 'meta-tile';
+          m1.innerHTML = `<small>Notação Matemática</small><span></span>`;
+          m1.querySelector('span').textContent = info.notation;
+
+          const m2 = document.createElement('div');
+          m2.className = 'meta-tile';
+          m2.innerHTML = `<small>Hierarquia de Inclusão</small><span></span>`;
+          m2.querySelector('span').textContent = info.relation;
+
+          meta.appendChild(m1);
+          meta.appendChild(m2);
+
+          const desc = document.createElement('p');
+          desc.className = 'set-info-desc';
+          desc.textContent = info.definition;
+
+          const exRow = document.createElement('div');
+          exRow.className = 'set-info-examples';
+          const lbl = document.createElement('span');
+          lbl.className = 'row-label';
+          lbl.textContent = 'Testar exemplos';
+          exRow.appendChild(lbl);
+
+          info.examples.forEach((ex) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'quick-ex';
+            btn.textContent = ex;
+            btn.addEventListener('click', () => this.runAnalysis(ex, true));
+            exRow.appendChild(btn);
+          });
+
+          card.appendChild(head);
+          card.appendChild(meta);
+          card.appendChild(desc);
+          card.appendChild(exRow);
+          pane.appendChild(card);
+        },
+
+        renderGlossary() {
+          this.glossaryList.innerHTML = '';
+          SET_ORDER.forEach((code) => {
+            const info = SET_INFO[code];
+            const row = document.createElement('div');
+            row.className = 'glossary-row';
+            row.setAttribute('role', 'button');
+            row.setAttribute('tabindex', '0');
+
+            const badge = document.createElement('span');
+            badge.className = 'g-badge';
+            badge.style.background = info.color;
+            badge.textContent = info.symbol;
+
+            const body = document.createElement('div');
+            const strong = document.createElement('strong');
+            strong.textContent = `${info.name}: `;
+            body.appendChild(strong);
+            body.appendChild(document.createTextNode(info.shortGloss));
+
+            row.appendChild(badge);
+            row.appendChild(body);
+
+            const focusSet = () => Diagram.selectSet(code, true);
+            row.addEventListener('click', focusSet);
+            row.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                focusSet();
+              }
+            });
+
+            this.glossaryList.appendChild(row);
+          });
+        },
+
+        pushHistory(res) {
+          const item = {
+            input: res.input,
+            label: res.primaryLabel,
+            badgeType: res.primarySet
+          };
+          this.history = this.history.filter((h) => h.input !== item.input);
+          this.history.unshift(item);
+          if (this.history.length > 14) this.history.pop();
+          this.saveHistory();
+          this.renderHistory();
+        },
+
+        renderHistory() {
+          this.historyContainer.innerHTML = '';
+          if (this.history.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-msg';
+            empty.textContent = 'Nenhuma análise no histórico ainda. Experimente digitar um número ou letra acima.';
+            this.historyContainer.appendChild(empty);
+            return;
+          }
+
+          const list = document.createElement('div');
+          list.className = 'history-list';
+
+          this.history.forEach((item) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'history-row';
+
+            const expr = document.createElement('span');
+            expr.className = 'history-expr';
+            expr.textContent = item.input;
+
+            const tag = document.createElement('span');
+            tag.className = `history-tag bg-${item.badgeType}`;
+            tag.textContent = item.label;
+
+            btn.appendChild(expr);
+            btn.appendChild(tag);
+            btn.addEventListener('click', () => this.runAnalysis(item.input, false));
+            list.appendChild(btn);
+          });
+
+          this.historyContainer.appendChild(list);
+        },
+
+        saveHistory() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.history));
+          } catch (_) {
+            // Storage indisponível em modo restrito
+          }
+        },
+
+        loadHistory() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) this.history = parsed.slice(0, 14);
+            }
+          } catch (_) {
+            this.history = [];
+          }
+        }
+      };
+
+      document.addEventListener('DOMContentLoaded', () => UI.init());
+    })();
+  </script>
 </body>
 </html>
